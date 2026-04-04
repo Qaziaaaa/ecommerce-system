@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Anton", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --animate-marquee: marquee 20s linear infinite;
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+}
+
+/* Hide the Stripe floating icon/Link badge in the bottom corner globally */
+iframe[src*="stripe.com"][style*="bottom"],
+iframe[src*="stripe.network"][style*="bottom"],
+.StripeElement--Link,
+#Link {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -9999 !important;
+}
