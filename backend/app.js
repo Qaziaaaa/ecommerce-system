@@ -66,6 +66,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Routes
+app.get('/', (req, res) => res.status(200).send('Nova E-Commerce API is running!'));
 app.get('/api/v1/health', (req, res) => res.status(200).json({ status: 'ok' }));
 app.use('/api/v1', routes);
 
