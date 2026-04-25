@@ -28,7 +28,7 @@ const productSchema = new mongoose.Schema(
             validate: {
                 validator: function (val) {
                     // 'this' only points to current doc on NEW document creation
-                    return val < this.price;
+                    return val < this.price || val < this.get('price');
                 },
                 message: 'Discount price ({VALUE}) should be below regular price'
             }
@@ -71,9 +71,6 @@ const productSchema = new mongoose.Schema(
         timestamps: true
     }
 );
-
-// Create Text Index for Advanced Search
-productSchema.index({ name: 'text', description: 'text' });
 
 // Text Index for search optimization
 productSchema.index({ name: 'text', description: 'text', brand: 'text' });

@@ -57,38 +57,36 @@ axiosInstance.interceptors.response.use(
         const originalRequest = error.config;
 
         // 1. If 401 Unauthorized and not previously retried
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // AND not the refresh request itself (prevents infinite deadlock loop)
+        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
             
-            // a. If refresh is already in progress, queue this request
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 }).then(() => {
+                    // Mark as retry BEFORE retrying to prevent loops
+                    originalRequest._retry = true;
                     return axiosInstance(originalRequest);
                 }).catch(err => {
                     return Promise.reject(err);
                 });
             }
 
-            // b. Otherwise, start the refresh process
             originalRequest._retry = true;
             isRefreshing = true;
 
             try {
-                // Call the refresh endpoint
                 await axiosInstance.post('/auth/refresh');
                 
-                // If successful, process the queue and retry the original
                 processQueue(null);
                 isRefreshing = false;
                 return axiosInstance(originalRequest);
             } catch (refreshError) {
-                // If refresh fails, session is dead: clear queue and reject
                 processQueue(refreshError, null);
                 isRefreshing = false;
                 
-                // Optional: Force logout if needed
-                // useAuthStore.getState().logout()
+                const { useAuthStore } = await import('../store/useAuthStore');
+                useAuthStore.getState().logout();
                 
                 return Promise.reject(refreshError);
             }

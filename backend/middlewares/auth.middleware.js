@@ -31,7 +31,7 @@ export const protect = async (req, res, next) => {
         }
 
         // Attach user to request
-        const currentUser = await User.findById(decoded.userId);
+        const currentUser = await User.findById(decoded.userId).select('_id name email role isVerified addresses');
         if (!currentUser) {
             return res.status(401).json({
                 status: 'error',

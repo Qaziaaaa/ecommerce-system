@@ -19,7 +19,7 @@ interface CartState {
     cart: CartItem[];
     isCartOpen: boolean;
     setIsCartOpen: (isOpen: boolean) => void;
-    addToCart: (product: Product) => void;
+    addToCart: (product: Product, qty?: number) => void;
     updateQuantity: (id: string | number, delta: number) => void;
     removeFromCart: (id: string | number) => void;
     clearCart: () => void;
@@ -32,7 +32,7 @@ export const useCartStore = create<CartState>()(
             isCartOpen: false,
             setIsCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
             
-            addToCart: (product) => {
+            addToCart: (product, qty = 1) => {
                 const { cart } = get();
                 const id = product._id || product.id;
                 const existing = cart.find(item => (item._id === id || item.id === id));
@@ -41,12 +41,12 @@ export const useCartStore = create<CartState>()(
                 if (existing) {
                     newCart = cart.map(item => 
                         (item._id === id || item.id === id) 
-                            ? { ...item, quantity: item.quantity + 1 } 
+                            ? { ...item, quantity: item.quantity + qty } 
                             : item
                     );
                 } else {
                     // Normalize ID to ensure item.id always exists for the UI
-                    newCart = [...cart, { ...product, id: id, quantity: 1 }];
+                    newCart = [...cart, { ...product, id: id, quantity: qty }];
                 }
                 
                 set({ cart: newCart, isCartOpen: true });
@@ -58,10 +58,10 @@ export const useCartStore = create<CartState>()(
                     const itemId = item._id || item.id;
                     if (itemId === id) {
                         const newQ = item.quantity + delta;
-                        return newQ > 0 ? { ...item, quantity: newQ } : item;
+                        return newQ > 0 ? { ...item, quantity: newQ } : null;
                     }
                     return item;
-                });
+                }).filter(Boolean) as CartItem[];
                 set({ cart: newCart });
             },
 

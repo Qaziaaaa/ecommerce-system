@@ -12,7 +12,7 @@ export default function Home() {
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products-home'],
     queryFn: async () => {
-        const { data } = await axiosInstance.get('/products');
+        const { data } = await axiosInstance.get('/products?limit=8');
         return data.data.products;
     }
   });

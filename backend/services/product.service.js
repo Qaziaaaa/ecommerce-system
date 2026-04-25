@@ -9,7 +9,14 @@ import Category from '../models/Category.js';
 export const createProductService = async (productData) => {
     // Basic slug generation if not provided (though good practice is to handle it in a pre-save hook, we do it here for simplicity or assume front-end sends it)
     if (!productData.slug && productData.name) {
-        productData.slug = productData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+        productData.slug = productData.name
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/[\s-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
     }
     const product = await Product.create(productData);
     return product;
@@ -120,12 +127,20 @@ export const updateProductService = async (id, updateData) => {
     }
 
     if (updateData.name && !updateData.slug) {
-        updateData.slug = updateData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+        updateData.slug = updateData.name
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/[\s-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
     }
 
     const product = await Product.findByIdAndUpdate(id, updateData, {
         new: true,
-        runValidators: false // Temporarily disabled to see if discountPrice validator is blocking it
+        runValidators: true,
+        context: 'query'
     });
     return product;
 };

@@ -8,6 +8,7 @@ import {
     updateOrderStatus,
     getAllOrders,
     createPaymentIntent,
+    cancelPaymentIntent,
     deleteOrder
 } from '../controllers/order.controller.js';
 
@@ -21,6 +22,7 @@ router.route('/')
 
 router.post('/checkout', checkoutOrder);
 router.post('/create-payment-intent', createPaymentIntent);
+router.post('/cancel-payment-intent', cancelPaymentIntent);
 router.get('/my-orders', getMyOrders);
 router.get('/:id', getSingleOrder);
 router.delete('/:id', deleteOrder);

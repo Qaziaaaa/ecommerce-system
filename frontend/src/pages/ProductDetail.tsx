@@ -72,14 +72,12 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-        const cartItem = {
-            ...product,
-            id: product._id,
-            img: product.images?.[0] || '/placeholder.png'
-        };
-        addToCart(cartItem);
-    }
+    const cartItem = {
+        ...product,
+        id: product._id,
+        img: product.images?.[0] || '/placeholder.png'
+    };
+    addToCart(cartItem, quantity);
   };
 
   const handleReviewSubmit = (e: React.FormEvent) => {
@@ -181,7 +179,14 @@ export default function ProductDetail() {
             <h1 className="font-display text-6xl tracking-wide mb-4">{product.name}</h1>
             
             <div className="flex flex-col items-start gap-4 mb-8">
-                <p className="text-2xl font-bold">${product.price.toFixed(2)}</p>
+                {product.discountPrice ? (
+                    <>
+                        <p className="text-2xl font-bold">${product.discountPrice.toFixed(2)}</p>
+                        <p className="text-base line-through opacity-50">${product.price.toFixed(2)}</p>
+                    </>
+                ) : (
+                    <p className="text-2xl font-bold">${product.price.toFixed(2)}</p>
+                )}
                 {product.stock <= 10 && product.stock > 0 && (
                   <div className="bg-[#2D2926] text-[#EBE7E0] px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2 animate-pulse">
                     <AlertCircle size={14} />

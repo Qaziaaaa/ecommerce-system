@@ -138,6 +138,7 @@ export default function Checkout() {
   
   const [clientSecret, setClientSecret] = useState('');
   const [stripeError, setStripeError] = useState('');
+  const paymentIntentIdRef = React.useRef<string | null>(null);
 
   // Controlled form state
   const [email, setEmail] = useState('');
@@ -183,6 +184,13 @@ export default function Checkout() {
     if (cart.length > 0) {
       const fetchClientSecret = async () => {
         try {
+          if (paymentIntentIdRef.current) {
+            try {
+              await axiosInstance.post('/orders/cancel-payment-intent', {
+                  paymentIntentId: paymentIntentIdRef.current
+              });
+            } catch { /* best-effort */ }
+          }
           setStripeError('');
           const { data } = await axiosInstance.post('/orders/create-payment-intent', {
             orderItems: cart.map((item: any) => ({
@@ -192,6 +200,7 @@ export default function Checkout() {
             })),
             couponCode: appliedCoupon?.code
           });
+          paymentIntentIdRef.current = data.paymentIntentId;
           setClientSecret(data.clientSecret);
         } catch (error: any) {
           console.error('Failed to init payment intent:', error);

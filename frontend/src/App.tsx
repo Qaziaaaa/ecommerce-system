@@ -23,7 +23,15 @@ import AdminOrders from './pages/Admin/Orders';
 import AdminUsers from './pages/Admin/Users';
 import { useAuthStore } from './store/useAuthStore';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: 1, // Only retry once to avoid long loading states
+            refetchOnWindowFocus: false, // Prevent unexpected refetches
+            staleTime: 5 * 60 * 1000, // 5 minutes cache by default
+        },
+    },
+});
 
 // Protected Route for Admin
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {

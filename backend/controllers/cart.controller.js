@@ -19,7 +19,7 @@ export const addToCart = async (req, res, next) => {
             data: { cart }
         });
     } catch (error) {
-        res.status(400).json({ status: 'fail', message: error.message });
+        next(error);
     }
 };
 
@@ -32,7 +32,7 @@ export const getCart = async (req, res, next) => {
             data: cartData
         });
     } catch (error) {
-        res.status(400).json({ status: 'fail', message: error.message });
+        next(error);
     }
 };
 
@@ -56,7 +56,7 @@ export const updateCartItem = async (req, res, next) => {
             data: { cart }
         });
     } catch (error) {
-        res.status(400).json({ status: 'fail', message: error.message });
+        next(error);
     }
 };
 
@@ -72,6 +72,6 @@ export const removeCartItem = async (req, res, next) => {
             data: { cart }
         });
     } catch (error) {
-        res.status(400).json({ status: 'fail', message: error.message });
+        next(error);
     }
 };

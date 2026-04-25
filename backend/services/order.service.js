@@ -16,8 +16,12 @@ export const calculateOrderAmountService = async (clientItems, couponCode) => {
 
     let totalAmount = 0;
 
+    const productIds = clientItems.map(item => item.product || item.id);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
+
     for (const item of clientItems) {
-        const product = await Product.findById(item.product || item.id);
+        const product = productMap.get((item.product || item.id).toString());
         if (!product || !product.isActive) {
             throw new Error(`A product in your cart is no longer available`);
         }
@@ -60,9 +64,13 @@ export const checkoutOrderService = async (userId, checkoutData) => {
     let totalAmount = 0;
     const orderItems = [];
 
+    const productIds = clientItems.map(item => item.product || item.id);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
+
     // Validate each item against the database
     for (const item of clientItems) {
-        const product = await Product.findById(item.product || item.id);
+        const product = productMap.get((item.product || item.id).toString());
 
         if (!product || !product.isActive) {
             throw new Error(`A product in your cart is no longer available`);
@@ -134,11 +142,18 @@ export const checkoutOrderService = async (userId, checkoutData) => {
     await newOrder.save();
 
     // Reduce product stock
-    for (const item of orderItems) {
-        await Product.findByIdAndUpdate(
-            item.product,
-            { $inc: { stock: -item.quantity } }
-        );
+    const bulkOps = orderItems.map(item => ({
+        updateOne: {
+            filter: { _id: item.product, stock: { $gte: item.quantity } },
+            update: { $inc: { stock: -item.quantity } }
+        }
+    }));
+    const bulkResult = await Product.bulkWrite(bulkOps);
+    
+    if (bulkResult.modifiedCount !== orderItems.length) {
+        // Since we are not using transactions (due to possible single-node replica set),
+        // we throw an error. In a robust setup, use transactions.
+        throw new Error('Insufficient stock for one or more items during checkout');
     }
 
     return newOrder;
@@ -205,10 +220,13 @@ export const updateOrderStatusService = async (orderId, newStatus) => {
 /**
  * Get all orders (Admin only)
  */
-export const getAllOrdersService = async () => {
-    return await Order.find()
-        .populate('user', 'name email')
-        .sort('-createdAt');
+export const getAllOrdersService = async ({ page = 1, limit = 20 } = {}) => {
+    const skip = (page - 1) * limit;
+    const [orders, total] = await Promise.all([
+        Order.find().populate('user', 'name email').sort('-createdAt').skip(skip).limit(limit),
+        Order.countDocuments()
+    ]);
+    return { orders, total, totalPages: Math.ceil(total / limit), currentPage: page };
 };
 
 /**
@@ -234,12 +252,13 @@ export const deleteOrderService = async (orderId, user) => {
 
     // If order was pending or processing, restore the physical stock to the store
     if (['pending', 'processing'].includes(order.orderStatus)) {
-        for (const item of order.orderItems) {
-            await Product.findByIdAndUpdate(
-                item.product,
-                { $inc: { stock: item.quantity } } // Increment back the quantity
-            );
-        }
+        const bulkOps = order.orderItems.map(item => ({
+            updateOne: {
+                filter: { _id: item.product },
+                update: { $inc: { stock: item.quantity } }
+            }
+        }));
+        await Product.bulkWrite(bulkOps);
     }
 
     // Delete the order record entirely (or you could just mark it cancelled)

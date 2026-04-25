@@ -17,7 +17,7 @@ export const getProductReviews = async (req, res, next) => {
             }
         });
     } catch (error) {
-        res.status(400).json({ status: 'error', message: error.message });
+        next(error);
     }
 };
 
@@ -48,12 +48,18 @@ export const addReview = async (req, res, next) => {
         });
 
         // Calculate new average rating for product
-        const reviews = await Review.find({ product: productId });
-        const numReviews = reviews.length;
-        const avgRating = reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews;
+        const stats = await Review.aggregate([
+            { $match: { product: product._id } },
+            { $group: { _id: '$product', avgRating: { $avg: '$rating' }, count: { $sum: 1 } } }
+        ]);
 
-        product.ratingsAverage = avgRating;
-        product.ratingsCount = numReviews;
+        if (stats.length > 0) {
+            product.ratingsAverage = stats[0].avgRating;
+            product.ratingsCount = stats[0].count;
+        } else {
+            product.ratingsAverage = 4.5;
+            product.ratingsCount = 0;
+        }
         await product.save({ validateBeforeSave: false });
 
         res.status(201).json({
@@ -64,6 +70,6 @@ export const addReview = async (req, res, next) => {
             }
         });
     } catch (error) {
-        res.status(400).json({ status: 'error', message: error.message });
+        next(error);
     }
 };

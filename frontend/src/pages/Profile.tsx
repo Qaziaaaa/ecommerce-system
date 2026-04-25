@@ -13,6 +13,13 @@ export default function Profile() {
     const [name, setName] = useState(user?.name || '');
     const [isUpdating, setIsUpdating] = useState(false);
 
+    // Sync name when user loads
+    React.useEffect(() => {
+        if (user?.name) {
+            setName(user.name);
+        }
+    }, [user?.name]);
+
     // Address Form State
     const [isAddingAddress, setIsAddingAddress] = useState(false);
     const [isSubmittingAddress, setIsSubmittingAddress] = useState(false);
@@ -25,12 +32,17 @@ export default function Profile() {
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!name.trim()) return;
+        
         setIsUpdating(true);
         try {
-            const { data } = await axiosInstance.put('/auth/profile', { name });
-            setUser(data.user);
-            toast.success('Profile updated successfully');
+            const { data } = await axiosInstance.put('/auth/profile', { name: name.trim() });
+            if (data?.user) {
+                setUser(data.user);
+                toast.success('Profile updated successfully');
+            }
         } catch (error: any) {
+            console.error('Profile update error:', error);
             toast.error(error.response?.data?.message || 'Failed to update profile');
         } finally {
             setIsUpdating(false);

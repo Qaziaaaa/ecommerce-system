@@ -39,7 +39,8 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // 1. CSRF Bootstrap (MUST be before protection middleware)
 app.get('/api/v1/csrf-token', (req, res) => {
     // If token already exists, don't rotate it (prevents React Double-Render bugs)
-    if (req.cookies['XSRF-TOKEN']) {
+    const existingToken = req.cookies['XSRF-TOKEN'];
+    if (existingToken && /^[a-f0-9]{32,}$/i.test(existingToken)) {
         return res.json({ status: 'success', message: 'Token already present' });
     }
 

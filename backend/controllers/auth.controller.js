@@ -194,8 +194,22 @@ export const addAddress = async (req, res, next) => {
         if (!street || !city || !zipCode) {
             return next(new AppError('Street, city, and zipCode are required', 400));
         }
+
+        const MAX_LEN = 200;
+        const sanitize = (str) => str?.replace(/<[^>]*>/g, '').trim();
+
+        if (street.length > MAX_LEN || city.length > MAX_LEN || (zipCode && zipCode.length > 20)) {
+            return next(new AppError('Address fields exceed maximum allowed length', 400));
+        }
         
-        const newAddress = { street, city, state: state || 'N/A', zipCode, country: country || 'N/A', isDefault: isDefault || false };
+        const newAddress = { 
+            street: sanitize(street), 
+            city: sanitize(city), 
+            state: sanitize(state) || 'N/A', 
+            zipCode: sanitize(zipCode), 
+            country: sanitize(country) || 'N/A', 
+            isDefault: isDefault || false 
+        };
         
         if (isDefault || req.user.addresses.length === 0) {
             req.user.addresses.forEach(addr => addr.isDefault = false);

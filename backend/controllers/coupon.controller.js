@@ -18,7 +18,11 @@ export const applyCoupon = async (req, res, next) => {
             return res.status(404).json({ status: 'error', message: 'Invalid or expired coupon code' });
         }
 
-        if (cartTotal && cartTotal < coupon.minOrderValue) {
+        if (cartTotal == null) {
+            return res.status(400).json({ status: 'error', message: 'cartTotal is required' });
+        }
+
+        if (cartTotal < coupon.minOrderValue) {
             return res.status(400).json({ 
                 status: 'error', 
                 message: `This coupon requires a minimum purchase of $${coupon.minOrderValue}` 
@@ -34,7 +38,7 @@ export const applyCoupon = async (req, res, next) => {
         }
 
         // Ensure discount doesn't exceed cart total
-        if (cartTotal && discountAmount > cartTotal) {
+        if (discountAmount > cartTotal) {
             discountAmount = cartTotal;
         }
 
@@ -49,6 +53,6 @@ export const applyCoupon = async (req, res, next) => {
             }
         });
     } catch (error) {
-        res.status(400).json({ status: 'error', message: error.message });
+        next(error);
     }
 };

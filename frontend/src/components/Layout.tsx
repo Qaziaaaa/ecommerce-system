@@ -197,6 +197,15 @@ export default function Layout() {
             )}
           </button>
 
+          {user?.role === 'admin' && (
+              <Link 
+                to="/admin" 
+                className="hidden lg:flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase hover:text-amber-700 transition-colors duration-300 ease-in-out border border-amber-700/20 px-4 py-2 rounded-sm bg-amber-50/50"
+              >
+                  Admin Portal
+              </Link>
+          )}
+
           {/* Hamburger / User Icon Area */}
           <div className="flex items-center gap-4">
             {isAuthenticated ? (

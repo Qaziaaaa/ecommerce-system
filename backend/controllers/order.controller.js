@@ -21,6 +21,24 @@ export const checkoutOrder = async (req, res, next) => {
     }
 };
 
+export const cancelPaymentIntent = async (req, res, next) => {
+    try {
+        const { paymentIntentId } = req.body;
+        if (!paymentIntentId) {
+            return res.status(400).json({ status: 'fail', message: 'Payment Intent ID is required' });
+        }
+        
+        const Stripe = (await import('stripe')).default;
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+        
+        await stripe.paymentIntents.cancel(paymentIntentId);
+        
+        res.status(200).json({ status: 'success' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const createPaymentIntent = async (req, res, next) => {
     try {
         const { orderItems, couponCode } = req.body;
@@ -47,7 +65,8 @@ export const createPaymentIntent = async (req, res, next) => {
 
         res.status(200).json({
             status: 'success',
-            clientSecret: paymentIntent.client_secret
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id
         });
     } catch (error) {
         next(error);
@@ -111,12 +130,18 @@ export const updateOrderStatus = async (req, res, next) => {
 
 export const getAllOrders = async (req, res, next) => {
     try {
-        const orders = await orderService.getAllOrdersService();
+        const { page, limit } = req.query;
+        const result = await orderService.getAllOrdersService({ page, limit });
 
         res.status(200).json({
             status: 'success',
-            results: orders.length,
-            data: { orders }
+            results: result.orders.length,
+            data: { 
+                orders: result.orders,
+                total: result.total,
+                totalPages: result.totalPages,
+                currentPage: result.currentPage
+            }
         });
     } catch (error) {
         next(error);
