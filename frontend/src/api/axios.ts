@@ -42,11 +42,31 @@ axiosInstance.interceptors.request.use(
             return config;
         }
 
-        // Read the cookie manually
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('XSRF-TOKEN='))
-            ?.split('=')[1];
+        // Read the cookie manually - try multiple cookie parsing methods
+        let token = null;
+        
+        // Method 1: Standard parsing
+        const cookies = document.cookie.split('; ');
+        const csrfCookie = cookies.find(row => row.startsWith('XSRF-TOKEN='));
+        if (csrfCookie) {
+            token = csrfCookie.split('=')[1];
+        }
+        
+        // Method 2: Fallback parsing (in case of encoding issues)
+        if (!token) {
+            const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+            if (match) {
+                token = match[1];
+            }
+        }
+        
+        console.log('🔒 Axios interceptor:', {
+            method: config.method?.toUpperCase(),
+            url: config.url,
+            cookieString: document.cookie,
+            foundToken: token ? token.substring(0, 8) + '...' : 'NONE',
+            isFormData: config.data instanceof FormData
+        });
         
         // Add token if it exists
         if (token) {
@@ -55,6 +75,9 @@ axiosInstance.interceptors.request.use(
                 delete config.headers['Content-Type'];
             }
             config.headers['X-XSRF-TOKEN'] = token;
+            console.log('   → Added CSRF header:', token.substring(0, 8) + '...');
+        } else {
+            console.warn('   → No CSRF token found in cookies!');
         }
         
         return config;
