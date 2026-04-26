@@ -61,5 +61,10 @@ const orderSchema = new mongoose.Schema(
     }
 );
 
+// Indexes for frequent query patterns (Requirements: 3.1, 3.3)
+orderSchema.index({ user: 1, createdAt: -1 });          // User order history
+orderSchema.index({ orderStatus: 1, createdAt: -1 });   // Admin order management
+orderSchema.index({ paymentStatus: 1 });                 // Payment reconciliation
+
 const Order = mongoose.model('Order', orderSchema);
 export default Order;

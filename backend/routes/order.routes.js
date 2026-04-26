@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect } from '../middlewares/auth.middleware.js';
 import { isAdmin } from '../middlewares/role.middleware.js';
+import { orderLimiter, userApiLimiter } from '../middlewares/rateLimiter.js';
 import {
     checkoutOrder,
     getMyOrders,
@@ -20,9 +21,10 @@ router.use(protect);
 router.route('/')
     .get(isAdmin, getAllOrders);
 
-router.post('/checkout', checkoutOrder);
-router.post('/create-payment-intent', createPaymentIntent);
-router.post('/cancel-payment-intent', cancelPaymentIntent);
+// Per-user rate limiting on order creation and payment (Requirements: 6.6)
+router.post('/checkout', orderLimiter, checkoutOrder);
+router.post('/create-payment-intent', userApiLimiter, createPaymentIntent);
+router.post('/cancel-payment-intent', userApiLimiter, cancelPaymentIntent);
 router.get('/my-orders', getMyOrders);
 router.get('/:id', getSingleOrder);
 router.delete('/:id', deleteOrder);

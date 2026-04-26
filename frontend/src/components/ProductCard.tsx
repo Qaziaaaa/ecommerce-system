@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Star, AlertCircle } from 'lucide-react';
 import { Product } from '../data/products';
 import { useCart } from '../store/useCartStore';
+import LazyImage from './LazyImage';
 
 interface ProductCardProps {
   product: Product;
@@ -27,7 +28,7 @@ const highlightText = (text: string, highlight?: string) => {
   );
 };
 
-export const ProductCard: React.FC<{ product: any; searchQuery?: string }> = ({ product, searchQuery }) => {
+export const ProductCard: React.FC<{ product: any; searchQuery?: string }> = React.memo(({ product, searchQuery }) => {
   const { addToCart } = useCart();
 
   return (
@@ -39,13 +40,14 @@ export const ProductCard: React.FC<{ product: any; searchQuery?: string }> = ({ 
         </Link>
       </div>
       <div className="aspect-square w-full bg-white/40 flex items-center justify-center border-b border-[#2D2926] relative overflow-hidden cursor-pointer shrink-0">
-        <img 
-          src={product.images?.[0] || '/placeholder.png'} 
-          alt={product.name || 'Product Image'} 
-          loading="lazy" 
+        <LazyImage
+          src={product.images?.[0] || '/placeholder.png'}
+          alt={product.name || 'Product Image'}
+          placeholder="skeleton"
+          className="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-700 ease-out transform-gpu"
+          referrerPolicy="no-referrer"
           decoding="async"
-          className="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-700 ease-out transform-gpu" 
-          referrerPolicy="no-referrer" 
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         />
         
         {/* View Details Overlay */}
@@ -101,4 +103,13 @@ export const ProductCard: React.FC<{ product: any; searchQuery?: string }> = ({ 
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison — only re-render if product data or search query changes
+  return (
+    prevProps.product._id === nextProps.product._id &&
+    prevProps.product.stock === nextProps.product.stock &&
+    prevProps.product.price === nextProps.product.price &&
+    prevProps.product.ratingsAverage === nextProps.product.ratingsAverage &&
+    prevProps.searchQuery === nextProps.searchQuery
+  );
+});

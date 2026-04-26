@@ -1,4 +1,17 @@
 import axios from 'axios';
+import performanceMonitor from '../utils/performance';
+
+// Extend axios config to include performance metadata
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    metadata?: {
+      startTime: number;
+    };
+    _retry?: boolean;
+    _retryCount?: number;
+    _csrfRetry?: boolean;
+  }
+}
 
 const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
 
@@ -7,6 +20,28 @@ if (!API_URL) {
         'VITE_API_URL is not defined. Set it in your .env file (development) or in the Vercel dashboard (production).'
     );
 }
+
+// ─── Retry configuration (Requirements: 5.2 — Property 17) ───────────────────
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 300,        // ms
+  maxDelay: 5000,        // ms cap
+  backoffMultiplier: 2,
+  // Only retry on these status codes (network errors + server errors, not client errors)
+  retryableStatuses: [408, 429, 500, 502, 503, 504],
+};
+
+/**
+ * Calculate exponential backoff delay with jitter.
+ * delay = min(baseDelay * multiplier^attempt + jitter, maxDelay)
+ */
+const getRetryDelay = (attempt: number): number => {
+  const exponential = RETRY_CONFIG.baseDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt);
+  const jitter = Math.random() * 100; // ±100ms jitter to avoid thundering herd
+  return Math.min(exponential + jitter, RETRY_CONFIG.maxDelay);
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const axiosInstance = axios.create({
     baseURL: API_URL,
@@ -37,6 +72,9 @@ const processQueue = (error: any, token: string | null = null) => {
 // Add a request interceptor to FORCE the CSRF header manually
 axiosInstance.interceptors.request.use(
     async (config) => {
+        // Track API request start time
+        config.metadata = { startTime: performance.now() };
+        
         // Skip CSRF for GET requests and csrf-token endpoint
         if (config.method === 'get' || config.url?.includes('/csrf-token')) {
             return config;
@@ -89,9 +127,56 @@ axiosInstance.interceptors.request.use(
 
 // Add a response interceptor
 axiosInstance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Track successful API response
+        const endTime = performance.now();
+        const startTime = response.config.metadata?.startTime || endTime;
+        const duration = endTime - startTime;
+        
+        performanceMonitor.trackInteraction(
+            `api-${response.config.method?.toLowerCase() || 'unknown'}`,
+            response.config.url || 'unknown',
+            duration
+        );
+        
+        return response;
+    },
     async (error) => {
+        // Track failed API response
+        const endTime = performance.now();
+        const startTime = error.config?.metadata?.startTime || endTime;
+        const duration = endTime - startTime;
+        
+        performanceMonitor.trackInteraction(
+            'api-error',
+            `${error.config?.method?.toUpperCase() || 'UNKNOWN'} ${error.config?.url || 'unknown'}`,
+            duration
+        );
+        
         const originalRequest = error.config;
+
+        // ── Exponential backoff retry (Requirements: 5.2) ──────────────────
+        const retryCount = originalRequest._retryCount || 0;
+        const isRetryable =
+          !originalRequest._retry &&
+          retryCount < RETRY_CONFIG.maxRetries &&
+          !originalRequest.url?.includes('/auth/') &&
+          (
+            !error.response || // Network error
+            RETRY_CONFIG.retryableStatuses.includes(error.response.status)
+          );
+
+        if (isRetryable) {
+          originalRequest._retryCount = retryCount + 1;
+          const delay = getRetryDelay(retryCount);
+
+          if (import.meta.env.DEV) {
+            console.log(`[Axios] Retry ${retryCount + 1}/${RETRY_CONFIG.maxRetries} in ${Math.round(delay)}ms for ${originalRequest.url}`);
+          }
+
+          await sleep(delay);
+          return axiosInstance(originalRequest);
+        }
 
         // Handle CSRF token missing — fetch token then retry once
         if (

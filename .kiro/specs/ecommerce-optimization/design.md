@@ -1,1270 +1,1066 @@
-﻿# Nova E-Commerce Optimization Bugfix Design
+﻿# E-Commerce Performance Optimization Design
 
 ## Overview
 
-This document formalizes the fix strategy for 27 identified bugs, performance bottlenecks, and security issues in the Nova e-commerce application. The issues span five categories: race conditions and data integrity, N+1 query performance, security vulnerabilities, frontend state and logic bugs, and missing validation/edge cases.
+This document defines the technical design for comprehensive performance optimization of the Nova e-commerce platform. The system currently operates with a React + Vite + TypeScript frontend deployed on Vercel, Node.js + Express + MongoDB backend on Render, and includes product catalog, cart management, order processing, admin panel, authentication, and Stripe payment integration.
 
-The fix approach is **targeted and minimal**: each change addresses exactly the identified defect without restructuring surrounding code. The bug condition methodology is used throughout — for each issue we define C(X) (the condition that triggers the bug), the expected correct behavior P(result), and the preservation requirement (what must not change).
+The optimization strategy focuses on improving speed, scalability, user experience, and system resilience across all layers while maintaining existing functionality. The approach targets measurable performance improvements: sub-2-second page loads, sub-200ms API responses for cached data, sub-500ms for non-cached data, and support for 100+ concurrent requests.
 
-**Stack:** Node.js/Express backend with MongoDB/Mongoose, React/TypeScript frontend with Zustand and React Query.
-
----
-
-## Glossary
-
-- **Bug_Condition (C)**: A predicate over inputs that returns `true` when the defective code path is exercised.
-- **Property (P)**: The desired correct behavior that must hold for all inputs where C(X) is true.
-- **Preservation**: Existing correct behavior for inputs where C(X) is false — must be unchanged by the fix.
-- **F**: The original (unfixed) function.
-- **F'**: The fixed function.
-- **Atomic operation**: A database operation that completes as a single indivisible unit, preventing race conditions.
-- **bulkWrite**: MongoDB operation that batches multiple write operations into a single round-trip.
-- **N+1 query**: A pattern where one query fetches N records and then N additional queries are issued, one per record.
-- **runValidators**: Mongoose option that controls whether schema validators run on `findByIdAndUpdate` calls.
-- **PaymentIntent**: A Stripe object representing a payment lifecycle; leaked intents accumulate cost and noise.
-- **isBugCondition**: Pseudocode function that identifies whether a given input triggers the bug.
-- **checkoutOrderService**: `backend/services/order.service.js` — handles order creation and stock decrement.
-- **calculateOrderAmountService**: `backend/services/order.service.js` — computes order total for PaymentIntent creation.
-- **deleteOrderService**: `backend/services/order.service.js` — cancels an order and restores stock.
-- **updateProductService**: `backend/services/product.service.js` — updates a product document.
-- **createProductService**: `backend/services/product.service.js` — creates a product and generates its slug.
-- **addReview**: `backend/controllers/review.controller.js` — creates a review and recalculates product rating.
-- **protect**: `backend/middlewares/auth.middleware.js` — JWT authentication middleware.
-- **applyCoupon**: `backend/controllers/coupon.controller.js` — validates a coupon and calculates discount.
-- **handleAddToCart**: `frontend/src/pages/ProductDetail.tsx` — adds selected quantity to cart.
-- **updateQuantity**: `frontend/src/store/useCartStore.ts` — adjusts cart item quantity by delta.
+**Current Architecture:**
+- **Frontend**: React 19 + Vite 6 + TypeScript + Tailwind CSS + Zustand + React Query
+- **Backend**: Node.js + Express + MongoDB + Mongoose + JWT + Stripe
+- **Deployment**: Vercel (frontend) + Render (backend) + MongoDB Atlas
+- **Key Features**: Product catalog, shopping cart, order management, user authentication, admin panel, payment processing
 
 ---
 
-## Bug Details
+## Architecture
 
-### Category 1 — Race Conditions & Data Integrity
+### High-Level Architecture
 
-#### Bug 1.1 & 1.2 — Stock Overselling in `checkoutOrderService`
-
-The checkout flow performs stock validation and stock decrement as two separate, non-atomic operations. Between the `if (product.stock < item.quantity)` check and the subsequent `Product.findByIdAndUpdate(..., { $inc: { stock: -item.quantity } })`, another concurrent request can pass the same check and also decrement stock, driving it negative.
-
-**Formal Specification:**
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        Browser[Browser]
+        SW[Service Worker]
+        Cache[Browser Cache]
+    end
+    
+    subgraph "CDN Layer"
+        CDN[CDN/Edge Cache]
+        EdgeCache[Edge Locations]
+    end
+    
+    subgraph "Frontend Layer"
+        React[React App]
+        Vite[Vite Build System]
+        Bundle[Optimized Bundles]
+    end
+    
+    subgraph "Load Balancer"
+        LB[Load Balancer]
+        HealthCheck[Health Checks]
+    end
+    
+    subgraph "Backend Layer"
+        API[Express API Server]
+        Middleware[Middleware Stack]
+        Services[Business Services]
+    end
+    
+    subgraph "Caching Layer"
+        Redis[Redis Cache]
+        MemCache[In-Memory Cache]
+    end
+    
+    subgraph "Database Layer"
+        MongoDB[(MongoDB Primary)]
+        ReadReplica[(Read Replicas)]
+        Indexes[Optimized Indexes]
+    end
+    
+    subgraph "Monitoring Layer"
+        APM[Performance Monitor]
+        Metrics[Metrics Collection]
+        Alerts[Alert System]
+    end
+    
+    Browser --> CDN
+    CDN --> React
+    React --> LB
+    LB --> API
+    API --> Redis
+    API --> MongoDB
+    API --> ReadReplica
+    APM --> API
+    APM --> MongoDB
+    SW --> Cache
 ```
-FUNCTION isBugCondition_StockRace(X)
-  INPUT: X of type { concurrentRequests: number, availableStock: number, requestedQuantity: number }
-  OUTPUT: boolean
 
-  RETURN X.concurrentRequests > 1
-         AND X.availableStock <= (X.requestedQuantity * X.concurrentRequests)
-         AND stockDecrementIsNonAtomic()
-END FUNCTION
-```
+### Performance Optimization Layers
 
-**Examples:**
-- Two users simultaneously buy the last unit: both pass the `stock >= 1` check, both decrement → `stock = -1` (BUG)
-- One user buys 3 units while another buys 2, stock = 4: both pass check, combined decrement → `stock = -1` (BUG)
-- Single user buys last unit with no concurrency: check passes, decrement runs → `stock = 0` (correct, not a bug condition)
+1. **Frontend Optimization Layer**
+   - Code splitting and lazy loading
+   - Bundle optimization and tree shaking
+   - Image optimization and lazy loading
+   - Service worker caching
+   - React performance optimizations
 
-#### Bug 1.3 — Non-Atomic Stock Restoration in `deleteOrderService`
+2. **API Performance Layer**
+   - Response compression
+   - Request/response caching
+   - Connection pooling
+   - Pagination and query optimization
+   - Concurrent request handling
 
-When an order is cancelled, stock is restored via a `for` loop issuing one `Product.findByIdAndUpdate` per item. Under concurrent cancellations of orders sharing products, increments can be lost.
+3. **Database Performance Layer**
+   - Index optimization
+   - Query optimization
+   - Connection pooling
+   - Read replica scaling
+   - Aggregation pipeline optimization
 
-**Formal Specification:**
-```
-FUNCTION isBugCondition_StockRestore(X)
-  INPUT: X of type { orderItems: OrderItem[], concurrentCancellations: number }
-  OUTPUT: boolean
+4. **Caching Strategy Layer**
+   - Multi-level caching (browser, CDN, Redis, in-memory)
+   - Cache invalidation strategies
+   - Cache warming and preloading
+   - Edge caching for static assets
 
-  RETURN X.orderItems.length > 0
-         AND X.concurrentCancellations > 1
-         AND stockRestoreIsSequentialLoop()
-END FUNCTION
-```
-
-**Examples:**
-- Admin cancels two orders for the same product simultaneously: one increment may be lost (BUG)
-- Single order with 3 items cancelled: sequential loop runs without contention (not a bug condition in isolation, but still slow)
-
-#### Bug 1.4 — Non-Atomic Review Rating Calculation in `addReview`
-
-After creating a review, the controller fetches all reviews with `Review.find({ product: productId })` and computes the average in JavaScript. Under concurrent review submissions, two requests can both fetch the same stale review list and both save the same (incorrect) average.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_RatingRace(X)
-  INPUT: X of type { concurrentReviews: number, productId: ObjectId }
-  OUTPUT: boolean
-
-  RETURN X.concurrentReviews > 1
-         AND ratingComputedInJavaScript()
-         AND NOT ratingComputedAtomicallyInDB()
-END FUNCTION
-```
-
-**Examples:**
-- Two users submit reviews simultaneously: both fetch 5 reviews, both compute avg of 5 reviews, one save overwrites the other → count stays at 5 instead of 6 (BUG)
-- Single review submission: fetch → compute → save is sequential, result is correct (not a bug condition)
+5. **Infrastructure Layer**
+   - Load balancing and horizontal scaling
+   - Health checks and circuit breakers
+   - Resource monitoring and auto-scaling
+   - Zero-downtime deployments
 
 ---
 
-### Category 2 — Performance: N+1 Queries & Missing Indexes
+## Components and Interfaces
 
-#### Bug 2.1 & 2.2 — N+1 `Product.findById` in `calculateOrderAmountService` and `checkoutOrderService`
+### Frontend Performance Components
 
-Both services iterate over cart items with a `for` loop and call `Product.findById(item.product)` inside each iteration. For a cart with N items, this produces N sequential database round-trips.
+#### Bundle Analyzer Integration
+```typescript
+interface BundleAnalyzer {
+  analyzeBundle(): BundleReport;
+  identifyLargeChunks(threshold: number): ChunkInfo[];
+  generateSizeReport(): SizeReport;
+  trackBundleSize(): void;
+}
 
-**Formal Specification:**
-```
-FUNCTION isBugCondition_NPlus1(X)
-  INPUT: X of type { cartItems: CartItem[] }
-  OUTPUT: boolean
-
-  RETURN X.cartItems.length > 1
-         AND productsAreQueriedInLoop()
-END FUNCTION
-```
-
-**Examples:**
-- Cart with 5 items: 5 `findById` calls issued sequentially (BUG — should be 1 `find` with `$in`)
-- Cart with 1 item: 1 `findById` call (not a bug condition, but still benefits from the fix)
-
-#### Bug 2.3 — Sequential Stock Restoration Loop in `deleteOrderService`
-
-Same N+1 pattern: one `findByIdAndUpdate` per order item instead of a single `bulkWrite`.
-
-#### Bug 2.4 — Duplicate Conflicting Text Index on `Product` Model
-
-`Product.js` registers two text indexes:
-```js
-productSchema.index({ name: 'text', description: 'text' });
-productSchema.index({ name: 'text', description: 'text', brand: 'text' });
-```
-MongoDB only allows one text index per collection. The second definition conflicts with the first, causing a startup warning and potentially preventing the intended `brand` field from being searchable.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_DuplicateIndex(X)
-  INPUT: X of type ProductSchema
-  OUTPUT: boolean
-
-  RETURN countTextIndexDefinitions(X) > 1
-END FUNCTION
-```
-
-#### Bug 2.5 — `Home.tsx` Fetches All Products Then Slices Client-Side
-
-`Home.tsx` calls `GET /products` with no `limit` parameter (defaults to 12), then slices the result:
-```js
-const trendingProducts = products.slice(0, 4);
-const newArrivals = products.slice(4, 8);
-```
-This fetches up to 12 products over the network but only uses 8, wasting bandwidth.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_OverFetch(X)
-  INPUT: X of type HomePageRequest
-  OUTPUT: boolean
-
-  RETURN requestedProductCount(X) > neededProductCount(X)
-         AND slicingDoneClientSide(X)
-END FUNCTION
-```
-
-#### Bug 2.6 — `getAllOrdersService` Has No Pagination
-
-The admin orders endpoint returns all orders with no limit, which will degrade as order volume grows.
-
----
-
-### Category 3 — Security Issues
-
-#### Bug 3.1 — `updateProductService` Sets `runValidators: false`
-
-```js
-const product = await Product.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: false  // BUG
-});
-```
-This disables the `discountPrice < price` validator and all other schema validators, allowing invalid data to be persisted.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_NoValidators(X)
-  INPUT: X of type ProductUpdatePayload
-  OUTPUT: boolean
-
-  RETURN X.discountPrice != null
-         AND X.discountPrice >= X.price
-         AND runValidatorsIsFalse()
-END FUNCTION
-```
-
-**Examples:**
-- Admin sets `discountPrice = 100`, `price = 50`: validator would reject this, but `runValidators: false` allows it (BUG)
-- Admin sets `discountPrice = 30`, `price = 50`: valid data, passes regardless (not a bug condition)
-
-#### Bug 3.2, 3.3, 3.4 — Raw `error.message` Leaked in API Responses
-
-`cart.controller.js`, `review.controller.js`, and `coupon.controller.js` all catch errors and return `error.message` directly:
-```js
-} catch (error) {
-    res.status(400).json({ status: 'error', message: error.message });
+interface BundleReport {
+  totalSize: number;
+  chunks: ChunkInfo[];
+  dependencies: DependencyInfo[];
+  recommendations: OptimizationRecommendation[];
 }
 ```
-This bypasses the global error handler (`error.middleware.js`) which correctly suppresses internal details in production. Internal stack traces, database error messages, or implementation details can leak to clients.
 
-**Formal Specification:**
-```
-FUNCTION isBugCondition_ErrorLeak(X)
-  INPUT: X of type ControllerError
-  OUTPUT: boolean
+#### Code Splitting Manager
+```typescript
+interface CodeSplittingManager {
+  splitByRoute(): RouteChunk[];
+  splitByFeature(): FeatureChunk[];
+  implementLazyLoading(): LazyComponent[];
+  optimizeChunkLoading(): ChunkLoadingStrategy;
+}
 
-  RETURN errorCaughtLocally(X)
-         AND rawMessageReturnedToClient(X)
-         AND NOT routedThroughGlobalHandler(X)
-END FUNCTION
-```
-
-#### Bug 3.5 — CSRF Token Bootstrap Does Not Validate Existing Token Entropy
-
-The `/api/v1/csrf-token` endpoint reuses an existing `XSRF-TOKEN` cookie without validating its structure or entropy. An attacker who can set a weak or predictable cookie value can lock it in.
-
-#### Bug 3.6 — `updateQuantity` Silently Keeps Item at Zero Delta
-
-In `useCartStore.ts`:
-```ts
-return newQ > 0 ? { ...item, quantity: newQ } : item;  // BUG: returns item unchanged instead of removing
-```
-When `delta` would reduce quantity to 0 or below, the item is silently kept at its current quantity instead of being removed.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_ZeroDelta(X)
-  INPUT: X of type { currentQuantity: number, delta: number }
-  OUTPUT: boolean
-
-  RETURN (X.currentQuantity + X.delta) <= 0
-END FUNCTION
+interface LazyComponent {
+  componentName: string;
+  loadingStrategy: 'eager' | 'lazy' | 'preload';
+  fallbackComponent: React.ComponentType;
+}
 ```
 
-**Examples:**
-- Item with quantity 1, delta -1: result should be item removed, but item stays at quantity 1 (BUG)
-- Item with quantity 3, delta -1: result is quantity 2 (correct, not a bug condition)
+#### Image Optimization Service
+```typescript
+interface ImageOptimizationService {
+  implementLazyLoading(): LazyImageConfig;
+  optimizeImageFormats(): ImageFormatConfig;
+  generateResponsiveImages(): ResponsiveImageSet;
+  preloadCriticalImages(): PreloadConfig;
+}
+
+interface LazyImageConfig {
+  threshold: string; // Intersection observer threshold
+  rootMargin: string;
+  placeholder: 'blur' | 'skeleton' | 'none';
+}
+```
+
+#### Service Worker Manager
+```typescript
+interface ServiceWorkerManager {
+  cacheStaticAssets(): CacheStrategy;
+  implementOfflineSupport(): OfflineStrategy;
+  handleCacheInvalidation(): InvalidationStrategy;
+  preloadCriticalResources(): PreloadStrategy;
+}
+
+interface CacheStrategy {
+  staticAssets: CacheConfig;
+  apiResponses: CacheConfig;
+  images: CacheConfig;
+}
+```
+
+### Backend Performance Components
+
+#### Response Compression Service
+```typescript
+interface CompressionService {
+  compressResponse(data: any, format: 'gzip' | 'brotli'): Buffer;
+  shouldCompress(request: Request): boolean;
+  getOptimalCompression(contentType: string): CompressionConfig;
+}
+
+interface CompressionConfig {
+  algorithm: 'gzip' | 'brotli';
+  level: number;
+  threshold: number;
+  mimeTypes: string[];
+}
+```
+
+#### API Cache Manager
+```typescript
+interface APICacheManager {
+  cacheResponse(key: string, data: any, ttl: number): Promise<void>;
+  getCachedResponse(key: string): Promise<any | null>;
+  invalidateCache(pattern: string): Promise<void>;
+  setCacheHeaders(response: Response, ttl: number): void;
+}
+
+interface CacheConfig {
+  defaultTTL: number;
+  maxSize: number;
+  keyGenerator: (request: Request) => string;
+  invalidationRules: InvalidationRule[];
+}
+```
+
+#### Connection Pool Manager
+```typescript
+interface ConnectionPoolManager {
+  createPool(config: PoolConfig): ConnectionPool;
+  monitorPoolHealth(): PoolMetrics;
+  adjustPoolSize(metrics: PoolMetrics): void;
+  handleConnectionFailure(): void;
+}
+
+interface PoolConfig {
+  minConnections: number;
+  maxConnections: number;
+  acquireTimeoutMillis: number;
+  idleTimeoutMillis: number;
+}
+```
+
+#### Pagination Service
+```typescript
+interface PaginationService {
+  paginateQuery<T>(
+    query: Query<T>,
+    page: number,
+    limit: number
+  ): Promise<PaginatedResult<T>>;
+  
+  generatePaginationMeta(
+    total: number,
+    page: number,
+    limit: number
+  ): PaginationMeta;
+}
+
+interface PaginatedResult<T> {
+  data: T[];
+  pagination: PaginationMeta;
+}
+
+interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+```
+
+### Database Performance Components
+
+#### Index Optimization Manager
+```typescript
+interface IndexOptimizationManager {
+  analyzeQueryPatterns(): QueryPattern[];
+  recommendIndexes(): IndexRecommendation[];
+  createOptimalIndexes(): Promise<void>;
+  monitorIndexUsage(): IndexUsageStats;
+}
+
+interface IndexRecommendation {
+  collection: string;
+  fields: IndexField[];
+  type: 'single' | 'compound' | 'text' | 'geospatial';
+  priority: 'high' | 'medium' | 'low';
+}
+```
+
+#### Query Optimization Service
+```typescript
+interface QueryOptimizationService {
+  optimizeAggregationPipeline(pipeline: any[]): any[];
+  addQueryHints(query: any): any;
+  batchQueries(queries: Query[]): Promise<any[]>;
+  logSlowQueries(threshold: number): void;
+}
+
+interface QueryPerformanceMetrics {
+  executionTime: number;
+  documentsExamined: number;
+  documentsReturned: number;
+  indexUsed: boolean;
+}
+```
+
+### Caching Layer Components
+
+#### Redis Cache Service
+```typescript
+interface RedisCacheService {
+  set(key: string, value: any, ttl?: number): Promise<void>;
+  get(key: string): Promise<any | null>;
+  del(key: string): Promise<void>;
+  invalidatePattern(pattern: string): Promise<void>;
+  setupClustering(): Promise<void>;
+}
+
+interface CacheInvalidationService {
+  invalidateOnUpdate(entity: string, id: string): Promise<void>;
+  invalidateOnCreate(entity: string): Promise<void>;
+  invalidateOnDelete(entity: string, id: string): Promise<void>;
+  scheduleInvalidation(key: string, delay: number): Promise<void>;
+}
+```
+
+#### CDN Integration Service
+```typescript
+interface CDNService {
+  uploadStaticAssets(assets: Asset[]): Promise<void>;
+  setEdgeCaching(config: EdgeCacheConfig): Promise<void>;
+  purgeCache(paths: string[]): Promise<void>;
+  optimizeAssetDelivery(): Promise<void>;
+}
+
+interface EdgeCacheConfig {
+  staticAssets: CacheDuration;
+  apiResponses: CacheDuration;
+  images: CacheDuration;
+}
+```
+
+### Monitoring and Performance Components
+
+#### Performance Monitor
+```typescript
+interface PerformanceMonitor {
+  trackAPIResponseTime(endpoint: string, duration: number): void;
+  trackDatabaseQueryTime(query: string, duration: number): void;
+  trackFrontendMetrics(metrics: WebVitals): void;
+  generatePerformanceReport(): PerformanceReport;
+  sendAlert(alert: PerformanceAlert): void;
+}
+
+interface WebVitals {
+  LCP: number; // Largest Contentful Paint
+  FID: number; // First Input Delay
+  CLS: number; // Cumulative Layout Shift
+  TTFB: number; // Time to First Byte
+}
+
+interface PerformanceAlert {
+  type: 'response_time' | 'error_rate' | 'resource_usage';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  metrics: any;
+  timestamp: Date;
+}
+```
+
+#### Resource Monitor
+```typescript
+interface ResourceMonitor {
+  trackCPUUsage(): number;
+  trackMemoryUsage(): MemoryMetrics;
+  trackDatabaseConnections(): ConnectionMetrics;
+  trackCacheHitRate(): CacheMetrics;
+  triggerScalingAlert(threshold: number): void;
+}
+
+interface MemoryMetrics {
+  used: number;
+  total: number;
+  percentage: number;
+  heapUsed: number;
+  heapTotal: number;
+}
+```
 
 ---
 
-### Category 4 — Frontend State & Logic Bugs
+## Data Models
 
-#### Bug 4.1 — `handleAddToCart` Calls `addToCart` in a Loop
-
-```tsx
-const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {  // BUG
-        addToCart(cartItem);
-    }
-};
-```
-Each `addToCart` call triggers a Zustand state update and re-render. For `quantity = 5`, this causes 5 state updates and 5 re-renders instead of 1.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_AddToCartLoop(X)
-  INPUT: X of type { quantity: number }
-  OUTPUT: boolean
-
-  RETURN X.quantity > 1
-END FUNCTION
+### Performance Metrics Schema
+```typescript
+interface PerformanceMetrics {
+  id: string;
+  timestamp: Date;
+  endpoint: string;
+  responseTime: number;
+  statusCode: number;
+  userAgent: string;
+  ipAddress: string;
+  cacheHit: boolean;
+  databaseQueryTime?: number;
+  memoryUsage?: number;
+  cpuUsage?: number;
+}
 ```
 
-**Examples:**
-- User selects quantity 3 and clicks "Add to Cart": 3 `addToCart` calls, 3 re-renders, cart shows quantity 3 (BUG — should be 1 call)
-- User selects quantity 1: 1 `addToCart` call (not a bug condition)
-
-#### Bug 4.2 — Checkout Leaks Stripe PaymentIntents on Cart/Coupon Changes
-
-The `useEffect` in `Checkout.tsx` creates a new PaymentIntent every time `cart` or `appliedCoupon` changes, but never cancels the previous one. The 500ms debounce reduces frequency but does not cancel abandoned intents.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_PaymentIntentLeak(X)
-  INPUT: X of type { cartChanges: number, couponChanges: number }
-  OUTPUT: boolean
-
-  RETURN (X.cartChanges + X.couponChanges) > 1
-         AND previousPaymentIntentNotCancelled()
-END FUNCTION
+### Cache Entry Schema
+```typescript
+interface CacheEntry {
+  key: string;
+  value: any;
+  ttl: number;
+  createdAt: Date;
+  lastAccessed: Date;
+  hitCount: number;
+  tags: string[];
+}
 ```
 
-#### Bug 4.3 — `useAuthStore` Persists Full User Object Including Addresses to `localStorage`
+### Bundle Analysis Schema
+```typescript
+interface BundleAnalysis {
+  id: string;
+  buildId: string;
+  timestamp: Date;
+  totalSize: number;
+  gzippedSize: number;
+  chunks: ChunkAnalysis[];
+  dependencies: DependencyAnalysis[];
+  recommendations: string[];
+}
 
-The Zustand `persist` middleware stores the entire user object (including `addresses`) in `localStorage`. If `clearStorage` is not called on logout, sensitive address data persists.
-
-#### Bug 4.4 — `ProductDetail.tsx` Always Shows `product.price` Even When `discountPrice` Exists
-
-```tsx
-<p className="text-2xl font-bold">${product.price.toFixed(2)}</p>
-```
-The discounted price is never displayed. Customers see the full price even when a discount applies.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_DiscountPrice(X)
-  INPUT: X of type Product
-  OUTPUT: boolean
-
-  RETURN X.discountPrice != null AND X.discountPrice < X.price
-END FUNCTION
-```
-
-**Examples:**
-- Product with `price = 100`, `discountPrice = 75`: displays `$100.00` (BUG — should show `$75.00` with `$100.00` struck through)
-- Product with `price = 100`, no `discountPrice`: displays `$100.00` (correct, not a bug condition)
-
----
-
-### Category 5 — Validation & Edge Cases
-
-#### Bug 5.1 — `addAddress` Has No Length/Sanitization Validation
-
-The `addAddress` controller only checks that `street`, `city`, and `zipCode` are present. It does not enforce maximum lengths or sanitize against script injection.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_AddressValidation(X)
-  INPUT: X of type AddressPayload
-  OUTPUT: boolean
-
-  RETURN (length(X.street) > MAX_FIELD_LENGTH
-         OR length(X.city) > MAX_FIELD_LENGTH
-         OR containsScriptTags(X.street)
-         OR containsScriptTags(X.city))
-         AND noLengthValidationEnforced()
-END FUNCTION
+interface ChunkAnalysis {
+  name: string;
+  size: number;
+  gzippedSize: number;
+  modules: string[];
+  isAsync: boolean;
+}
 ```
 
-#### Bug 5.2 — Slug Generation Doesn't Handle Unicode/Consecutive Hyphens
-
-```js
-productData.slug = productData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
-```
-This does not normalize Unicode (e.g., `"Café"` → `"caf-"` instead of `"cafe"`), does not collapse consecutive hyphens (`"hello--world"`), and does not trim leading/trailing hyphens.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_SlugGeneration(X)
-  INPUT: X of type { name: string }
-  OUTPUT: boolean
-
-  RETURN containsUnicode(X.name)
-         OR wouldProduceConsecutiveHyphens(X.name)
-         OR wouldProduceLeadingOrTrailingHyphens(X.name)
-END FUNCTION
-```
-
-**Examples:**
-- `"Café Latte"` → `"caf-latte"` (BUG — should be `"cafe-latte"`)
-- `"Hello  World"` (double space) → `"hello--world"` (BUG — should be `"hello-world"`)
-- `"-Cool Product-"` → `"-cool-product-"` (BUG — should be `"cool-product"`)
-- `"Simple Name"` → `"simple-name"` (correct, not a bug condition)
-
-#### Bug 5.3 — `applyCoupon` Skips Minimum Order Value Check When `cartTotal` Is Absent
-
-```js
-if (cartTotal && cartTotal < coupon.minOrderValue) { ... }  // BUG: skips check when cartTotal is falsy
-```
-When `cartTotal` is `0` or absent, the minimum order check is skipped entirely. A percentage coupon then returns `discountAmount = 0` (since `0 * rate / 100 = 0`), but the coupon is still marked as "applied successfully".
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_CouponValidation(X)
-  INPUT: X of type { cartTotal: number | undefined, coupon: Coupon }
-  OUTPUT: boolean
-
-  RETURN (X.cartTotal == null OR X.cartTotal == 0)
-         AND X.coupon.minOrderValue > 0
-END FUNCTION
-```
-
-#### Bug 5.4 — `auth.middleware.js` Fetches Full User Document With No Field Projection
-
-```js
-const currentUser = await User.findById(decoded.userId);  // BUG: no .select()
-```
-Every authenticated request fetches the full user document including the `cart` array and `addresses` array, which can be large.
-
-**Formal Specification:**
-```
-FUNCTION isBugCondition_AuthProjection(X)
-  INPUT: X of type AuthenticatedRequest
-  OUTPUT: boolean
-
-  RETURN noFieldProjectionOnUserFetch()
-         AND userHasLargeCartOrAddresses(X.userId)
-END FUNCTION
+### Performance Threshold Configuration
+```typescript
+interface PerformanceThresholds {
+  pageLoadTime: number; // 2000ms
+  apiResponseTime: {
+    cached: number; // 200ms
+    uncached: number; // 500ms
+  };
+  databaseQueryTime: {
+    simple: number; // 100ms
+    aggregation: number; // 300ms
+    slow: number; // 200ms (for logging)
+  };
+  concurrentRequests: number; // 100
+  errorRate: number; // 1%
+  resourceUsage: {
+    cpu: number; // 80%
+    memory: number; // 80%
+  };
+}
 ```
 
 ---
 
-## Expected Behavior
+## Error Handling
 
-### Preservation Requirements
+### Error Boundary Implementation
+```typescript
+interface ErrorBoundaryConfig {
+  fallbackComponent: React.ComponentType<ErrorFallbackProps>;
+  onError: (error: Error, errorInfo: ErrorInfo) => void;
+  enableRetry: boolean;
+  maxRetries: number;
+}
 
-The following behaviors are correct today and must remain unchanged after all fixes are applied:
+interface ErrorFallbackProps {
+  error: Error;
+  resetError: () => void;
+  retry: () => void;
+}
+```
 
-**Unchanged Behaviors:**
-- A valid order with sufficient stock creates the order, decrements stock, and returns 201 (Requirement 3.1)
-- A valid coupon applied to a cart total above the minimum order value returns the correct discount (Requirement 3.2)
-- Admin updating a product name auto-generates the slug from the new name (Requirement 3.3)
-- Cancelling a pending or processing order restores stock for all order items (Requirement 3.4)
-- Adding a product with quantity 1 from the product detail page adds the item and opens the cart drawer (Requirement 3.5)
-- The Stripe webhook `payment_intent.succeeded` event updates the order payment status to `paid` idempotently (Requirement 3.6)
-- Unauthenticated users can browse the shop and product detail pages without authentication (Requirement 3.7)
-- Admin fetching all orders receives orders populated with user name and email (Requirement 3.8)
-- A user cannot submit a duplicate review for the same product (Requirement 3.9)
-- The refresh token interceptor in `axios.ts` queues concurrent 401 failures and replays them after token refresh (Requirement 3.10)
+### API Error Handling with Retry Logic
+```typescript
+interface RetryConfig {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffMultiplier: number;
+  retryableStatusCodes: number[];
+}
 
-**Scope of Non-Affected Inputs:**
-All inputs that do NOT satisfy any of the bug conditions above should be completely unaffected by the fixes. This includes:
-- Single-item checkouts with no concurrency
-- Product updates with valid `discountPrice < price`
-- Cart operations with quantity > 0
-- Coupon applications with a provided, non-zero `cartTotal`
-- Product names containing only ASCII alphanumeric characters and spaces
-- Auth middleware requests for users with small carts
+interface CircuitBreakerConfig {
+  failureThreshold: number;
+  resetTimeout: number;
+  monitoringPeriod: number;
+}
+```
 
----
+### Graceful Degradation Strategy
+```typescript
+interface GracefulDegradationConfig {
+  criticalFeatures: string[];
+  nonCriticalFeatures: string[];
+  fallbackBehaviors: Map<string, FallbackBehavior>;
+  resourceThresholds: ResourceThresholds;
+}
 
-## Hypothesized Root Cause
+interface FallbackBehavior {
+  disableFeature: boolean;
+  showFallbackUI: boolean;
+  cacheLastKnownGood: boolean;
+  notifyUser: boolean;
+}
+```
 
-### Category 1 — Race Conditions
-
-1. **Non-Atomic Read-Modify-Write in Checkout**: `checkoutOrderService` reads `product.stock`, checks it in JavaScript, then issues a separate `findByIdAndUpdate`. The gap between read and write is the race window. Fix: use a single atomic `findOneAndUpdate` with a `{ stock: { $gte: quantity } }` filter condition.
-
-2. **Sequential Loop for Bulk Writes**: Both `deleteOrderService` and `checkoutOrderService` use `for` loops with `await` inside, issuing one DB call per item. Fix: collect all operations and issue a single `bulkWrite`.
-
-3. **JavaScript-Side Aggregation for Rating**: `addReview` fetches all reviews into memory and computes the average in JavaScript. Fix: use MongoDB's `$avg` aggregation operator to compute the average atomically in the database.
-
-### Category 2 — Performance
-
-4. **Missing `$in` Query**: Both order amount services call `Product.findById` inside a loop. The fix is straightforward: collect all product IDs, issue one `Product.find({ _id: { $in: ids } })`, then build a lookup map.
-
-5. **Duplicate Index Declaration**: Two `productSchema.index()` calls both declare text indexes. MongoDB silently ignores or errors on the second. Fix: remove the first (narrower) declaration and keep only the one covering `{ name, description, brand }`.
-
-6. **Missing `limit` Parameter on Home Fetch**: `Home.tsx` calls `/products` without `?limit=8`. The backend defaults to 12. Fix: pass `?limit=8` (or two separate `?limit=4` calls with different sort/filter criteria for trending vs. new arrivals).
-
-7. **Missing Pagination on Admin Orders**: `getAllOrdersService` calls `Order.find()` with no limit. Fix: add `page` and `limit` query parameter support mirroring the pattern already used in `getAllProductsService`.
-
-### Category 3 — Security
-
-8. **Intentionally Disabled Validators**: The comment in `updateProductService` reads `"Temporarily disabled to see if discountPrice validator is causing issues"` — this was a debugging shortcut that was never reverted. Fix: set `runValidators: true` and fix the validator's `this` context issue for updates by using a `context: 'query'` option or a pre-hook.
-
-9. **Missing `next(error)` in Catch Blocks**: Three controllers (`cart`, `review`, `coupon`) use local `res.status(400).json(...)` in catch blocks instead of `next(error)`. Fix: replace with `next(error)` to route through the global error handler.
-
-10. **No Entropy Check on CSRF Token Reuse**: The bootstrap endpoint checks for cookie existence but not validity. Fix: add a minimum length check (e.g., 32 hex characters) before reusing an existing token.
-
-### Category 4 — Frontend
-
-11. **Loop Instead of Single Call with Quantity**: `handleAddToCart` was likely written before `addToCart` supported a `quantity` parameter, or the developer misunderstood the API. Fix: pass `quantity` directly to a single `addToCart` call (requires updating `addToCart` to accept an optional quantity).
-
-12. **No PaymentIntent Cancellation**: The `useEffect` cleanup function only clears the debounce timeout but does not cancel the in-flight or completed PaymentIntent. Fix: store the `paymentIntentId` in a ref and call `POST /orders/cancel-payment-intent` (or use the Stripe API directly) in the cleanup function, or track the intent ID server-side and cancel on new intent creation.
-
-13. **Hardcoded `product.price` in JSX**: The price display in `ProductDetail.tsx` was never updated to handle the `discountPrice` field. Fix: conditionally render `discountPrice` as the primary price with `price` struck through.
-
-14. **`updateQuantity` Returns Item Instead of Removing**: The ternary `return newQ > 0 ? { ...item, quantity: newQ } : item` should be `return newQ > 0 ? { ...item, quantity: newQ } : null` followed by filtering out nulls, or the item should be removed via `filter`.
-
-### Category 5 — Validation
-
-15. **Missing Field-Level Validation in `addAddress`**: The controller only checks presence of three fields. Fix: add `maxlength` checks and basic sanitization (strip HTML tags) for all address fields.
-
-16. **Naive Slug Regex**: The slug generation regex was written for simple ASCII names. Fix: use `String.prototype.normalize('NFD')` to decompose Unicode, strip diacritics, then collapse hyphens and trim.
-
-17. **Falsy Check Instead of Explicit `null` Check for `cartTotal`**: `if (cartTotal && ...)` treats `0` as falsy, skipping the minimum order check. Fix: use `if (cartTotal != null && ...)` or make `cartTotal` a required field with explicit validation.
-
-18. **No Field Projection in Auth Middleware**: `User.findById(decoded.userId)` fetches the entire document. Fix: add `.select('_id name email role isVerified addresses')` — enough for authorization and profile display, excluding the large `cart` array.
+### Offline Support Strategy
+```typescript
+interface OfflineStrategy {
+  criticalPages: string[];
+  cacheStrategy: 'cache-first' | 'network-first' | 'stale-while-revalidate';
+  offlineIndicator: boolean;
+  queueFailedRequests: boolean;
+  syncOnReconnect: boolean;
+}
+```
 
 ---
 
 ## Correctness Properties
 
-Property 1: Bug Condition — Atomic Stock Decrement Prevents Overselling
+*A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-_For any_ checkout request where `isBugCondition_StockRace` holds (concurrent requests competing for limited stock), the fixed `checkoutOrderService` SHALL use a single atomic `findOneAndUpdate` with a stock guard condition such that `stock` never goes below zero and at most one concurrent request succeeds when stock is insufficient for all.
+After analyzing the acceptance criteria, the following properties are suitable for property-based testing as they represent universal behaviors that should hold across varying inputs:
 
-**Validates: Requirements 2.1, 2.2**
+### Property 1: Bundle Analysis Accuracy
 
----
+*For any* bundle configuration with chunks of varying sizes, the Bundle Analyzer SHALL correctly identify and report all chunks exceeding the 500KB threshold, with no false positives or false negatives.
 
-Property 2: Preservation — Valid Single-User Checkout Unchanged
+**Validates: Requirements 1.3**
 
-_For any_ checkout request where `isBugCondition_StockRace` does NOT hold (sufficient stock, no concurrency), the fixed `checkoutOrderService` SHALL produce the same order creation result, stock decrement, and 201 response as the original function.
+### Property 2: Complete Chunk Reporting
 
-**Validates: Requirements 3.1**
+*For any* production build containing N chunks, the Bundle Analyzer SHALL generate a size report that includes exactly N chunks with accurate size information for each.
 
----
+**Validates: Requirements 1.4**
 
-Property 3: Bug Condition — Batched Product Queries Replace N+1 Loop
+### Property 3: Image Lazy Loading Based on Viewport
 
-_For any_ cart with N > 1 items, the fixed `calculateOrderAmountService` and `checkoutOrderService` SHALL issue exactly 1 `Product.find` query (plus 1 `bulkWrite` for stock decrement in checkout) regardless of N, rather than N individual `findById` calls.
+*For any* page layout with images at different viewport positions, the Frontend System SHALL apply lazy loading to images below the fold while immediately loading images above the fold.
 
-**Validates: Requirements 3.1, 3.2**
+**Validates: Requirements 1.6**
 
----
+### Property 4: Response Compression by Size and Type
 
-Property 4: Preservation — Order Amount Calculation Correctness Unchanged
+*For any* API response above the compression threshold, the Backend System SHALL apply gzip or brotli compression based on the content type and client capabilities.
 
-_For any_ cart input where `isBugCondition_NPlus1` holds, the fixed services SHALL return the same computed `totalAmount` as the original services — only the number of database round-trips changes, not the result.
+**Validates: Requirements 2.3**
 
-**Validates: Requirements 3.1, 3.2**
+### Property 5: Performance Metrics Logging Completeness
 
----
+*For any* API request processed by the system, the Backend System SHALL log performance metrics including response time, status code, and cache hit status.
 
-Property 5: Bug Condition — Atomic Rating Recalculation
+**Validates: Requirements 2.5**
 
-_For any_ concurrent review submission where `isBugCondition_RatingRace` holds, the fixed `addReview` SHALL compute `ratingsAverage` and `ratingsCount` using a MongoDB aggregation pipeline, ensuring the final stored values reflect all submitted reviews without lost updates.
+### Property 6: Cache Header Consistency
 
-**Validates: Requirements 2.4**
+*For any* API endpoint with defined caching behavior, the Backend System SHALL return appropriate HTTP cache-control headers consistent with the endpoint's caching strategy.
 
----
+**Validates: Requirements 2.6**
 
-Property 6: Preservation — Single Review Submission Unchanged
+### Property 7: Pagination Metadata Accuracy
 
-_For any_ single (non-concurrent) review submission, the fixed `addReview` SHALL produce the same `ratingsAverage`, `ratingsCount`, and review document as the original function.
+*For any* dataset requiring pagination, the Backend System SHALL return paginated results with accurate metadata including current page, total pages, total items, and navigation flags.
 
-**Validates: Requirements 3.9**
+**Validates: Requirements 2.7**
 
----
+### Property 8: Structured Error Response Timing
 
-Property 7: Bug Condition — Schema Validators Enforced on Product Update
+*For any* error condition in API processing, the Backend System SHALL return a structured error response within the specified time limit while maintaining consistent error format.
 
-_For any_ product update payload where `isBugCondition_NoValidators` holds (i.e., `discountPrice >= price`), the fixed `updateProductService` SHALL reject the update with a validation error rather than persisting invalid data.
+**Validates: Requirements 2.8**
 
-**Validates: Requirements 4.1**
+### Property 9: Connection Pool Load Adaptation
 
----
-
-Property 8: Preservation — Valid Product Updates Still Succeed
-
-_For any_ product update payload where `isBugCondition_NoValidators` does NOT hold (valid data), the fixed `updateProductService` SHALL update the product and return the updated document, identical to the original behavior.
-
-**Validates: Requirements 3.3**
-
----
-
-Property 9: Bug Condition — Errors Routed Through Global Handler
-
-_For any_ error thrown in `cart.controller.js`, `review.controller.js`, or `coupon.controller.js`, the fixed controllers SHALL call `next(error)` so the global error handler suppresses internal details in production responses.
-
-**Validates: Requirements 4.2**
-
----
-
-Property 10: Preservation — Successful Controller Responses Unchanged
-
-_For any_ request that does NOT throw an error in the affected controllers, the fixed controllers SHALL return the same response shape and status code as the original controllers.
-
-**Validates: Requirements 3.2, 3.9**
-
----
-
-Property 11: Bug Condition — `updateQuantity` Removes Item at Zero
-
-_For any_ cart state where `isBugCondition_ZeroDelta` holds (quantity + delta <= 0), the fixed `updateQuantity` SHALL remove the item from the cart rather than keeping it at its current quantity.
-
-**Validates: Requirements 4.4**
-
----
-
-Property 12: Preservation — Positive Delta Updates Unchanged
-
-_For any_ cart state where `isBugCondition_ZeroDelta` does NOT hold (quantity + delta > 0), the fixed `updateQuantity` SHALL produce the same updated quantity as the original function.
+*For any* system load level, the Connection Pool SHALL maintain an appropriate number of active connections between the minimum and maximum bounds based on current demand.
 
 **Validates: Requirements 3.5**
 
----
+### Property 10: Query Result Caching Behavior
 
-Property 13: Bug Condition — Single `addToCart` Call for Any Quantity
+*For any* frequently accessed query, the Backend System SHALL cache the result and serve subsequent identical queries from cache until expiration.
 
-_For any_ `handleAddToCart` invocation where `isBugCondition_AddToCartLoop` holds (quantity > 1), the fixed handler SHALL call `addToCart` exactly once with the correct quantity, producing a single Zustand state update and a cart item with `quantity = selectedQuantity`.
+**Validates: Requirements 3.6**
 
-**Validates: Requirements 5.1**
+### Property 11: Slow Query Logging Threshold
 
----
-
-Property 14: Preservation — Quantity-1 Add to Cart Unchanged
-
-_For any_ `handleAddToCart` invocation where `isBugCondition_AddToCartLoop` does NOT hold (quantity = 1), the fixed handler SHALL produce the same cart state as the original handler.
-
-**Validates: Requirements 3.5**
-
----
-
-Property 15: Bug Condition — Discount Price Displayed When Present
-
-_For any_ product where `isBugCondition_DiscountPrice` holds (`discountPrice` exists and is less than `price`), the fixed `ProductDetail` component SHALL display `discountPrice` as the primary price and `price` as a struck-through secondary price.
-
-**Validates: Requirements 5.3**
-
----
-
-Property 16: Preservation — Full Price Display Unchanged When No Discount
-
-_For any_ product where `isBugCondition_DiscountPrice` does NOT hold (no `discountPrice`), the fixed `ProductDetail` component SHALL display `price` exactly as the original component does.
+*For any* database query execution, the Backend System SHALL log queries that exceed the 200-millisecond threshold while not logging faster queries.
 
 **Validates: Requirements 3.7**
 
----
+### Property 12: Cache TTL Enforcement
 
-Property 17: Bug Condition — `applyCoupon` Requires `cartTotal`
+*For any* cached data with specified expiration time, the Cache System SHALL serve the data from cache before expiration and fetch fresh data after expiration.
 
-_For any_ coupon application request where `isBugCondition_CouponValidation` holds (`cartTotal` is absent or zero), the fixed `applyCoupon` SHALL return a 400 error requiring `cartTotal` rather than silently applying a zero discount.
+**Validates: Requirements 4.1**
 
-**Validates: Requirements 6.1**
+### Property 13: Cache Invalidation on Data Updates
 
----
+*For any* product data update operation, the Cache System SHALL invalidate all related cache entries to ensure data consistency.
 
-Property 18: Preservation — Valid Coupon Application Unchanged
+**Validates: Requirements 4.3**
 
-_For any_ coupon application request where `isBugCondition_CouponValidation` does NOT hold (valid `cartTotal` provided), the fixed `applyCoupon` SHALL return the same discount calculation as the original function.
+### Property 14: Cached Response Header Inclusion
 
-**Validates: Requirements 3.2**
+*For any* API response that is cached, the Backend System SHALL include appropriate cache-control headers indicating the caching status and expiration.
 
----
+**Validates: Requirements 4.4**
 
-Property 19: Bug Condition — Slug Handles Unicode and Hyphen Edge Cases
+### Property 15: Asynchronous Cache Population
 
-_For any_ product name where `isBugCondition_SlugGeneration` holds (contains Unicode, double spaces, or leading/trailing hyphens), the fixed `createProductService` SHALL produce a slug that is normalized, has no consecutive hyphens, and has no leading or trailing hyphens.
+*For any* cache miss scenario, the Backend System SHALL populate the cache asynchronously without blocking the response to the client.
 
-**Validates: Requirements 6.2**
+**Validates: Requirements 4.7**
 
----
+### Property 16: Error Boundary Exception Handling
 
-Property 20: Preservation — ASCII Product Name Slugs Unchanged
+*For any* JavaScript error occurring within wrapped components, the Error Boundary SHALL catch the error and display the configured fallback UI.
 
-_For any_ product name where `isBugCondition_SlugGeneration` does NOT hold (pure ASCII, single spaces, no edge cases), the fixed slug generation SHALL produce the same slug as the original function.
+**Validates: Requirements 5.1**
 
-**Validates: Requirements 3.3**
+### Property 17: API Retry Logic with Exponential Backoff
 
----
+*For any* failed API request, the Frontend System SHALL retry up to 3 times using exponential backoff timing between attempts.
 
-## Fix Implementation
+**Validates: Requirements 5.2**
 
-### Changes Required
+### Property 18: Circuit Breaker State Management
 
-Assuming the root cause analysis above is correct, the following specific changes are needed:
+*For any* pattern of external service failures exceeding the threshold, the Circuit Breaker SHALL open to prevent further calls and close after the reset timeout.
 
----
+**Validates: Requirements 5.3**
 
-#### Fix 1 — Atomic Stock Decrement in `checkoutOrderService`
+### Property 19: Database Reconnection with Backoff
 
-**File:** `backend/services/order.service.js`
+*For any* database connection failure, the Backend System SHALL attempt reconnection using exponential backoff timing until successful or maximum attempts reached.
 
-**Function:** `checkoutOrderService`
+**Validates: Requirements 5.4**
 
-**Specific Changes:**
+### Property 20: Payment Error Logging and User Messages
 
-1. **Batch product fetch**: Replace the `for` loop with a single `Product.find({ _id: { $in: productIds } })` call. Build a `Map<id, product>` for O(1) lookup during validation.
+*For any* payment processing failure, the Backend System SHALL log the detailed error information and return a user-friendly error message to the client.
 
-2. **Atomic stock decrement**: Replace the post-save `for` loop of `findByIdAndUpdate` calls with a single `bulkWrite` using `updateOne` operations with a stock guard:
-   ```js
-   { updateOne: { filter: { _id: item.product, stock: { $gte: item.quantity } }, update: { $inc: { stock: -item.quantity } } } }
-   ```
-   After `bulkWrite`, check `result.modifiedCount === orderItems.length`. If not, some stock was insufficient — throw an error and do not save the order (or implement compensating logic to restore already-decremented items).
+**Validates: Requirements 5.6**
 
-3. **Apply same batch pattern to `calculateOrderAmountService`**: Replace the `for` loop with a single `Product.find({ _id: { $in: ids } })`.
+### Property 21: Error Rate Alert Triggering
 
----
+*For any* time period where error rates exceed 1% of total requests, the Performance Monitor SHALL trigger alerts to administrators.
 
-#### Fix 2 — Atomic Stock Restoration in `deleteOrderService`
+**Validates: Requirements 5.7**
 
-**File:** `backend/services/order.service.js`
+### Property 22: Graceful Degradation Resource Thresholds
 
-**Function:** `deleteOrderService`
+*For any* system state where resources exceed critical thresholds, the Backend System SHALL disable non-critical features while maintaining core functionality.
 
-**Specific Changes:**
+**Validates: Requirements 5.8**
 
-1. Replace the `for` loop with a single `bulkWrite`:
-   ```js
-   const bulkOps = order.orderItems.map(item => ({
-       updateOne: {
-           filter: { _id: item.product },
-           update: { $inc: { stock: item.quantity } }
-       }
-   }));
-   await Product.bulkWrite(bulkOps);
-   ```
+### Property 23: File Upload Streaming by Size
 
----
+*For any* file upload operation, the Backend System SHALL stream files above the size threshold to prevent memory exhaustion while handling smaller files normally.
 
-#### Fix 3 — Atomic Rating Calculation in `addReview`
+**Validates: Requirements 6.5**
 
-**File:** `backend/controllers/review.controller.js`
+### Property 24: Rate Limiting Per User Enforcement
 
-**Function:** `addReview`
+*For any* user making requests, the Backend System SHALL enforce rate limits per user, blocking requests that exceed the configured rate while allowing requests within limits.
 
-**Specific Changes:**
+**Validates: Requirements 6.6**
 
-1. Replace the `Review.find` + JavaScript reduce with a MongoDB aggregation:
-   ```js
-   const stats = await Review.aggregate([
-       { $match: { product: mongoose.Types.ObjectId(productId) } },
-       { $group: { _id: '$product', avgRating: { $avg: '$rating' }, count: { $sum: 1 } } }
-   ]);
-   ```
-2. Update `product.ratingsAverage` and `product.ratingsCount` from `stats[0]`.
-3. Replace `next` parameter usage — add `next` to the function signature and replace all local `res.status(400).json(...)` catch blocks with `next(error)`.
+### Property 25: Resource Usage Alert Triggering
 
----
+*For any* system resource (CPU, memory, connections) reaching 80% capacity, the Performance Monitor SHALL trigger scaling alerts.
 
-#### Fix 4 — Remove Duplicate Text Index
+**Validates: Requirements 6.7**
 
-**File:** `backend/models/Product.js`
+### Property 26: API Response Time Tracking Completeness
 
-**Specific Changes:**
+*For any* API endpoint receiving requests, the Performance Monitor SHALL track and record response times for all requests to that endpoint.
 
-1. Remove the first (narrower) text index declaration:
-   ```js
-   // DELETE this line:
-   productSchema.index({ name: 'text', description: 'text' });
-   ```
-2. Keep only:
-   ```js
-   productSchema.index({ name: 'text', description: 'text', brand: 'text' });
-   ```
-3. Drop the old index from the running MongoDB instance (migration step): `db.products.dropIndex('name_text_description_text')`.
+**Validates: Requirements 7.1**
 
----
+### Property 27: Performance Alert Timing
 
-#### Fix 5 — Add `limit=8` to Home.tsx Product Fetch
+*For any* performance metric exceeding configured thresholds, the Performance Monitor SHALL send alerts within 1 minute of threshold breach.
 
-**File:** `frontend/src/pages/Home.tsx`
+**Validates: Requirements 7.2**
 
-**Specific Changes:**
+### Property 28: Database Performance Metrics Collection
 
-1. Change the query URL from `/products` to `/products?limit=8`:
-   ```ts
-   const { data } = await axiosInstance.get('/products?limit=8');
-   ```
-2. The `slice` calls remain valid as a safety measure but will now operate on at most 8 items.
+*For any* database operation (query, connection pool usage), the Performance Monitor SHALL collect and track performance metrics.
 
----
+**Validates: Requirements 7.4**
 
-#### Fix 6 — Add Pagination to `getAllOrdersService`
+### Property 29: Error Rate Spike Immediate Notification
 
-**File:** `backend/services/order.service.js`
+*For any* sudden increase in error rates, the Performance Monitor SHALL trigger immediate notifications without delay.
 
-**Function:** `getAllOrdersService`
+**Validates: Requirements 7.5**
 
-**Specific Changes:**
+### Property 30: User Experience Metrics Tracking
 
-1. Accept `page` and `limit` parameters:
-   ```js
-   export const getAllOrdersService = async ({ page = 1, limit = 20 } = {}) => {
-       const skip = (page - 1) * limit;
-       const [orders, total] = await Promise.all([
-           Order.find().populate('user', 'name email').sort('-createdAt').skip(skip).limit(limit),
-           Order.countDocuments()
-       ]);
-       return { orders, total, totalPages: Math.ceil(total / limit), currentPage: page };
-   };
-   ```
-2. Update `order.controller.js` to pass `req.query` page/limit to the service.
+*For any* user interaction (page load, UI interaction), the Performance Monitor SHALL track and record user experience metrics.
 
----
+**Validates: Requirements 7.7**
 
-#### Fix 7 — Enable `runValidators` in `updateProductService`
+### Property 31: Critical Resource Alert Escalation
 
-**File:** `backend/services/product.service.js`
+*For any* system resource reaching critical levels, the Performance Monitor SHALL escalate alerts to on-call personnel according to escalation procedures.
 
-**Function:** `updateProductService`
+**Validates: Requirements 7.8**
 
-**Specific Changes:**
+### Property 32: Image Optimization by Device
 
-1. Change `runValidators: false` to `runValidators: true`.
-2. Add `context: 'query'` to make `this` refer to the query in validators (required for the `discountPrice < price` validator to work on updates):
-   ```js
-   const product = await Product.findByIdAndUpdate(id, updateData, {
-       new: true,
-       runValidators: true,
-       context: 'query'
-   });
-   ```
-3. Update the `discountPrice` validator in `Product.js` to handle the query context:
-   ```js
-   validator: function(val) {
-       // 'this' is the query in update context; use this.get('price') or pass price in update
-       return val < this.price || val < this.get('price');
-   }
-   ```
-   Alternatively, use a pre-save hook or a custom validator that reads from the document being updated.
+*For any* image request from a client device, the CDN System SHALL optimize image format and size based on the requesting device's capabilities.
 
----
+**Validates: Requirements 8.2**
 
-#### Fix 8 — Route Errors Through Global Handler in Cart, Review, Coupon Controllers
+### Property 33: Static Asset Compression and Minification
 
-**Files:**
-- `backend/controllers/cart.controller.js`
-- `backend/controllers/review.controller.js`
-- `backend/controllers/coupon.controller.js`
+*For any* static asset served through the CDN, the system SHALL apply appropriate compression and minification based on asset type.
 
-**Specific Changes:**
+**Validates: Requirements 8.5**
 
-For each `catch (error)` block that currently does `res.status(400).json(...)`:
-1. Replace with `next(error)`.
-2. Ensure the function signature includes `next` as the third parameter (already present in `cart.controller.js` but unused in catch blocks).
+### Property 34: Virtual Scrolling for Large Lists
 
----
-
-#### Fix 9 — Add Entropy Validation to CSRF Token Bootstrap
-
-**File:** `backend/middlewares/csrf.middleware.js` (or the route handler for `/api/v1/csrf-token`)
-
-**Specific Changes:**
+*For any* list exceeding the configured size threshold, the Frontend System SHALL implement virtual scrolling to limit DOM nodes.
 
-1. When an existing `XSRF-TOKEN` cookie is found, validate it meets minimum entropy:
-   ```js
-   const MIN_TOKEN_LENGTH = 32;
-   const existingToken = req.cookies['XSRF-TOKEN'];
-   if (existingToken && /^[a-f0-9]{32,}$/i.test(existingToken)) {
-       return res.json({ csrfToken: existingToken }); // reuse valid token
-   }
-   // Otherwise generate a new one
-   ```
+**Validates: Requirements 8.7**
 
----
+### Property 35: Background Task Job Queue Usage
 
-#### Fix 10 — Fix `updateQuantity` to Remove Item at Zero
-
-**File:** `frontend/src/store/useCartStore.ts`
-
-**Function:** `updateQuantity`
-
-**Specific Changes:**
-
-1. Change the map to return `null` when `newQ <= 0`, then filter:
-   ```ts
-   updateQuantity: (id, delta) => {
-       const { cart } = get();
-       const newCart = cart
-           .map(item => {
-               const itemId = item._id || item.id;
-               if (itemId === id) {
-                   const newQ = item.quantity + delta;
-                   return newQ > 0 ? { ...item, quantity: newQ } : null;
-               }
-               return item;
-           })
-           .filter(Boolean) as CartItem[];
-       set({ cart: newCart });
-   },
-   ```
-
----
-
-#### Fix 11 — Fix `handleAddToCart` to Use Single Call
-
-**File:** `frontend/src/pages/ProductDetail.tsx`
-
-**Function:** `handleAddToCart`
-
-**Specific Changes:**
-
-1. Update `addToCart` in `useCartStore.ts` to accept an optional `quantity` parameter:
-   ```ts
-   addToCart: (product, qty = 1) => {
-       // ...existing logic but use qty instead of hardcoded 1
-       newCart = [...cart, { ...product, id, quantity: qty }];
-       // or if existing: quantity: item.quantity + qty
-   }
-   ```
-2. Replace the loop in `handleAddToCart`:
-   ```tsx
-   const handleAddToCart = () => {
-       const cartItem = { ...product, id: product._id, img: product.images?.[0] || '/placeholder.png' };
-       addToCart(cartItem, quantity);
-   };
-   ```
-
----
-
-#### Fix 12 — Cancel Previous PaymentIntent on Cart/Coupon Change
-
-**File:** `frontend/src/pages/Checkout.tsx`
-
-**Specific Changes:**
-
-1. Store the current `paymentIntentId` in a `useRef`.
-2. In the `useEffect` cleanup (or before creating a new intent), cancel the previous one via a backend endpoint:
-   ```ts
-   const paymentIntentIdRef = useRef<string | null>(null);
-
-   useEffect(() => {
-       if (cart.length === 0) return;
-       const timeoutId = setTimeout(async () => {
-           // Cancel previous intent if exists
-           if (paymentIntentIdRef.current) {
-               try {
-                   await axiosInstance.post('/orders/cancel-payment-intent', {
-                       paymentIntentId: paymentIntentIdRef.current
-                   });
-               } catch { /* best-effort */ }
-           }
-           const { data } = await axiosInstance.post('/orders/create-payment-intent', { ... });
-           paymentIntentIdRef.current = data.paymentIntentId; // backend must return this
-           setClientSecret(data.clientSecret);
-       }, 500);
-       return () => clearTimeout(timeoutId);
-   }, [cart, appliedCoupon]);
-   ```
-3. Add a `POST /orders/cancel-payment-intent` backend endpoint that calls `stripe.paymentIntents.cancel(id)`.
+*For any* background task execution, the Backend System SHALL use job queues to prevent blocking the main thread.
 
----
+**Validates: Requirements 8.8**
 
-#### Fix 13 — Display Discount Price in `ProductDetail.tsx`
+### Property 36: Deployment Performance Impact Tracking
 
-**File:** `frontend/src/pages/ProductDetail.tsx`
+*For any* deployment operation, the Performance Monitor SHALL track and measure the impact on performance metrics before, during, and after deployment.
 
-**Specific Changes:**
-
-1. Replace the static price display:
-   ```tsx
-   <div className="flex flex-col items-start gap-1 mb-8">
-       {product.discountPrice ? (
-           <>
-               <p className="text-2xl font-bold">${product.discountPrice.toFixed(2)}</p>
-               <p className="text-base line-through opacity-50">${product.price.toFixed(2)}</p>
-           </>
-       ) : (
-           <p className="text-2xl font-bold">${product.price.toFixed(2)}</p>
-       )}
-   </div>
-   ```
-
----
-
-#### Fix 14 — Add Address Validation in `addAddress`
-
-**File:** `backend/controllers/auth.controller.js`
-
-**Function:** `addAddress`
-
-**Specific Changes:**
-
-1. Add length and basic sanitization checks:
-   ```js
-   const MAX_LEN = 200;
-   const sanitize = (str) => str?.replace(/<[^>]*>/g, '').trim();
-   
-   if (street.length > MAX_LEN || city.length > MAX_LEN || (zipCode && zipCode.length > 20)) {
-       return next(new AppError('Address fields exceed maximum allowed length', 400));
-   }
-   const newAddress = {
-       street: sanitize(street),
-       city: sanitize(city),
-       state: sanitize(state) || 'N/A',
-       zipCode: sanitize(zipCode),
-       country: sanitize(country) || 'N/A',
-       isDefault: isDefault || false
-   };
-   ```
-
----
-
-#### Fix 15 — Robust Slug Generation in `createProductService`
-
-**File:** `backend/services/product.service.js`
-
-**Function:** `createProductService` (and `updateProductService` for name-based slug regeneration)
-
-**Specific Changes:**
-
-1. Replace the naive regex with a Unicode-aware slug generator:
-   ```js
-   function generateSlug(name) {
-       return name
-           .normalize('NFD')                    // decompose Unicode (e.g., é → e + combining accent)
-           .replace(/[\u0300-\u036f]/g, '')     // strip combining diacritics
-           .toLowerCase()
-           .replace(/[^a-z0-9\s-]/g, '')        // remove non-alphanumeric (except spaces and hyphens)
-           .trim()
-           .replace(/[\s-]+/g, '-')             // collapse spaces and hyphens to single hyphen
-           .replace(/^-+|-+$/g, '');            // trim leading/trailing hyphens
-   }
-   ```
-
----
-
-#### Fix 16 — Require `cartTotal` in `applyCoupon`
-
-**File:** `backend/controllers/coupon.controller.js`
-
-**Function:** `applyCoupon`
-
-**Specific Changes:**
-
-1. Change the guard from `if (cartTotal && ...)` to an explicit required check:
-   ```js
-   if (cartTotal == null) {
-       return res.status(400).json({ status: 'error', message: 'cartTotal is required' });
-   }
-   if (cartTotal < coupon.minOrderValue) {
-       return res.status(400).json({ ... });
-   }
-   ```
-2. Replace the local catch block with `next(error)`.
-
----
-
-#### Fix 17 — Add Field Projection to Auth Middleware
-
-**File:** `backend/middlewares/auth.middleware.js`
-
-**Function:** `protect`
-
-**Specific Changes:**
-
-1. Add `.select()` to the user fetch:
-   ```js
-   const currentUser = await User.findById(decoded.userId)
-       .select('_id name email role isVerified addresses');
-   ```
-   This excludes the `cart` array (which can be large) and `refreshToken` from every authenticated request.
+**Validates: Requirements 10.5**
 
 ---
 
 ## Testing Strategy
 
-### Validation Approach
+## Testing Strategy
 
-The testing strategy follows a two-phase approach:
-1. **Exploratory (pre-fix)**: Write tests that demonstrate the bug on unfixed code. These tests are expected to fail and confirm the root cause.
-2. **Fix + Preservation Checking (post-fix)**: Verify the fix works for all buggy inputs (Property 1, 3, 5, 7, etc.) and that existing correct behavior is unchanged (Property 2, 4, 6, 8, etc.).
+### Dual Testing Approach
+
+The testing strategy employs both unit tests and property-based tests to ensure comprehensive coverage:
+
+**Unit Tests**: Focus on specific examples, edge cases, error conditions, and integration points between components. These tests validate concrete scenarios and ensure individual components work correctly.
+
+**Property-Based Tests**: Validate universal properties across all inputs using randomized test data. Each property test runs a minimum of 100 iterations to thoroughly explore the input space and catch edge cases that might be missed by example-based tests.
+
+### Property-Based Testing Configuration
+
+**Testing Library**: Fast-check for JavaScript/TypeScript property-based testing
+- Minimum 100 iterations per property test
+- Custom generators for domain-specific data (products, users, orders, etc.)
+- Shrinking capability to find minimal failing examples
+
+**Property Test Implementation**:
+Each correctness property will be implemented as a property-based test with the following tag format:
+```javascript
+// Feature: ecommerce-optimization, Property 1: Bundle Analysis Accuracy
+```
+
+**Test Categories by Property**:
+
+1. **Bundle and Build Properties (1-4)**
+   - Generate varying bundle configurations
+   - Test chunk analysis and reporting accuracy
+   - Validate build optimization behaviors
+
+2. **API Performance Properties (5-8)**
+   - Generate requests with varying sizes and types
+   - Test compression, caching, and pagination behaviors
+   - Validate error response consistency
+
+3. **Database and Caching Properties (9-15)**
+   - Generate varying query patterns and data sets
+   - Test connection pooling and cache behaviors
+   - Validate cache invalidation and TTL enforcement
+
+4. **Error Handling and Resilience Properties (16-22)**
+   - Generate various error conditions and failure scenarios
+   - Test retry logic, circuit breakers, and graceful degradation
+   - Validate error logging and user message consistency
+
+5. **Scalability and Resource Properties (23-28)**
+   - Generate varying load patterns and resource usage
+   - Test rate limiting, file streaming, and monitoring
+   - Validate alert triggering and resource management
+
+6. **Optimization and Performance Properties (29-36)**
+   - Generate varying content types and device configurations
+   - Test image optimization, asset compression, and virtual scrolling
+   - Validate deployment impact tracking and background task handling
+
+### Integration and Performance Testing
+
+**Load Testing Scenarios**:
+- 100+ concurrent users for API endpoints
+- Database query performance under varying loads
+- Cache performance with high hit rates
+- Memory usage under sustained load
+
+**Performance Regression Testing**:
+- Bundle size monitoring with automated alerts
+- API response time benchmarks
+- Database query performance baselines
+- Core Web Vitals tracking
+
+**End-to-End Performance Validation**:
+- Complete user journey timing (browse → add to cart → checkout)
+- Cross-browser performance testing
+- Mobile device performance validation
+- Network throttling scenarios
+
+### Monitoring Integration in Tests
+
+**Development Environment Testing**:
+- Real-time performance feedback during development
+- Bundle size warnings in CI/CD pipeline
+- Query performance alerts in development
+- Memory leak detection in test runs
+
+**Production-Like Testing**:
+- Staging environment performance validation
+- Load testing with production-like data volumes
+- Cache behavior validation under realistic conditions
+- Error handling validation with production error patterns
+
+### Test Data Generation Strategy
+
+**Property Test Generators**:
+```javascript
+// Example generators for property-based tests
+const productGenerator = fc.record({
+  name: fc.string({ minLength: 1, maxLength: 100 }),
+  price: fc.float({ min: 0.01, max: 10000 }),
+  stock: fc.integer({ min: 0, max: 1000 }),
+  images: fc.array(fc.webUrl(), { minLength: 1, maxLength: 10 })
+});
+
+const bundleConfigGenerator = fc.record({
+  chunks: fc.array(fc.record({
+    name: fc.string(),
+    size: fc.integer({ min: 1000, max: 2000000 }), // 1KB to 2MB
+    isAsync: fc.boolean()
+  }), { minLength: 1, maxLength: 50 })
+});
+
+const apiRequestGenerator = fc.record({
+  endpoint: fc.constantFrom('/products', '/orders', '/users', '/cart'),
+  method: fc.constantFrom('GET', 'POST', 'PUT', 'DELETE'),
+  payload: fc.option(fc.object()),
+  headers: fc.dictionary(fc.string(), fc.string())
+});
+```
+
+### Performance Baseline Establishment
+
+**Baseline Metrics**:
+- Current page load times: 4-6 seconds → Target: < 2 seconds
+- Current API response times: 800ms-2s → Target: < 200ms cached, < 500ms uncached
+- Current bundle sizes: ~2MB → Target: < 500KB initial bundle
+- Current database query times: 200ms-1s → Target: < 100ms simple, < 300ms aggregation
+
+**Regression Detection**:
+- Automated performance regression detection in CI/CD
+- Alert thresholds: 20% degradation triggers investigation
+- Performance budgets enforced at build time
+- Continuous monitoring of Core Web Vitals in production
+
+### Test Environment Configuration
+
+**Local Development**:
+- Hot module replacement for instant feedback
+- Performance profiling tools integrated
+- Bundle analyzer running on every build
+- Memory usage monitoring during development
+
+**CI/CD Pipeline**:
+- Performance regression tests on every PR
+- Bundle size analysis and reporting
+- Load testing on staging environment
+- Performance budget enforcement
+
+**Production Monitoring**:
+- Real user monitoring (RUM) for actual performance data
+- Synthetic monitoring for consistent baseline measurements
+- Error tracking with performance correlation
+- Resource usage monitoring with auto-scaling triggers
 
 ---
 
-### Exploratory Bug Condition Checking
+## Implementation Phases
 
-**Goal**: Surface counterexamples that demonstrate each bug BEFORE implementing the fix. Confirm or refute the root cause analysis.
+### Phase 1: Frontend Performance Foundation (Week 1-2)
+1. **Bundle Optimization**
+   - Implement webpack-bundle-analyzer
+   - Configure code splitting for routes
+   - Set up tree shaking optimization
+   - Add bundle size monitoring
 
-**Test Plan**: Write unit and integration tests that exercise each bug condition. Run on UNFIXED code to observe failures.
+2. **Image and Asset Optimization**
+   - Implement lazy loading for images
+   - Set up responsive image generation
+   - Configure CDN integration
+   - Add image format optimization
 
-**Test Cases:**
+3. **React Performance Optimizations**
+   - Add React.memo to expensive components
+   - Implement useMemo for heavy computations
+   - Optimize re-render patterns
+   - Add performance profiling
 
-1. **Stock Race Condition Test** (will fail on unfixed code)
-   - Simulate two concurrent `checkoutOrderService` calls for the last unit of a product
-   - Assert that `product.stock >= 0` after both complete
-   - Expected counterexample: `stock = -1`
+### Phase 2: Backend API Performance (Week 2-3)
+1. **Response Optimization**
+   - Implement gzip/brotli compression
+   - Add response caching headers
+   - Set up API response caching
+   - Configure request logging with metrics
 
-2. **N+1 Query Count Test** (will fail on unfixed code)
-   - Mock `Product.findById` and count invocations
-   - Call `calculateOrderAmountService` with a 3-item cart
-   - Assert `findById` was called exactly 1 time
-   - Expected counterexample: `findById` called 3 times
+2. **Database Query Optimization**
+   - Analyze and optimize existing queries
+   - Add missing indexes
+   - Implement query result caching
+   - Set up slow query logging
 
-3. **Rating Race Condition Test** (will fail on unfixed code)
-   - Simulate two concurrent `addReview` calls for the same product
-   - Assert `product.ratingsCount === 2` after both complete
-   - Expected counterexample: `ratingsCount === 1` (one update overwrites the other)
+3. **Connection and Concurrency**
+   - Configure connection pooling
+   - Implement concurrent request handling
+   - Add request queuing for high load
+   - Set up health check endpoints
 
-4. **Duplicate Index Test** (will fail on unfixed code)
-   - Inspect `Product` schema index definitions
-   - Assert there is exactly 1 text index
-   - Expected counterexample: 2 text index definitions found
+### Phase 3: Caching Strategy Implementation (Week 3-4)
+1. **Multi-Level Caching**
+   - Set up Redis cache service
+   - Implement browser caching strategy
+   - Configure CDN edge caching
+   - Add cache invalidation logic
 
-5. **Add to Cart Loop Test** (will fail on unfixed code)
-   - Spy on `addToCart` in `useCartStore`
-   - Call `handleAddToCart` with `quantity = 3`
-   - Assert `addToCart` was called exactly 1 time
-   - Expected counterexample: called 3 times
+2. **Cache Warming and Preloading**
+   - Implement cache warming for critical data
+   - Add preloading for frequently accessed content
+   - Set up cache clustering for high availability
+   - Configure cache monitoring
 
-6. **Discount Price Display Test** (will fail on unfixed code)
-   - Render `ProductDetail` with a product having `price = 100`, `discountPrice = 75`
-   - Assert the rendered price text is `$75.00`
-   - Expected counterexample: renders `$100.00`
+### Phase 4: Monitoring and Resilience (Week 4-5)
+1. **Performance Monitoring**
+   - Implement Core Web Vitals tracking
+   - Set up API performance monitoring
+   - Add database performance tracking
+   - Configure alerting system
 
-7. **Zero Delta Cart Test** (will fail on unfixed code)
-   - Initialize cart with one item at quantity 1
-   - Call `updateQuantity(id, -1)`
-   - Assert cart is empty
-   - Expected counterexample: cart still contains the item at quantity 1
+2. **Error Handling and Resilience**
+   - Implement error boundaries
+   - Add retry logic with exponential backoff
+   - Set up circuit breaker pattern
+   - Configure graceful degradation
 
-8. **Coupon Without cartTotal Test** (will fail on unfixed code)
-   - Call `applyCoupon` with `{ code: 'SAVE10' }` (no `cartTotal`)
-   - Assert response status is 400
-   - Expected counterexample: status 200 with `calculatedDiscount = 0`
+3. **Scalability Preparation**
+   - Implement stateless backend design
+   - Set up load balancer configuration
+   - Add auto-scaling triggers
+   - Configure zero-downtime deployments
 
-9. **Unicode Slug Test** (will fail on unfixed code)
-   - Call `createProductService` with `name = "Café Latte"`
-   - Assert `product.slug === 'cafe-latte'`
-   - Expected counterexample: `slug = 'caf-latte'`
+### Phase 5: Security Performance Integration (Week 5-6)
+1. **Efficient Security Measures**
+   - Optimize authentication token validation
+   - Implement efficient rate limiting
+   - Add security headers without performance impact
+   - Optimize input validation
 
-10. **runValidators Test** (will fail on unfixed code)
-    - Call `updateProductService` with `{ price: 50, discountPrice: 100 }`
-    - Assert the call throws a validation error
-    - Expected counterexample: update succeeds, invalid data persisted
-
-**Expected Counterexamples Summary:**
-- Stock goes negative under concurrency
-- `findById` called N times instead of 1
-- Rating count is wrong under concurrent reviews
-- Two text index definitions on Product schema
-- `addToCart` called multiple times for quantity > 1
-- Full price shown instead of discount price
-- Cart item not removed when delta reaches zero
-- Coupon applied with zero discount when `cartTotal` missing
-- Unicode characters not normalized in slug
-- Invalid `discountPrice > price` accepted without error
-
----
-
-### Fix Checking
-
-**Goal**: Verify that for all inputs where each bug condition holds, the fixed function produces the expected behavior.
-
-**Pseudocode (general form):**
-```
-FOR ALL input WHERE isBugCondition_X(input) DO
-  result := fixedFunction(input)
-  ASSERT expectedBehavior_X(result)
-END FOR
-```
-
-**Specific Fix Checks:**
-
-```
-// Fix 1: Atomic stock decrement
-FOR ALL { concurrentRequests, availableStock, requestedQuantity }
-  WHERE isBugCondition_StockRace DO
-  results := Promise.all(concurrentRequests.map(r => checkoutOrderService'(r)))
-  ASSERT product.stock >= 0
-  ASSERT results.filter(r => r.success).length <= floor(availableStock / requestedQuantity)
-END FOR
-
-// Fix 3: Batched queries
-FOR ALL { cartItems } WHERE isBugCondition_NPlus1 DO
-  result := calculateOrderAmountService'({ cartItems })
-  ASSERT dbQueryCount(result) = 1
-END FOR
-
-// Fix 11: Single addToCart call
-FOR ALL { quantity } WHERE isBugCondition_AddToCartLoop DO
-  result := handleAddToCart'({ quantity })
-  ASSERT addToCartCallCount(result) = 1
-  ASSERT cartItemQuantity(result) = quantity
-END FOR
-
-// Fix 15: Discount price display
-FOR ALL product WHERE isBugCondition_DiscountPrice DO
-  rendered := ProductDetail'(product)
-  ASSERT displayedPrice(rendered) = product.discountPrice
-  ASSERT struckThroughPrice(rendered) = product.price
-END FOR
-```
+2. **Development and Deployment Optimization**
+   - Set up hot module replacement
+   - Add development performance profiling
+   - Implement build-time optimizations
+   - Configure performance regression testing
 
 ---
 
-### Preservation Checking
+## Deployment Strategy
 
-**Goal**: Verify that for all inputs where each bug condition does NOT hold, the fixed function produces the same result as the original function.
+### Zero-Downtime Deployment Process
+1. **Blue-Green Deployment**
+   - Maintain two identical production environments
+   - Deploy to inactive environment first
+   - Switch traffic after health checks pass
+   - Keep previous version for quick rollback
 
-**Pseudocode (general form):**
-```
-FOR ALL input WHERE NOT isBugCondition_X(input) DO
-  ASSERT originalFunction(input) = fixedFunction(input)
-END FOR
-```
+2. **Database Migration Strategy**
+   - Backward-compatible schema changes
+   - Gradual data migration for large changes
+   - Index creation during low-traffic periods
+   - Connection pool management during migrations
 
-**Testing Approach**: Property-based testing is recommended for preservation checking because:
-- It generates many test cases automatically across the input domain
-- It catches edge cases that manual unit tests might miss
-- It provides strong guarantees that behavior is unchanged for all non-buggy inputs
+3. **CDN and Cache Management**
+   - Coordinate cache invalidation with deployments
+   - Preload critical assets to CDN
+   - Gradual cache warming after deployment
+   - Monitor cache hit rates post-deployment
 
-**Specific Preservation Checks:**
+### Performance Validation Pipeline
+1. **Pre-Deployment Testing**
+   - Run performance regression tests
+   - Validate bundle size thresholds
+   - Check API response time benchmarks
+   - Verify database query performance
 
-```
-// Preservation 2: Valid checkout unchanged
-FOR ALL { userId, checkoutData }
-  WHERE NOT isBugCondition_StockRace DO
-  ASSERT checkoutOrderService(userId, checkoutData)
-       = checkoutOrderService'(userId, checkoutData)
-END FOR
+2. **Post-Deployment Monitoring**
+   - Track deployment impact on performance metrics
+   - Monitor error rates and response times
+   - Validate cache performance
+   - Check resource usage patterns
 
-// Preservation 4: Order amount calculation unchanged
-FOR ALL { cartItems } WHERE cartItems.length = 1 DO
-  ASSERT calculateOrderAmountService({ cartItems })
-       = calculateOrderAmountService'({ cartItems })
-END FOR
-
-// Preservation 12: Positive delta cart update unchanged
-FOR ALL { id, delta } WHERE currentQuantity + delta > 0 DO
-  ASSERT updateQuantity(id, delta) = updateQuantity'(id, delta)
-END FOR
-
-// Preservation 14: Quantity-1 add to cart unchanged
-FOR ALL { product } WHERE quantity = 1 DO
-  ASSERT handleAddToCart(product, 1) = handleAddToCart'(product, 1)
-END FOR
-
-// Preservation 16: Full price display unchanged when no discount
-FOR ALL product WHERE product.discountPrice = null DO
-  ASSERT ProductDetail(product).displayedPrice
-       = ProductDetail'(product).displayedPrice
-END FOR
-```
-
-**Test Plan**: Observe behavior on UNFIXED code first for non-buggy inputs, then write property-based tests capturing that behavior.
-
-**Preservation Test Cases:**
-1. **Valid Checkout Preservation**: Single-user checkout with sufficient stock — verify order created, stock decremented correctly
-2. **Order Amount Preservation**: Single-item cart — verify total amount matches `price * quantity`
-3. **Cart Positive Delta Preservation**: Increment cart item quantity — verify quantity increases correctly
-4. **Add to Cart Quantity-1 Preservation**: Add single item — verify cart opens and item added
-5. **Full Price Display Preservation**: Product without `discountPrice` — verify price display unchanged
-6. **Valid Coupon Preservation**: Coupon with valid `cartTotal` — verify discount calculated correctly
-7. **ASCII Slug Preservation**: Product name with only ASCII — verify slug unchanged
-8. **Valid Product Update Preservation**: Update with valid `discountPrice < price` — verify update succeeds
+3. **Rollback Criteria**
+   - Response time degradation > 20%
+   - Error rate increase > 2%
+   - Resource usage spike > 90%
+   - Core Web Vitals regression
 
 ---
 
-### Unit Tests
+## Success Metrics
 
-**Backend:**
-- `checkoutOrderService`: test atomic stock decrement with mock concurrent requests; test `bulkWrite` is called instead of loop
-- `calculateOrderAmountService`: test single `Product.find` call for multi-item cart; test correct total calculation
-- `deleteOrderService`: test `bulkWrite` called for stock restoration; test correct quantity increments
-- `addReview`: test aggregation pipeline used for rating; test correct `ratingsAverage` and `ratingsCount`
-- `updateProductService`: test validation error thrown for `discountPrice >= price`; test valid update succeeds
-- `applyCoupon`: test 400 returned when `cartTotal` missing; test correct discount for valid `cartTotal`
-- `createProductService`: test Unicode slug normalization; test consecutive hyphen collapse; test leading/trailing hyphen trim
-- `protect` middleware: test `.select()` projection excludes `cart` array; test authentication still works
-- Cart/review/coupon controllers: test `next(error)` called on error; test successful responses unchanged
+### Performance Targets
+- **Page Load Time**: < 2 seconds (currently ~4-6 seconds)
+- **API Response Time**: < 200ms cached, < 500ms uncached
+- **Database Query Time**: < 100ms simple queries, < 300ms aggregations
+- **Concurrent Request Handling**: 100+ simultaneous requests
+- **Bundle Size Reduction**: 30-50% smaller initial bundles
+- **Cache Hit Rate**: > 80% for frequently accessed data
 
-**Frontend:**
-- `useCartStore.updateQuantity`: test item removed when delta reaches zero; test positive delta updates quantity
-- `useCartStore.addToCart`: test quantity parameter respected; test existing item quantity incremented correctly
-- `ProductDetail.handleAddToCart`: test `addToCart` called once for quantity > 1; test correct quantity passed
-- `ProductDetail` price display: test `discountPrice` shown when present; test `price` shown when no discount
-- `Checkout` PaymentIntent: test previous intent cancelled before new one created
+### User Experience Metrics
+- **Core Web Vitals**:
+  - LCP (Largest Contentful Paint): < 2.5s
+  - FID (First Input Delay): < 100ms
+  - CLS (Cumulative Layout Shift): < 0.1
 
----
+### System Performance Metrics
+- **Error Rate**: < 1% of total requests
+- **Uptime**: > 99.9%
+- **Resource Usage**: < 80% CPU and memory under normal load
+- **Cache Performance**: < 10ms cache response time
 
-### Property-Based Tests
-
-- **Stock atomicity**: Generate random `(concurrentRequests, stock, quantity)` tuples where `isBugCondition_StockRace` holds; assert `stock >= 0` after all requests complete with fixed code
-- **Order amount correctness**: Generate random cart arrays (1–20 items, random prices/quantities); assert fixed service returns same total as original for non-buggy inputs
-- **Slug generation**: Generate random product names including Unicode, special characters, multiple spaces; assert fixed slug is always lowercase, no consecutive hyphens, no leading/trailing hyphens, no non-ASCII characters
-- **Cart quantity invariant**: Generate random sequences of `addToCart` and `updateQuantity` operations; assert cart never contains items with `quantity <= 0` after any operation with fixed code
-- **Coupon discount bounds**: Generate random `(cartTotal, coupon)` pairs; assert `discountAmount <= cartTotal` always holds with fixed code
-- **Preservation of order amount**: Generate random single-item carts; assert fixed `calculateOrderAmountService` returns identical result to original
-
----
-
-### Integration Tests
-
-- **Full checkout flow**: Add items to cart → apply coupon → checkout (COD) → verify order created, stock decremented, cart cleared
-- **Concurrent checkout**: Simulate two simultaneous checkouts for the last unit → verify only one succeeds, stock = 0
-- **Review submission flow**: Submit review → verify `ratingsAverage` and `ratingsCount` updated correctly on product
-- **Admin product update**: Update product with valid `discountPrice` → verify saved; update with invalid `discountPrice >= price` → verify rejected
-- **Home page product fetch**: Load home page → verify network request includes `limit=8`; verify trending and new arrivals sections populated
-- **Cart quantity edge cases**: Add item, reduce to 0 via `-` button → verify item removed from cart
-- **Discount price display**: Navigate to product with `discountPrice` → verify discounted price shown with original struck through
-- **Coupon without cartTotal**: POST to `/coupons/apply` without `cartTotal` → verify 400 response
-- **Unicode product creation**: Create product with Unicode name → verify slug is clean ASCII
-- **Auth middleware projection**: Make authenticated request → verify response does not include `cart` array in user object
+### Business Impact Metrics
+- **Conversion Rate**: Expected 15-25% improvement
+- **Bounce Rate**: Expected 20-30% reduction
+- **User Engagement**: Expected 10-20% increase in session duration
+- **Operational Costs**: Optimized resource usage reducing infrastructure costs

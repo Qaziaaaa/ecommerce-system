@@ -1,5 +1,42 @@
 import * as orderService from '../services/order.service.js';
 import AppError from '../utils/AppError.js';
+import logger from '../utils/logger.js';
+import { stripeCircuitBreaker, CircuitOpenError } from '../utils/circuit-breaker.js';
+
+/**
+ * Map Stripe error codes to user-friendly messages.
+ * Requirements: 5.6 — Property 20: Payment Error Logging and User Messages
+ */
+const getStripeUserMessage = (stripeError) => {
+  const messages = {
+    card_declined:          'Your card was declined. Please try a different card.',
+    insufficient_funds:     'Your card has insufficient funds.',
+    expired_card:           'Your card has expired. Please use a different card.',
+    incorrect_cvc:          'Your card security code is incorrect.',
+    processing_error:       'An error occurred while processing your card. Please try again.',
+    incorrect_number:       'Your card number is incorrect.',
+    invalid_expiry_month:   'Your card expiry month is invalid.',
+    invalid_expiry_year:    'Your card expiry year is invalid.',
+    authentication_required:'Your card requires authentication. Please try again.',
+  };
+  return messages[stripeError?.code] || 'Payment could not be processed. Please try again or use a different payment method.';
+};
+
+/**
+ * Log a payment failure with full context for debugging.
+ * Requirements: 5.6
+ */
+const logPaymentFailure = (context, error, userId) => {
+  logger.error('Payment processing failed', {
+    context,
+    userId: userId?.toString(),
+    errorType: error.type || error.name,
+    errorCode: error.code,
+    errorMessage: error.message,
+    stripeRequestId: error.requestId,
+    timestamp: new Date().toISOString(),
+  });
+};
 
 export const checkoutOrder = async (req, res, next) => {
     try {
@@ -31,10 +68,14 @@ export const cancelPaymentIntent = async (req, res, next) => {
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
         
-        await stripe.paymentIntents.cancel(paymentIntentId);
+        await stripeCircuitBreaker.execute(() => stripe.paymentIntents.cancel(paymentIntentId));
         
         res.status(200).json({ status: 'success' });
     } catch (error) {
+        if (error instanceof CircuitOpenError) {
+            return next(new AppError('Payment service is temporarily unavailable. Please try again shortly.', 503));
+        }
+        logPaymentFailure('cancelPaymentIntent', error, req.user?._id);
         next(error);
     }
 };
@@ -49,7 +90,6 @@ export const createPaymentIntent = async (req, res, next) => {
 
         const amount = await orderService.calculateOrderAmountService(orderItems, couponCode);
 
-        // Required minimal amount for stripe is usually $0.50 (50 cents)
         if (amount < 0.5) {
              return next(new AppError('Order amount must be at least $0.50', 400));
         }
@@ -57,11 +97,13 @@ export const createPaymentIntent = async (req, res, next) => {
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100), // in cents
-            currency: 'usd',
-            payment_method_types: ['card'],
-        });
+        const paymentIntent = await stripeCircuitBreaker.execute(() =>
+            stripe.paymentIntents.create({
+                amount: Math.round(amount * 100),
+                currency: 'usd',
+                payment_method_types: ['card'],
+            })
+        );
 
         res.status(200).json({
             status: 'success',
@@ -69,7 +111,12 @@ export const createPaymentIntent = async (req, res, next) => {
             paymentIntentId: paymentIntent.id
         });
     } catch (error) {
-        next(error);
+        if (error instanceof CircuitOpenError) {
+            return next(new AppError('Payment service is temporarily unavailable. Please try again in a few minutes.', 503));
+        }
+        logPaymentFailure('createPaymentIntent', error, req.user?._id);
+        const userMessage = getStripeUserMessage(error);
+        next(new AppError(userMessage, 402));
     }
 };
 

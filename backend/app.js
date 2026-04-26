@@ -3,9 +3,17 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import crypto from 'crypto';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
+import { 
+  performanceMiddleware, 
+  resourceMonitoringMiddleware, 
+  healthCheckMiddleware,
+  cacheHeadersMiddleware
+} from './middlewares/performance.middleware.js';
+import { errorRateMiddleware } from './middlewares/resilience.middleware.js';
 import routes from './routes/index.js';
 import webhookRoutes from './routes/webhook.routes.js';
 import { csrfProtection, setTokenCookie } from './middlewares/csrf.middleware.js';
@@ -14,6 +22,21 @@ const app = express();
 
 // Trust Proxy (Essential for session/cookie security behind Render/Heroku)
 app.set('trust proxy', 1);
+
+// Response Compression — gzip for all compressible responses > 1KB (Requirements: 2.3)
+app.use(compression({
+  // Only compress responses above 1KB threshold
+  threshold: 1024,
+  // Compression level 6 — good balance of speed vs ratio
+  level: 6,
+  // Only compress these content types
+  filter: (req, res) => {
+    // Don't compress if client explicitly opts out
+    if (req.headers['x-no-compression']) return false;
+    // Use default compression filter for everything else
+    return compression.filter(req, res);
+  }
+}));
 
 // Security Middlewares
 app.use(helmet());
@@ -42,6 +65,13 @@ app.use('/api/v1/webhooks', webhookRoutes);
 // Request Parsing
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// Performance Monitoring Middleware
+app.use(performanceMiddleware);
+app.use(resourceMonitoringMiddleware);
+app.use(healthCheckMiddleware);
+// Error rate tracking for alerting (Requirements: 5.7)
+app.use(errorRateMiddleware);
 
 // 1. CSRF Bootstrap (MUST be before protection middleware)
 app.get('/api/v1/csrf-token', (req, res) => {

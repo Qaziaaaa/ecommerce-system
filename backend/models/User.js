@@ -63,5 +63,10 @@ const userSchema = new mongoose.Schema(
     }
 );
 
+// Indexes for frequent query patterns (Requirements: 3.1)
+userSchema.index({ role: 1 });                  // Admin user management
+userSchema.index({ isVerified: 1 });            // Verification queries
+userSchema.index({ createdAt: -1 });            // Recent users
+
 const User = mongoose.model('User', userSchema);
 export default User;
