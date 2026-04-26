@@ -36,38 +36,27 @@ const processQueue = (error: any, token: string | null = null) => {
 
 // Add a request interceptor to FORCE the CSRF header manually
 axiosInstance.interceptors.request.use(
-    async (config) => {
-        // 1. Double-check for non-GET requests
-        if (config.method !== 'get') {
-            // 2. Read the cookie manually (Total Reliability)
-            let token = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('XSRF-TOKEN='))
-                ?.split('=')[1];
-            
-            // 3. If no token exists, fetch one first
-            if (!token) {
-                try {
-                    await axiosInstance.get('/csrf-token');
-                    token = document.cookie
-                        .split('; ')
-                        .find(row => row.startsWith('XSRF-TOKEN='))
-                        ?.split('=')[1];
-                } catch (error) {
-                    console.warn('Failed to fetch CSRF token:', error);
-                }
-            }
-            
-            // 4. Force the header if the token exists
-            if (token) {
-                // For FormData uploads, we need to handle headers differently
-                if (config.data instanceof FormData) {
-                    // Don't set Content-Type for FormData - let browser set it with boundary
-                    delete config.headers['Content-Type'];
-                }
-                config.headers['X-XSRF-TOKEN'] = token;
-            }
+    (config) => {
+        // Skip CSRF for GET requests and csrf-token endpoint
+        if (config.method === 'get' || config.url?.includes('/csrf-token')) {
+            return config;
         }
+
+        // Read the cookie manually
+        const token = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('XSRF-TOKEN='))
+            ?.split('=')[1];
+        
+        // Add token if it exists
+        if (token) {
+            // For FormData uploads, don't override Content-Type
+            if (config.data instanceof FormData) {
+                delete config.headers['Content-Type'];
+            }
+            config.headers['X-XSRF-TOKEN'] = token;
+        }
+        
         return config;
     },
     (error) => Promise.reject(error)
