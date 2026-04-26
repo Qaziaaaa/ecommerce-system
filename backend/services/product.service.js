@@ -1,5 +1,6 @@
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
+import { parsePaginationParams, buildPaginationMeta } from './pagination.service.js';
 
 /**
  * Create a new product
@@ -80,10 +81,8 @@ export const getAllProductsService = async (queryParams, user) => {
         query = query.sort('-createdAt');
     }
 
-    // 4. Pagination
-    const page = parseInt(queryParams.page, 10) || 1;
-    const limit = parseInt(queryParams.limit, 10) || 12;
-    const skip = (page - 1) * limit;
+    // 4. Pagination — use standardized pagination service
+    const { page, limit, skip } = parsePaginationParams(queryParams);
 
     query = query.skip(skip).limit(limit).populate('category', 'name slug');
 
@@ -93,9 +92,9 @@ export const getAllProductsService = async (queryParams, user) => {
         Product.countDocuments(countFilter)
     ]);
 
-    const totalPages = Math.ceil(totalCount / limit);
+    const pagination = buildPaginationMeta(totalCount, page, limit);
 
-    return { products, total: totalCount, totalPages, currentPage: page };
+    return { products, pagination };
 };
 
 /**

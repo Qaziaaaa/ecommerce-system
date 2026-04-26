@@ -19,26 +19,108 @@ import './models/Category.js';
 import './models/Product.js';
 import './models/Order.js';
 
+// 4. Initialize Performance Monitoring
+import './utils/database-performance.js';
+import performanceService from './services/performance.service.js';
+import alertingService from './services/alerting.service.js';
+import cacheService from './services/cache.service.js';
+import deploymentService from './services/deployment.service.js';
+
 // 4. Validate Environment Variables
 validateEnv();
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
+// ─── DB reconnection with exponential backoff (Requirements: 5.4) ─────────────
+const DB_RETRY_CONFIG = {
+  maxRetries: 10,
+  baseDelay: 1000,      // 1s
+  maxDelay: 30_000,     // 30s cap
+  multiplier: 2,
+};
+
+let dbRetryCount = 0;
+
+const connectWithRetry = async () => {
+  try {
+    await mongoose.connect(MONGO_URI, {
+      family: 4,
+      minPoolSize: 5,
+      maxPoolSize: 20,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+      heartbeatFrequencyMS: 10000,
+    });
+    dbRetryCount = 0; // Reset on success
+  } catch (err) {
+    dbRetryCount++;
+    if (dbRetryCount > DB_RETRY_CONFIG.maxRetries) {
+      logger.error('❌ MongoDB max retries exceeded. Shutting down.', { message: err.message });
+      process.exit(1);
+    }
+    const delay = Math.min(
+      DB_RETRY_CONFIG.baseDelay * Math.pow(DB_RETRY_CONFIG.multiplier, dbRetryCount - 1),
+      DB_RETRY_CONFIG.maxDelay
+    );
+    logger.warn(`MongoDB connection failed. Retry ${dbRetryCount}/${DB_RETRY_CONFIG.maxRetries} in ${delay}ms`, {
+      message: err.message,
+    });
+    await new Promise((r) => setTimeout(r, delay));
+    return connectWithRetry();
+  }
+};
+
+// Re-connect on unexpected disconnection
+mongoose.connection.on('disconnected', () => {
+  if (dbRetryCount <= DB_RETRY_CONFIG.maxRetries) {
+    logger.warn('MongoDB disconnected — attempting reconnect with backoff...');
+    connectWithRetry().catch(() => {});
+  }
+});
+
 /**
  * 🚀 SERVER STARTUP
  */
 let server;
 
-mongoose.connect(MONGO_URI, { family: 4 })
-    .then(() => {
+connectWithRetry()
+    .then(async () => {
         logger.info('✅ MongoDB connected successfully');
+        
+        // Initialize performance monitoring after database connection
+        logger.info('🔍 Performance monitoring initialized');
+
+        // Warm cache with critical data (Requirements: 4.7)
+        try {
+          const Category = (await import('./models/Category.js')).default;
+          const Product = (await import('./models/Product.js')).default;
+
+          await cacheService.warmCache([
+            {
+              key: 'categories:all',
+              loader: () => Category.find({ isActive: { $ne: false } }).lean(),
+              ttl: 3600,
+            },
+            {
+              key: 'products:featured',
+              loader: () => Product.find({ isActive: true, isFeatured: true }).limit(8).populate('category', 'name slug').lean(),
+              ttl: 300,
+            },
+          ]);
+        } catch (err) {
+          // Non-fatal — cache warming failure should not prevent startup
+          logger.warn('Cache warming failed', { error: err.message });
+        }
+        
         server = app.listen(PORT, () => {
             logger.info(`🚀 Server running on port ${PORT}`);
+            logger.info('📊 Performance metrics collection started');
         });
     })
     .catch((err) => {
-        logger.error('❌ MongoDB connection failed. Server will NOT start.', { message: err.message });
+        logger.error('❌ MongoDB initial connection failed.', { message: err.message });
         process.exit(1);
     });
 

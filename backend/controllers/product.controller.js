@@ -19,13 +19,9 @@ export const getProducts = async (req, res, next) => {
         res.status(200).json({
             status: 'success',
             results: result.products.length,
+            pagination: result.pagination,
             data: {
                 products: result.products,
-                pagination: {
-                    total: result.total,
-                    totalPages: result.totalPages,
-                    currentPage: result.currentPage
-                }
             }
         });
     } catch (error) {

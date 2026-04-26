@@ -5,6 +5,7 @@ import { useCart } from '../store/useCartStore';
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
 import { ProductCard } from '../components/ProductCard';
+import LazyImage from '../components/LazyImage';
 
 export default function Home() {
   const { addToCart } = useCart();
@@ -78,6 +79,8 @@ export default function Home() {
             alt="Hero Model" 
             className="h-full object-contain object-bottom drop-shadow-2xl scale-[1.8] lg:scale-[1.6] origin-bottom transform-gpu"
             referrerPolicy="no-referrer"
+            fetchPriority="high"
+            decoding="async"
           />
         </div>
       </section>
@@ -127,7 +130,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link to="/shop" className="group relative h-[350px] lg:h-[400px] overflow-hidden bg-[#2D2926]">
-              <img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=800&auto=format&fit=crop" alt="Tech" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out" />
+              <LazyImage src="https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=800&auto=format&fit=crop" alt="Tech" placeholder="skeleton" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="bg-[#EBE7E0]/95 backdrop-blur-sm px-8 py-4 text-center transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                   <h3 className="font-display text-2xl tracking-wide">TECH</h3>
@@ -136,7 +139,7 @@ export default function Home() {
               </div>
             </Link>
             <Link to="/shop" className="group relative h-[350px] lg:h-[400px] overflow-hidden bg-[#2D2926]">
-              <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=800&auto=format&fit=crop" alt="Home" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out" />
+              <LazyImage src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=800&auto=format&fit=crop" alt="Home" placeholder="skeleton" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="bg-[#EBE7E0]/95 backdrop-blur-sm px-8 py-4 text-center transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                   <h3 className="font-display text-2xl tracking-wide">HOME</h3>
@@ -145,7 +148,7 @@ export default function Home() {
               </div>
             </Link>
             <Link to="/shop" className="group relative h-[350px] lg:h-[400px] overflow-hidden bg-[#2D2926] sm:col-span-2 lg:col-span-1">
-              <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=800&auto=format&fit=crop" alt="Lifestyle" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out" />
+              <LazyImage src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=800&auto=format&fit=crop" alt="Lifestyle" placeholder="skeleton" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="bg-[#EBE7E0]/95 backdrop-blur-sm px-8 py-4 text-center transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                   <h3 className="font-display text-2xl tracking-wide">LIFESTYLE</h3>
@@ -182,11 +185,13 @@ export default function Home() {
       {/* Brand Story Split */}
       <section className="flex flex-col lg:flex-row border-y border-[#2D2926]/20 bg-[#2D2926]">
         <div className="w-full lg:w-1/2 h-[500px] lg:h-auto relative overflow-hidden">
-          <img 
+          <LazyImage 
             src="https://images.unsplash.com/photo-1449247709967-d4461a6a6103?q=80&w=1200&auto=format&fit=crop" 
             alt="Craftsmanship" 
+            placeholder="skeleton"
             className="absolute inset-0 w-full h-full object-cover grayscale opacity-80 hover:scale-105 transition-transform duration-1000 ease-out transform-gpu"
             referrerPolicy="no-referrer"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
           />
         </div>
         <div className="w-full lg:w-1/2 text-[#EBE7E0] p-12 lg:p-24 flex flex-col justify-center">

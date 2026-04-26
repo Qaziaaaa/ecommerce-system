@@ -6,6 +6,7 @@ import orderRoutes from './order.routes.js';
 import adminRoutes from './admin.routes.js';
 import categoryRoutes from './category.routes.js';
 import uploadRoutes from './upload.routes.js';
+import performanceRoutes from './performance.routes.js';
 
 import couponRoutes from './coupon.routes.js';
 
@@ -20,5 +21,6 @@ router.use('/admin', adminRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/coupons', couponRoutes);
+router.use('/performance', performanceRoutes);
 
 export default router;

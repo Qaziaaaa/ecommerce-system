@@ -75,5 +75,10 @@ const productSchema = new mongoose.Schema(
 // Text Index for search optimization
 productSchema.index({ name: 'text', description: 'text', brand: 'text' });
 
+// Compound indexes for common filter patterns (Requirements: 3.1, 3.3)
+productSchema.index({ category: 1, isActive: 1, price: 1 });   // Category browse with price sort
+productSchema.index({ isActive: 1, isFeatured: 1 });            // Featured products query
+productSchema.index({ isActive: 1, createdAt: -1 });            // Latest products
+
 const Product = mongoose.model('Product', productSchema);
 export default Product;
