@@ -16,14 +16,27 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-stripe': ['@stripe/stripe-js', '@stripe/react-stripe-js'],
+            'vendor-charts': ['recharts'],
+            'vendor-motion': ['motion'],
+            'vendor-state': ['zustand', '@tanstack/react-query', 'axios'],
+            'vendor-ui': ['lucide-react', 'react-hot-toast'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 600,
+    },
     test: {
         globals: true,
         environment: 'jsdom',
         setupFiles: ['./src/test/setup.ts'],
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâ€”file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
     },
   };
