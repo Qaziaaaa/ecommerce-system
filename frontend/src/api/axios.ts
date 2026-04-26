@@ -1,7 +1,12 @@
 import axios from 'axios';
 
-// Check multiple fallback variable names for maximum compatibility
-const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+
+if (!API_URL) {
+    throw new Error(
+        'VITE_API_URL is not defined. Set it in your .env file (development) or in the Vercel dashboard (production).'
+    );
+}
 
 const axiosInstance = axios.create({
     baseURL: API_URL,

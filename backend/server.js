@@ -38,11 +38,8 @@ mongoose.connect(MONGO_URI, { family: 4 })
         });
     })
     .catch((err) => {
-        logger.error('❌ MongoDB connection error:', { message: err.message });
-        // Start server anyway for health checks/debugging
-        server = app.listen(PORT, () => {
-            logger.warn(`⚠️ Server running with DB ERROR on port ${PORT}`);
-        });
+        logger.error('❌ MongoDB connection failed. Server will NOT start.', { message: err.message });
+        process.exit(1);
     });
 
 /**

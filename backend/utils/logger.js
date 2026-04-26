@@ -1,5 +1,13 @@
 import winston from 'winston';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Resolve log directory relative to this file, not the process cwd
+// This ensures logs always land in backend/logs/ regardless of where node is invoked from
+const LOG_DIR = path.join(__dirname, '..', 'logs');
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -27,22 +35,22 @@ const logger = winston.createLogger({
         }),
         // 2. Error File Transport (Only log errors to this file)
         new winston.transports.File({ 
-            filename: path.join('logs', 'error.log'), 
+            filename: path.join(LOG_DIR, 'error.log'), 
             level: 'error',
             format: fileFormat
         }),
         // 3. Combined File Transport (All logs)
         new winston.transports.File({ 
-            filename: path.join('logs', 'combined.log'),
+            filename: path.join(LOG_DIR, 'combined.log'),
             format: fileFormat
         })
     ],
     // Handling Uncaught Exceptions & Rejections within Winston
     exceptionHandlers: [
-        new winston.transports.File({ filename: path.join('logs', 'exceptions.log') })
+        new winston.transports.File({ filename: path.join(LOG_DIR, 'exceptions.log') })
     ],
     rejectionHandlers: [
-        new winston.transports.File({ filename: path.join('logs', 'rejections.log') })
+        new winston.transports.File({ filename: path.join(LOG_DIR, 'rejections.log') })
     ]
 });
 

@@ -8,7 +8,14 @@ export const validateEnv = () => {
         'NODE_ENV',
         'CLOUDINARY_CLOUD_NAME',
         'CLOUDINARY_API_KEY',
-        'CLOUDINARY_API_SECRET'
+        'CLOUDINARY_API_SECRET',
+        'STRIPE_SECRET_KEY',
+        'STRIPE_WEBHOOK_SECRET',
+        'EMAILJS_SERVICE_ID',
+        'EMAILJS_TEMPLATE_ID',
+        'EMAILJS_PUBLIC_KEY',
+        'EMAILJS_PRIVATE_KEY',
+        'CORS_ORIGIN',
     ];
 
     const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);

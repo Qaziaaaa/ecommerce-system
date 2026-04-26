@@ -4,14 +4,14 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import AppError from '../utils/AppError.js';
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = () => process.env.NODE_ENV === 'production';
 
-const cookieOptions = {
+const getCookieOptions = () => ({
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'None' : 'Lax',
+    secure: isProd(),
+    sameSite: isProd() ? 'None' : 'Lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days matching refresh token
-};
+});
 
 export const sendOTP = async (req, res, next) => {
     try {
@@ -52,8 +52,8 @@ export const verifyOTP = async (req, res, next) => {
         await User.findByIdAndUpdate(user._id, { $set: { refreshToken: hashedRefreshToken } });
 
         // 4. Send cookies
-        res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 }); // 15 mins
-        res.cookie('refreshToken', refreshToken, cookieOptions);
+        res.cookie('accessToken', accessToken, { ...getCookieOptions(), maxAge: 15 * 60 * 1000 }); // 15 mins
+        res.cookie('refreshToken', refreshToken, getCookieOptions());
 
         res.status(200).json({
             status: 'success',
@@ -100,8 +100,8 @@ export const refreshToken = async (req, res, next) => {
         await User.findByIdAndUpdate(user._id, { $set: { refreshToken: newHashedRefreshToken } });
 
         // 4. Re-issue cookies
-        res.cookie('accessToken', newAccessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
-        res.cookie('refreshToken', newRefreshToken, cookieOptions);
+        res.cookie('accessToken', newAccessToken, { ...getCookieOptions(), maxAge: 15 * 60 * 1000 });
+        res.cookie('refreshToken', newRefreshToken, getCookieOptions());
 
         res.status(200).json({ status: 'success' });
     } catch (error) {
@@ -116,8 +116,8 @@ export const logout = async (req, res, next) => {
             await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
         }
 
-        res.clearCookie('accessToken', { ...cookieOptions, maxAge: 0 });
-        res.clearCookie('refreshToken', { ...cookieOptions, maxAge: 0 });
+        res.clearCookie('accessToken', { ...getCookieOptions(), maxAge: 0 });
+        res.clearCookie('refreshToken', { ...getCookieOptions(), maxAge: 0 });
 
         res.status(200).json({
             status: 'success',

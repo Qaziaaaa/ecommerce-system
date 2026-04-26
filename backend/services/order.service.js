@@ -128,7 +128,20 @@ export const checkoutOrderService = async (userId, checkoutData) => {
         }
     }
 
-    // Create Order
+    // Reduce product stock BEFORE creating the order to prevent orphaned orders
+    const bulkOps = orderItems.map(item => ({
+        updateOne: {
+            filter: { _id: item.product, stock: { $gte: item.quantity } },
+            update: { $inc: { stock: -item.quantity } }
+        }
+    }));
+    const bulkResult = await Product.bulkWrite(bulkOps);
+
+    if (bulkResult.modifiedCount !== orderItems.length) {
+        throw new Error('Insufficient stock for one or more items during checkout');
+    }
+
+    // Create Order only after stock is successfully reserved
     const newOrder = new Order({
         user: userId,
         orderItems,
@@ -140,21 +153,6 @@ export const checkoutOrderService = async (userId, checkoutData) => {
     });
 
     await newOrder.save();
-
-    // Reduce product stock
-    const bulkOps = orderItems.map(item => ({
-        updateOne: {
-            filter: { _id: item.product, stock: { $gte: item.quantity } },
-            update: { $inc: { stock: -item.quantity } }
-        }
-    }));
-    const bulkResult = await Product.bulkWrite(bulkOps);
-    
-    if (bulkResult.modifiedCount !== orderItems.length) {
-        // Since we are not using transactions (due to possible single-node replica set),
-        // we throw an error. In a robust setup, use transactions.
-        throw new Error('Insufficient stock for one or more items during checkout');
-    }
 
     return newOrder;
 };

@@ -42,10 +42,9 @@ export const verifyOTP = async (email, providedOtp) => {
     }
 
     const hashedOtp = hashOTP(providedOtp);
-    const isTestAllowed = process.env.ALLOW_TEST_OTP === 'true' && providedOtp === '123456';
 
-    // Check if hashes match or if it's the test OTP
-    if (otpRecord.otp !== hashedOtp && !isTestAllowed) {
+    // Check if hashes match
+    if (otpRecord.otp !== hashedOtp) {
         // Increment attempts
         otpRecord.attempts += 1;
         await otpRecord.save();

@@ -1,7 +1,14 @@
 import Stripe from 'stripe';
 import Order from '../models/Order.js';
+import logger from '../utils/logger.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Lazy-initialize Stripe so it reads the env var at request time, not module load time
+const getStripe = () => {
+    if (!process.env.STRIPE_SECRET_KEY) {
+        throw new Error('STRIPE_SECRET_KEY is not configured');
+    }
+    return new Stripe(process.env.STRIPE_SECRET_KEY);
+};
 
 /**
  * STRIPE WEBHOOK HANDLER
@@ -13,13 +20,13 @@ export const handleStripeWebhook = async (req, res) => {
 
     try {
         // 1. Verify Signature (Requires raw body from req.body)
-        event = stripe.webhooks.constructEvent(
+        event = getStripe().webhooks.constructEvent(
             req.body, 
             sig, 
             process.env.STRIPE_WEBHOOK_SECRET
         );
     } catch (err) {
-        console.error(`❌ Webhook Signature Verification Failed: ${err.message}`);
+        logger.error(`❌ Webhook Signature Verification Failed: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
@@ -34,49 +41,41 @@ export const handleStripeWebhook = async (req, res) => {
             await handlePaymentFailed(intent);
             break;
         default:
-            console.log(`ℹ️ Unhandled event type: ${event.type}`);
+            logger.info(`ℹ️ Unhandled event type: ${event.type}`);
     }
 
     res.json({ received: true });
 };
 
-/**
- * IDEMPOTENT ORDER SUCCESS HANDLER
- */
 async function handlePaymentSucceeded(intent) {
     const { id: paymentIntentId, metadata } = intent;
     const orderId = metadata.orderId;
 
     if (!orderId) {
-        console.error('❌ Payment Succeeded: Missing orderId in metadata');
+        logger.error('❌ Payment Succeeded: Missing orderId in metadata');
         return;
     }
 
-    // 1. Find Order and check current status (Idempotency check)
     const order = await Order.findById(orderId);
     
     if (!order) {
-        console.error(`❌ Order ${orderId} not found for PaymentIntent ${paymentIntentId}`);
+        logger.error(`❌ Order ${orderId} not found for PaymentIntent ${paymentIntentId}`);
         return;
     }
 
     if (order.paymentStatus === 'paid') {
-        console.log(`ℹ️ Order ${orderId} already marked as paid. Skipping.`);
+        logger.info(`ℹ️ Order ${orderId} already marked as paid. Skipping.`);
         return;
     }
 
-    // 2. Update Order
     order.paymentStatus = 'paid';
     order.orderStatus = 'processing';
     order.stripePaymentIntentId = paymentIntentId;
     
     await order.save();
-    console.log(`✅ Order ${orderId} successfully updated to PAID`);
+    logger.info(`✅ Order ${orderId} successfully updated to PAID`);
 }
 
-/**
- * ORDER FAILURE HANDLER
- */
 async function handlePaymentFailed(intent) {
     const { id: paymentIntentId, metadata } = intent;
     const orderId = metadata.orderId;
@@ -88,5 +87,5 @@ async function handlePaymentFailed(intent) {
         stripePaymentIntentId: paymentIntentId
     });
     
-    console.log(`⚠️ Order ${orderId} marked as FAILED`);
+    logger.warn(`⚠️ Order ${orderId} marked as FAILED`);
 }

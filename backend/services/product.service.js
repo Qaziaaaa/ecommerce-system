@@ -56,9 +56,12 @@ export const getAllProductsService = async (queryParams, user) => {
 
     let query = Product.find(queryObj);
 
-    // 2. Text Search
+    // 2. Text Search — build a separate count filter that includes the text condition
+    let countFilter = { ...queryObj };
     if (queryParams.search) {
-        query = query.find({ $text: { $search: queryParams.search } });
+        const textCondition = { $text: { $search: queryParams.search } };
+        query = query.find(textCondition);
+        countFilter = { ...countFilter, ...textCondition };
     }
 
     // 3. Advanced Sorting
@@ -87,7 +90,7 @@ export const getAllProductsService = async (queryParams, user) => {
     // Execute query in parallel for performance
     const [products, totalCount] = await Promise.all([
         query,
-        Product.countDocuments(queryObj)
+        Product.countDocuments(countFilter)
     ]);
 
     const totalPages = Math.ceil(totalCount / limit);
