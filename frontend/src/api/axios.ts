@@ -36,16 +36,29 @@ const processQueue = (error: any, token: string | null = null) => {
 
 // Add a request interceptor to FORCE the CSRF header manually
 axiosInstance.interceptors.request.use(
-    (config) => {
+    async (config) => {
         // 1. Double-check for non-GET requests
         if (config.method !== 'get') {
             // 2. Read the cookie manually (Total Reliability)
-            const token = document.cookie
+            let token = document.cookie
                 .split('; ')
                 .find(row => row.startsWith('XSRF-TOKEN='))
                 ?.split('=')[1];
             
-            // 3. Force the header if the token exists
+            // 3. If no token exists, fetch one first
+            if (!token) {
+                try {
+                    await axiosInstance.get('/csrf-token');
+                    token = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('XSRF-TOKEN='))
+                        ?.split('=')[1];
+                } catch (error) {
+                    console.warn('Failed to fetch CSRF token:', error);
+                }
+            }
+            
+            // 4. Force the header if the token exists
             if (token) {
                 config.headers['X-XSRF-TOKEN'] = token;
             }
