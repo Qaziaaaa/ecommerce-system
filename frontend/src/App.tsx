@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -22,6 +22,7 @@ import AdminProducts from './pages/Admin/Products';
 import AdminOrders from './pages/Admin/Orders';
 import AdminUsers from './pages/Admin/Users';
 import { useAuthStore } from './store/useAuthStore';
+import axiosInstance from './api/axios';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -43,6 +44,13 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function App() {
+  // Fetch CSRF token once on app startup so all POST requests have the cookie
+  useEffect(() => {
+    axiosInstance.get('/csrf-token').catch(() => {
+      // Silent fail — CSRF token fetch is best-effort on init
+    });
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
         <Router>
