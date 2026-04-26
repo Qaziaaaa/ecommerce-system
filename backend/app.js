@@ -52,8 +52,12 @@ app.get('/api/v1/csrf-token', (req, res) => {
     res.json({ status: 'success' });
 });
 
-// 2. CSRF Protection (Applied to everything under /api/v1 AFTER bootstrap)
-app.use('/api/v1', csrfProtection);
+// 2. CSRF Protection (Applied to all routes EXCEPT auth — auth is protected by OTP + JWT)
+app.use('/api/v1', (req, res, next) => {
+    // Skip CSRF for auth endpoints — they use OTP + JWT, not session cookies
+    if (req.path.startsWith('/auth/')) return next();
+    return csrfProtection(req, res, next);
+});
 
 // Route logging and analytics
 
