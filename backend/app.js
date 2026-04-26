@@ -1,5 +1,4 @@
 import express from 'express';
-import crypto from 'crypto';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -8,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
 import routes from './routes/index.js';
 import webhookRoutes from './routes/webhook.routes.js';
-import { csrfProtection } from './middlewares/csrf.middleware.js';
+import { csrfProtection, setTokenCookie } from './middlewares/csrf.middleware.js';
 
 const app = express();
 
@@ -45,20 +44,11 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // 1. CSRF Bootstrap (MUST be before protection middleware)
 app.get('/api/v1/csrf-token', (req, res) => {
-    // If token already exists, don't rotate it (prevents React Double-Render bugs)
     const existingToken = req.cookies['XSRF-TOKEN'];
     if (existingToken && /^[a-f0-9]{32,}$/i.test(existingToken)) {
         return res.json({ status: 'success', message: 'Token already present' });
     }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    res.cookie('XSRF-TOKEN', token, {
-        httpOnly: false, // Required for Axios to read
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-        path: '/'
-    });
-
+    setTokenCookie(res);
     res.json({ status: 'success' });
 });
 

@@ -56,6 +56,29 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
+        // Handle CSRF token missing — fetch token then retry once
+        if (
+            error.response?.status === 403 &&
+            error.response?.data?.csrfRetry === true &&
+            !originalRequest._csrfRetry
+        ) {
+            originalRequest._csrfRetry = true;
+            try {
+                await axiosInstance.get('/csrf-token');
+                // Re-read the new cookie and set the header
+                const token = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith('XSRF-TOKEN='))
+                    ?.split('=')[1];
+                if (token) {
+                    originalRequest.headers['X-XSRF-TOKEN'] = token;
+                }
+                return axiosInstance(originalRequest);
+            } catch {
+                return Promise.reject(error);
+            }
+        }
+
         // 1. If 401 Unauthorized and not previously retried
         // AND not the refresh request itself (prevents infinite deadlock loop)
         if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
