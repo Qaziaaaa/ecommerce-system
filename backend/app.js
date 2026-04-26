@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
 import routes from './routes/index.js';
 import webhookRoutes from './routes/webhook.routes.js';
@@ -45,14 +46,15 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // 1. CSRF Bootstrap (MUST be before protection middleware)
 app.get('/api/v1/csrf-token', (req, res) => {
     console.log(`🔒 CSRF token request from: ${req.get('origin') || 'no-origin'}`);
-    const existingToken = req.cookies['XSRF-TOKEN'];
-    if (existingToken && /^[a-f0-9]{32,}$/i.test(existingToken)) {
-        console.log(`   → Token already exists: ${existingToken.substring(0, 8)}...`);
-        return res.json({ status: 'success', message: 'Token already present' });
-    }
-    console.log('   → Setting new token');
-    setTokenCookie(res);
-    res.json({ status: 'success' });
+    const token = crypto.randomBytes(32).toString('hex');
+    console.log(`   → Sending token in response body: ${token.substring(0, 8)}...`);
+    
+    // Send token in response body instead of cookie for cross-domain compatibility
+    res.json({ 
+        status: 'success', 
+        token: token,
+        message: 'CSRF token generated'
+    });
 });
 
 // 2. CSRF Protection (Applied to all routes EXCEPT auth — auth is protected by OTP + JWT)

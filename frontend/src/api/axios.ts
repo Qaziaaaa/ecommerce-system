@@ -36,35 +36,35 @@ const processQueue = (error: any, token: string | null = null) => {
 
 // Add a request interceptor to FORCE the CSRF header manually
 axiosInstance.interceptors.request.use(
-    (config) => {
+    async (config) => {
         // Skip CSRF for GET requests and csrf-token endpoint
         if (config.method === 'get' || config.url?.includes('/csrf-token')) {
             return config;
         }
 
-        // Read the cookie manually - try multiple cookie parsing methods
-        let token = null;
+        // Try to get token from localStorage first (cross-domain compatible)
+        let token = localStorage.getItem('csrf-token');
         
-        // Method 1: Standard parsing
-        const cookies = document.cookie.split('; ');
-        const csrfCookie = cookies.find(row => row.startsWith('XSRF-TOKEN='));
-        if (csrfCookie) {
-            token = csrfCookie.split('=')[1];
-        }
-        
-        // Method 2: Fallback parsing (in case of encoding issues)
+        // If no token in localStorage, try to fetch one
         if (!token) {
-            const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-            if (match) {
-                token = match[1];
+            try {
+                console.log('🔒 Fetching new CSRF token...');
+                const response = await axios.get(`${API_URL}/csrf-token`, { withCredentials: true });
+                if (response.data?.token) {
+                    token = response.data.token;
+                    localStorage.setItem('csrf-token', token);
+                    console.log('   → Token stored in localStorage:', token.substring(0, 8) + '...');
+                }
+            } catch (error) {
+                console.warn('   → Failed to fetch CSRF token:', error);
             }
         }
         
         console.log('🔒 Axios interceptor:', {
             method: config.method?.toUpperCase(),
             url: config.url,
-            cookieString: document.cookie,
-            foundToken: token ? token.substring(0, 8) + '...' : 'NONE',
+            hasToken: !!token,
+            tokenPreview: token ? token.substring(0, 8) + '...' : 'NONE',
             isFormData: config.data instanceof FormData
         });
         
@@ -74,10 +74,12 @@ axiosInstance.interceptors.request.use(
             if (config.data instanceof FormData) {
                 delete config.headers['Content-Type'];
             }
+            // Send token in both header and Authorization for maximum compatibility
             config.headers['X-XSRF-TOKEN'] = token;
-            console.log('   → Added CSRF header:', token.substring(0, 8) + '...');
+            config.headers['Authorization'] = `Bearer ${token}`;
+            console.log('   → Added CSRF headers');
         } else {
-            console.warn('   → No CSRF token found in cookies!');
+            console.warn('   → No CSRF token available!');
         }
         
         return config;

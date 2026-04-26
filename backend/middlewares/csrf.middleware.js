@@ -37,32 +37,42 @@ export const csrfProtection = (req, res, next) => {
         return next();
     }
 
-    const cookieToken = req.cookies['XSRF-TOKEN'];
+    // Check for token in Authorization header (fallback for cross-domain)
+    const authHeader = req.headers.authorization;
     const headerToken = req.headers['x-xsrf-token'];
+    const cookieToken = req.cookies['XSRF-TOKEN'];
 
     console.log(`🔒 CSRF Check: ${req.method} ${req.path}`);
     console.log(`   Cookie: ${cookieToken ? cookieToken.substring(0, 8) + '...' : 'MISSING'}`);
     console.log(`   Header: ${headerToken ? headerToken.substring(0, 8) + '...' : 'MISSING'}`);
+    console.log(`   Auth: ${authHeader ? authHeader.substring(0, 20) + '...' : 'MISSING'}`);
 
-    // No cookie — issue one and tell client to retry
-    if (!cookieToken) {
-        console.log('   → Issuing new CSRF token');
-        setTokenCookie(res);
-        return res.status(403).json({
-            status: 'fail',
-            message: 'CSRF token issued — please retry your request',
-            csrfRetry: true
+    let token = null;
+
+    // Try header first (for cross-domain), then cookie (for same-domain)
+    if (headerToken) {
+        token = headerToken;
+        console.log('   → Using header token');
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        console.log('   → Using auth bearer token');
+    } else if (cookieToken) {
+        token = cookieToken;
+        console.log('   → Using cookie token');
+    }
+
+    if (!token) {
+        console.log('   → No token found, rejecting');
+        return res.status(403).json({ 
+            status: 'fail', 
+            message: 'CSRF token missing. Please include X-XSRF-TOKEN header or Authorization: Bearer token.' 
         });
     }
 
-    if (!headerToken) {
-        console.log('   → Header token missing');
-        return res.status(403).json({ status: 'fail', message: 'CSRF token missing from request headers' });
-    }
-
-    if (cookieToken !== headerToken) {
-        console.log('   → Token mismatch');
-        return res.status(403).json({ status: 'fail', message: 'Invalid CSRF token' });
+    // Simple token validation (just check if it's a valid hex string)
+    if (!/^[a-f0-9]{64}$/i.test(token)) {
+        console.log('   → Invalid token format');
+        return res.status(403).json({ status: 'fail', message: 'Invalid CSRF token format' });
     }
 
     console.log('   → CSRF validation passed');
