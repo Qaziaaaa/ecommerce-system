@@ -52,15 +52,10 @@ app.get('/api/v1/csrf-token', (req, res) => {
     res.json({ status: 'success' });
 });
 
-// 2. CSRF Protection (Applied to all routes EXCEPT auth and admin — auth is protected by OTP + JWT, admin by role-based auth)
+// 2. CSRF Protection (Applied to all routes EXCEPT auth — auth is protected by OTP + JWT)
 app.use('/api/v1', (req, res, next) => {
     // Skip CSRF for auth endpoints — they use OTP + JWT, not session cookies
     if (req.path.startsWith('/auth/')) return next();
-    // Skip CSRF for admin endpoints temporarily to fix immediate issues
-    if (req.path.startsWith('/admin/') || req.path.startsWith('/upload/') || 
-        (req.path.startsWith('/products/') && ['DELETE', 'PATCH', 'POST'].includes(req.method))) {
-        return next();
-    }
     return csrfProtection(req, res, next);
 });
 

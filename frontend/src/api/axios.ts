@@ -60,6 +60,11 @@ axiosInstance.interceptors.request.use(
             
             // 4. Force the header if the token exists
             if (token) {
+                // For FormData uploads, we need to handle headers differently
+                if (config.data instanceof FormData) {
+                    // Don't set Content-Type for FormData - let browser set it with boundary
+                    delete config.headers['Content-Type'];
+                }
                 config.headers['X-XSRF-TOKEN'] = token;
             }
         }

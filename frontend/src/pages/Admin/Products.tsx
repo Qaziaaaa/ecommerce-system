@@ -40,9 +40,7 @@ const ImageSlot = React.memo(({ index, initialUrl, onUrlChange }: { index: numbe
         formData.append('image', file);
 
         try {
-            const { data } = await axiosInstance.post('/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const { data } = await axiosInstance.post('/upload', formData);
             setPreview(data.imageUrl);
             setFile(null);
             onUrlChange(data.imageUrl);
