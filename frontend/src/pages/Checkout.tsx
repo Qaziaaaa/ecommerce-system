@@ -282,8 +282,10 @@ export default function Checkout() {
   };
 
   if (isSuccess) {
+    // Scroll to top so the success message is visible immediately
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center bg-[#EBE7E0] px-12">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#EBE7E0] px-12 py-20">
         <CheckCircle size={64} className="text-green-600 mb-6" />
         <h1 className="font-display text-5xl tracking-wide mb-4">ORDER CONFIRMED</h1>
         <p className="text-sm font-medium opacity-70 mb-12 text-center max-w-md">
