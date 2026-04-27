@@ -69,7 +69,7 @@ describe('E-Commerce System Optimizations Tests', () => {
             expect(failures.length).toBe(1);
 
             // Verify failure reason is insufficient stock
-            expect(failures[0].reason.message).toMatch(/insufficient stock|only has \d+ units? left/i);
+            expect(failures[0].reason.message).toMatch(/insufficient stock|only has \d+ units? left|just sold out/i);
 
             // Verify final stock is exactly 2 (5 - 3)
             const updatedProduct = await Product.findById(product._id);

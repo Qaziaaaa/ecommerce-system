@@ -69,6 +69,10 @@ export default function Shop() {
       return data.data;
     },
     placeholderData: (previousData) => previousData,
+    // Refresh stock data every 60 seconds and when user returns to tab
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: categoriesData } = useQuery({

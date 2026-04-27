@@ -138,7 +138,7 @@ export const checkoutOrderService = async (userId, checkoutData) => {
     const bulkResult = await Product.bulkWrite(bulkOps);
 
     if (bulkResult.modifiedCount !== orderItems.length) {
-        throw new Error('Insufficient stock for one or more items during checkout');
+        throw new Error('Sorry, one or more items in your cart just sold out. Please go back and update your cart.');
     }
 
     // Create Order only after stock is successfully reserved

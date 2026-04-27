@@ -87,7 +87,19 @@ function StripePaymentSection({
       }
     } catch (err: any) {
       console.error('Checkout error:', err);
-      setErrorMsg(err.message || err.response?.data?.message || 'Failed to place order. Please try again.');
+      // Map backend error messages to user-friendly text
+      const rawMsg: string = err.response?.data?.message || err.message || '';
+      let friendlyMsg = rawMsg;
+      if (rawMsg.toLowerCase().includes('insufficient stock') || rawMsg.toLowerCase().includes('only has') || rawMsg.toLowerCase().includes('units left')) {
+        friendlyMsg = `Sorry, one or more items in your cart just sold out. Please remove them and try again.`;
+      } else if (rawMsg.toLowerCase().includes('no longer available')) {
+        friendlyMsg = 'One of the items in your cart is no longer available. Please update your cart.';
+      } else if (rawMsg.toLowerCase().includes('payment amount mismatch')) {
+        friendlyMsg = 'There was a price mismatch. Please refresh the page and try again.';
+      } else if (!rawMsg || rawMsg === 'Failed to place order. Please try again.') {
+        friendlyMsg = 'Something went wrong placing your order. Please try again.';
+      }
+      setErrorMsg(friendlyMsg);
     } finally {
       setIsLoading(false);
     }
@@ -277,7 +289,16 @@ export default function Checkout() {
       setIsSuccess(true);
     } catch (error: any) {
       console.error('Checkout error:', error);
-      setCodError(error.response?.data?.message || 'Failed to place order. Please try again.');
+      const rawMsg: string = error.response?.data?.message || error.message || '';
+      let friendlyMsg = rawMsg;
+      if (rawMsg.toLowerCase().includes('insufficient stock') || rawMsg.toLowerCase().includes('only has') || rawMsg.toLowerCase().includes('units left')) {
+        friendlyMsg = 'Sorry, one or more items in your cart just sold out. Please remove them and try again.';
+      } else if (rawMsg.toLowerCase().includes('no longer available')) {
+        friendlyMsg = 'One of the items in your cart is no longer available. Please update your cart.';
+      } else if (!rawMsg) {
+        friendlyMsg = 'Something went wrong placing your order. Please try again.';
+      }
+      setCodError(friendlyMsg);
     } finally {
       setCodLoading(false);
     }
