@@ -218,40 +218,71 @@ export default function Profile() {
                             </div>
 
                             {isAddingAddress ? (
-                                <form onSubmit={handleAddAddress} className="bg-[#f8f9fa] border border-[#2D2926]/20 p-8 shadow-inner animate-in fade-in zoom-in-95 duration-300">
-                                    <h3 className="font-display text-xl mb-6">Add New Address</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                        <div className="col-span-2">
+                                <form onSubmit={handleAddAddress} className="bg-[#f8f9fa] border border-[#2D2926]/20 p-5 sm:p-6 animate-in fade-in zoom-in-95 duration-300">
+                                    <h3 className="text-base font-bold mb-5">Add New Address</h3>
+                                    <div className="space-y-4 mb-5">
+                                        {/* Street — always full width */}
+                                        <div>
                                             <label className="block text-[10px] font-bold tracking-[0.2em] uppercase mb-2 opacity-70">Street Address</label>
-                                            <input required value={newAddress.street} onChange={e=>setNewAddress({...newAddress, street: e.target.value})} type="text" placeholder="123 Example Street, Apt 4" className="w-full bg-white border border-[#2D2926]/30 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors" />
+                                            <input
+                                                required
+                                                value={newAddress.street}
+                                                onChange={e => setNewAddress({...newAddress, street: e.target.value})}
+                                                type="text"
+                                                placeholder="123 Example Street, Apt 4"
+                                                className="w-full bg-white border border-[#2D2926]/30 px-4 py-3 text-sm focus:outline-none focus:border-[#2D2926] transition-colors"
+                                            />
                                         </div>
+                                        {/* City — always full width on mobile */}
                                         <div>
                                             <label className="block text-[10px] font-bold tracking-[0.2em] uppercase mb-2 opacity-70">City</label>
-                                            <input required value={newAddress.city} onChange={e=>setNewAddress({...newAddress, city: e.target.value})} type="text" placeholder="New York" className="w-full bg-white border border-[#2D2926]/30 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors" />
+                                            <input
+                                                required
+                                                value={newAddress.city}
+                                                onChange={e => setNewAddress({...newAddress, city: e.target.value})}
+                                                type="text"
+                                                placeholder="New York"
+                                                className="w-full bg-white border border-[#2D2926]/30 px-4 py-3 text-sm focus:outline-none focus:border-[#2D2926] transition-colors"
+                                            />
                                         </div>
+                                        {/* Postal Code — always full width on mobile */}
                                         <div>
                                             <label className="block text-[10px] font-bold tracking-[0.2em] uppercase mb-2 opacity-70">Postal Code</label>
-                                            <input required value={newAddress.zipCode} onChange={e=>setNewAddress({...newAddress, zipCode: e.target.value})} type="text" placeholder="10001" className="w-full bg-white border border-[#2D2926]/30 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors" />
+                                            <input
+                                                required
+                                                value={newAddress.zipCode}
+                                                onChange={e => setNewAddress({...newAddress, zipCode: e.target.value})}
+                                                type="text"
+                                                placeholder="10001"
+                                                className="w-full bg-white border border-[#2D2926]/30 px-4 py-3 text-sm focus:outline-none focus:border-[#2D2926] transition-colors"
+                                            />
                                         </div>
-                                        <div className="col-span-2 flex items-center gap-3 pt-2">
-                                            <input type="checkbox" id="isDefault" checked={newAddress.isDefault} onChange={e=>setNewAddress({...newAddress, isDefault: e.target.checked})} className="w-4 h-4 accent-[#2D2926] cursor-pointer" />
-                                            <label htmlFor="isDefault" className="text-sm font-bold cursor-pointer">Set as default shipping address</label>
-                                        </div>
+                                        {/* Default checkbox */}
+                                        <label className="flex items-center gap-3 cursor-pointer pt-1">
+                                            <input
+                                                type="checkbox"
+                                                checked={newAddress.isDefault}
+                                                onChange={e => setNewAddress({...newAddress, isDefault: e.target.checked})}
+                                                className="w-4 h-4 accent-[#2D2926] cursor-pointer shrink-0"
+                                            />
+                                            <span className="text-sm font-medium">Set as default shipping address</span>
+                                        </label>
                                     </div>
-                                    <div className="flex gap-4">
-                                        <button 
-                                            type="submit" 
+                                    {/* Buttons — stack on mobile */}
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <button
+                                            type="submit"
                                             disabled={isSubmittingAddress}
-                                            className="bg-[#2D2926] text-[#EBE7E0] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-colors flex items-center gap-2 shadow-md disabled:opacity-50"
+                                            className="flex-1 bg-[#2D2926] text-[#EBE7E0] py-3 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                         >
                                             {isSubmittingAddress ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                                             {isSubmittingAddress ? 'Saving...' : 'Save Address'}
                                         </button>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => setIsAddingAddress(false)}
                                             disabled={isSubmittingAddress}
-                                            className="bg-transparent border border-[#2D2926]/30 text-[#2D2926] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/5 transition-colors"
+                                            className="flex-1 sm:flex-none sm:px-6 border border-[#2D2926]/30 text-[#2D2926] py-3 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/5 transition-colors"
                                         >
                                             Cancel
                                         </button>
@@ -292,7 +323,7 @@ export default function Profile() {
                                                         )}
                                                         <button 
                                                             onClick={() => handleDeleteAddress(addr._id)}
-                                                            className="text-red-500 hover:text-red-700 transition-colors bg-red-50 p-2 rounded-sm ml-auto opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                                            className="text-red-500 hover:text-red-700 transition-colors bg-red-50 hover:bg-red-100 p-2 ml-auto"
                                                             aria-label="Delete address"
                                                         >
                                                             <Trash2 size={16} />

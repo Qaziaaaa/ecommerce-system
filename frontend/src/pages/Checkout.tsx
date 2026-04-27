@@ -337,9 +337,9 @@ export default function Checkout() {
   }
 
   return (
-    <div className="py-20 px-12 bg-[#EBE7E0] min-h-screen">
+    <div className="py-10 sm:py-16 lg:py-20 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] min-h-screen">
       <div className="max-w-6xl mx-auto">
-        <h1 className="font-display text-5xl tracking-wide mb-16 text-center">SECURE CHECKOUT</h1>
+        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-wide mb-10 sm:mb-16 text-center">SECURE CHECKOUT</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
           {/* Checkout Form */}
@@ -347,7 +347,7 @@ export default function Checkout() {
             
             <div className="space-y-8">
                 {/* Contact Info */}
-                <section className="bg-white p-8 border border-[#2D2926]/10 shadow-sm relative overflow-hidden">
+                <section className="bg-white p-5 sm:p-8 border border-[#2D2926]/10 shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-[#2D2926]"></div>
                   <h2 className="text-xs font-bold tracking-[0.2em] uppercase mb-6 flex items-center gap-3">
                     <span className="w-6 h-6 rounded-full bg-[#EBE7E0] text-[#2D2926] flex items-center justify-center font-bold">1</span>
@@ -362,7 +362,7 @@ export default function Checkout() {
                 </section>
 
                 {/* Shipping Address */}
-                <section className="bg-white p-8 border border-[#2D2926]/10 shadow-sm relative overflow-hidden">
+                <section className="bg-white p-5 sm:p-8 border border-[#2D2926]/10 shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-[#2D2926]"></div>
                   <h2 className="text-xs font-bold tracking-[0.2em] uppercase mb-6 flex items-center gap-3">
                     <span className="w-6 h-6 rounded-full bg-[#EBE7E0] text-[#2D2926] flex items-center justify-center font-bold">2</span>
@@ -389,32 +389,32 @@ export default function Checkout() {
                       </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold mb-2 opacity-80">First Name</label>
-                      <input required value={firstName} onChange={e=>setFirstName(e.target.value)} type="text" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors duration-300 ease-in-out focus:bg-white" />
+                      <input required value={firstName} onChange={e=>setFirstName(e.target.value)} type="text" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-3 text-sm focus:outline-none focus:border-[#2D2926] transition-colors focus:bg-white" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold mb-2 opacity-80">Last Name</label>
-                      <input required value={lastName} onChange={e=>setLastName(e.target.value)} type="text" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors duration-300 ease-in-out focus:bg-white" />
+                      <input required value={lastName} onChange={e=>setLastName(e.target.value)} type="text" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-3 text-sm focus:outline-none focus:border-[#2D2926] transition-colors focus:bg-white" />
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-xs font-bold mb-2 opacity-80">Address</label>
-                      <input required value={address} onChange={e=>setAddress(e.target.value)} type="text" placeholder="123 Shopping Lane, Apt 4" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors duration-300 ease-in-out focus:bg-white" />
+                      <input required value={address} onChange={e=>setAddress(e.target.value)} type="text" placeholder="123 Shopping Lane, Apt 4" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-3 text-sm focus:outline-none focus:border-[#2D2926] transition-colors focus:bg-white" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold mb-2 opacity-80">City</label>
-                      <input required value={city} onChange={e=>setCity(e.target.value)} type="text" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors duration-300 ease-in-out focus:bg-white" />
+                      <input required value={city} onChange={e=>setCity(e.target.value)} type="text" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-3 text-sm focus:outline-none focus:border-[#2D2926] transition-colors focus:bg-white" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold mb-2 opacity-80">Postal Code</label>
-                      <input required value={postalCode} onChange={e=>setPostalCode(e.target.value)} type="text" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors duration-300 ease-in-out focus:bg-white" />
+                      <input required value={postalCode} onChange={e=>setPostalCode(e.target.value)} type="text" className="w-full bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-3 text-sm focus:outline-none focus:border-[#2D2926] transition-colors focus:bg-white" />
                     </div>
                   </div>
                 </section>
 
                 {/* Payment Details */}
-                <section className="bg-white p-8 border border-[#2D2926]/10 shadow-sm relative overflow-hidden">
+                <section className="bg-white p-5 sm:p-8 border border-[#2D2926]/10 shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-[#2D2926]"></div>
                   
                   <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
