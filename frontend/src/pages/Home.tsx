@@ -21,14 +21,8 @@ export default function Home() {
   const trendingProducts = products.slice(0, 4);
   const newArrivals = products.slice(4, 8);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#EBE7E0] gap-4">
-        <Loader2 className="animate-spin text-[#2D2926]" size={32} />
-        <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-50">Curating Experience...</p>
-      </div>
-    );
-  }
+  // Don't block the entire page on product load — render hero immediately
+  // and show skeletons only in the product sections
 
   return (
     <>
@@ -169,7 +163,11 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {trendingProducts.map((product: any) => (
+            {isLoading
+              ? [...Array(4)].map((_, i) => (
+                  <div key={i} className="border border-[#2D2926] bg-[#EBE7E0] animate-pulse h-[420px]" />
+                ))
+              : trendingProducts.map((product: any) => (
               <ProductCard key={product._id} product={product} />
             ))}
           </div>
@@ -222,7 +220,11 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {newArrivals.map((product: any) => (
+            {isLoading
+              ? [...Array(4)].map((_, i) => (
+                  <div key={i} className="border border-[#2D2926] bg-[#EBE7E0] animate-pulse h-[420px]" />
+                ))
+              : newArrivals.map((product: any) => (
               <ProductCard key={product._id} product={product} />
             ))}
           </div>

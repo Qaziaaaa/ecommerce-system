@@ -7,6 +7,7 @@ import axiosInstance from '../api/axios';
 import toast from 'react-hot-toast';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useQueryClient } from '@tanstack/react-query';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -129,6 +130,7 @@ function StripePaymentSection({
 
 export default function Checkout() {
   const { cart, cartTotal, clearCart } = useCart();
+  const queryClient = useQueryClient();
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('COD');
   
@@ -266,6 +268,9 @@ export default function Checkout() {
 
       await axiosInstance.post('/orders/checkout', orderData);
       clearCart();
+      // Invalidate admin orders cache so new order appears immediately
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       setIsSuccess(true);
     } catch (error: any) {
       console.error('Checkout error:', error);
@@ -481,7 +486,11 @@ export default function Checkout() {
                             cart={cart}
                             finalTotal={finalTotal}
                             appliedCoupon={appliedCoupon}
-                            onSuccess={() => setIsSuccess(true)}
+                            onSuccess={() => {
+                              queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+                              queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+                              setIsSuccess(true);
+                            }}
                             />
                         </Elements>
                         ) : (
