@@ -148,11 +148,12 @@ export const updateProductService = async (id, updateData) => {
 };
 
 /**
- * Soft delete a product (set isActive to false)
+ * Hard delete a product (permanently removes from database)
+ * Admin-only operation
  * @param {String} id 
  * @returns {Promise<Object>}
  */
 export const deleteProductService = async (id) => {
-    const product = await Product.findByIdAndUpdate(id, { isActive: false }, { new: true });
+    const product = await Product.findByIdAndDelete(id);
     return product;
 };

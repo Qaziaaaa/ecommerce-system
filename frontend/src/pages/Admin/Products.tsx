@@ -134,13 +134,15 @@ export default function AdminProducts() {
     // Performance Optimized Multi-image state: Only URLs are lifted to parent
     const [imageUrls, setImageUrls] = useState<string[]>(Array(3).fill(''));
 
-    // Fetch Products
+    // Fetch Products — no staleTime so admin always sees fresh data
     const { data: products = [], isLoading } = useQuery({
         queryKey: ['admin-products'],
         queryFn: async () => {
-            const { data } = await axiosInstance.get('/products');
+            const { data } = await axiosInstance.get('/products?limit=100');
             return data.data.products;
-        }
+        },
+        staleTime: 0, // Always refetch for admin
+        refetchOnWindowFocus: true,
     });
 
     // Fetch Categories
@@ -157,6 +159,8 @@ export default function AdminProducts() {
         mutationFn: (newProduct: any) => axiosInstance.post('/products', newProduct),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['products-home'] });
             toast.success('Product created successfully');
             closeModal();
         },
@@ -170,6 +174,8 @@ export default function AdminProducts() {
         mutationFn: ({ id, data }: { id: string; data: any }) => axiosInstance.patch(`/products/${id}`, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['products-home'] });
             toast.success('Product updated successfully');
             closeModal();
         },
@@ -178,16 +184,34 @@ export default function AdminProducts() {
         }
     });
 
-    // Delete Mutation (Fixed URL)
+    // Delete Mutation — optimistic update removes product immediately from UI
     const deleteMutation = useMutation({
         mutationFn: (id: string) => axiosInstance.delete(`/products/${id}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-            toast.success('Product deleted successfully');
+        onMutate: async (deletedId: string) => {
+            // Cancel any outgoing refetches
+            await queryClient.cancelQueries({ queryKey: ['admin-products'] });
+            // Snapshot previous value
+            const previous = queryClient.getQueryData(['admin-products']);
+            // Optimistically remove from list
+            queryClient.setQueryData(['admin-products'], (old: any[]) =>
+                (old || []).filter((p: any) => p._id !== deletedId)
+            );
+            return { previous };
         },
-        onError: (error: any) => {
+        onSuccess: () => {
+            toast.success('Product deleted successfully');
+            // Invalidate to sync with server
+            queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['products-home'] });
+        },
+        onError: (error: any, _id, context: any) => {
+            // Roll back on error
+            if (context?.previous) {
+                queryClient.setQueryData(['admin-products'], context.previous);
+            }
             toast.error(error.response?.data?.message || 'Failed to delete product');
-        }
+        },
     });
 
     const filteredProducts = products?.filter((p: any) => 
