@@ -1,75 +1,44 @@
-# 🛠️ NOVA | Backend Security & API
+# NOVA Backend
 
----
+Express + MongoDB REST API for the NOVA e-commerce platform.
 
-## 📖 Overview
-The **NOVA Backend** provides a robust, stateless API for the e-commerce platform. It leverages a modern JWT + Refresh Token architecture and incorporates industry-standard security practices (CSRF, Rate Limiting, Zod) to ensure safe, high-performance data handling.
+## Stack
 
----
+- **Node.js** + **Express** — HTTP server
+- **MongoDB** + **Mongoose** — database and ODM
+- **JWT** — stateless auth with HttpOnly cookies
+- **Stripe** — payment processing
+- **Cloudinary** — image hosting
+- **EmailJS** — OTP delivery
+- **Winston** — structured logging
 
-## 🧩 Architecture
+## Setup
 
-- **Server**: Express.js
-- **Database**: MongoDB with Cloud Atlas
-- **Auth**: JWT (Stateless) + HttpOnly Cookies
-- **Validation**: Zod (Input enforcement)
-- **Email**: EmailJS Integrated
-- **Payments**: Stripe (Secure Checkout)
-- **Media**: Cloudinary (Image hosting)
-
----
-
-## 🔒 Security Hardening
-
-### 1. CSRF Protection
-Implemented a custom **Double-Submit Cookie** pattern on all non-GET routes to prevent unauthorized state manipulation.
-- Header Name: `X-XSRF-TOKEN`
-- Cookie Name: `XSRF-TOKEN`
-
-### 2. JWT Strategy
-- **Access Tokens**: Short-lived (15m), sent via standardized handlers.
-- **Refresh Tokens**: Long-lived (7d), stored in `HttpOnly` / `Secure` cookies.
-- **Refresh Flow**: Seamless automatic silent refresh handled by the client.
-
-### 3. Rate Limiting
-Global rate limits are applied per IP to protect the platform against DDoS and brute-force attacks on sensitive endpoints (`/auth/login`, `/auth/register`).
-
----
-
-## 🚀 Getting Started
-
-### 1. Installation
 ```bash
 npm install
-```
-
-### 2. Environment Setup
-Copy the example environment file and fill in your developer credentials:
-```bash
 cp .env.example .env
+npm run dev
 ```
 
-### 3. Available Scripts
+## Scripts
+
 ```bash
-npm run dev      # Start development server (nodemon)
-npm start        # Start production server
-npm run seed     # Populate database with dummy data
+npm run dev    # Development with nodemon
+npm start      # Production
+npm run test   # Vitest test suite
 ```
 
----
+## Key Middleware
 
-## 📦 API Routes
+| Middleware | Purpose |
+|-----------|---------|
+| `auth.middleware` | JWT verification |
+| `csrf.middleware` | CSRF token validation |
+| `cache.middleware` | In-memory API response caching |
+| `rateLimiter` | Per-IP and per-user rate limiting |
+| `performance.middleware` | Response time tracking |
+| `resilience.middleware` | Error rate monitoring + graceful degradation |
 
-| Endpoint | Method | Role | Description |
-| :--- | :--- | :--- | :--- |
-| `/api/v1/auth` | - | All | User-facing auth, login, and registration. |
-| `/api/v1/products` | GET | All | Product browsing and search. |
-| `/api/v1/orders` | POST | User | Secure Stripe checkout and order fulfillment. |
-| `/api/v1/admin`| - | Admin | Global store management and product CRUD. |
-| `/api/v1/user` | - | User | Profile and order history management. |
+## Environment Variables
 
----
-
-<div align="center">
-  <sub>Built for NOVA Premium E-Commerce</sub>
-</div>
+See `.env.example` for all required variables.
