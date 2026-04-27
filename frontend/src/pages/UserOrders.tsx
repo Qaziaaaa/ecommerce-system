@@ -13,7 +13,13 @@ export default function UserOrders({ isEmbedded = false }: { isEmbedded?: boolea
         queryFn: async () => {
             const { data } = await axiosInstance.get('/orders/my-orders');
             return data.data.orders;
-        }
+        },
+        // Poll every 30 seconds so status changes from admin appear without refresh
+        refetchInterval: 30_000,
+        // Consider data stale after 15 seconds
+        staleTime: 15_000,
+        // Always refetch when user comes back to this tab
+        refetchOnWindowFocus: true,
     });
 
     const cancelOrderMutation = useMutation({

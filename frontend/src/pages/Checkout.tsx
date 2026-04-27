@@ -268,9 +268,10 @@ export default function Checkout() {
 
       await axiosInstance.post('/orders/checkout', orderData);
       clearCart();
-      // Invalidate admin orders cache so new order appears immediately
+      // Invalidate all order caches so both user and admin see the new order immediately
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       setIsSuccess(true);
     } catch (error: any) {
       console.error('Checkout error:', error);
@@ -288,7 +289,7 @@ export default function Checkout() {
         <p className="text-sm font-medium opacity-70 mb-12 text-center max-w-md">
           Thank you for your purchase. We've received your order and will process it shortly.
         </p>
-        <Link to="/profile" className="bg-[#2D2926] text-[#EBE7E0] px-12 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-colors duration-300 ease-in-out shadow-lg">
+        <Link to="/orders" className="bg-[#2D2926] text-[#EBE7E0] px-12 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-colors duration-300 ease-in-out shadow-lg">
           Track My Order
         </Link>
       </div>
@@ -489,6 +490,7 @@ export default function Checkout() {
                             onSuccess={() => {
                               queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
                               queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+                              queryClient.invalidateQueries({ queryKey: ['my-orders'] });
                               setIsSuccess(true);
                             }}
                             />
