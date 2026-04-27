@@ -66,8 +66,8 @@ export default function Signup() {
     };
 
     return (
-        <div className="min-h-[calc(100vh-85px)] flex items-center justify-center bg-[#EBE7E0] px-12">
-            <div className="w-full max-w-md bg-white border border-[#2D2926]/10 p-12">
+        <div className="min-h-[calc(100vh-85px)] flex items-center justify-center bg-[#EBE7E0] px-4 sm:px-8 py-12">
+            <div className="w-full max-w-md bg-white border border-[#2D2926]/10 p-8 sm:p-12">
                 <div className="text-center mb-10">
                     <h1 className="font-display text-4xl tracking-wide mb-2">JOIN NOVA</h1>
                     <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-60">Complete Passwordless Enrollment</p>

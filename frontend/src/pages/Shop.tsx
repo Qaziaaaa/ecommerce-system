@@ -87,7 +87,7 @@ export default function Shop() {
   const pagination = data?.pagination || { totalPages: 1 };
 
   return (
-    <div className="py-20 px-12 bg-[#EBE7E0] min-h-screen">
+    <div className="py-12 sm:py-16 lg:py-20 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="font-display text-5xl lg:text-7xl tracking-tighter mb-6 uppercase">The Collection</h1>
