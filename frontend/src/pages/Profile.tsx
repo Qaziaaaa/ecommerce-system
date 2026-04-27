@@ -91,43 +91,43 @@ export default function Profile() {
     };
 
     return (
-        <div className="min-h-screen bg-[#EBE7E0] py-20 px-12">
-            <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-12">
+        <div className="min-h-screen bg-[#EBE7E0] py-12 px-4 sm:px-8 lg:px-12">
+            <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
                 
                 {/* Profile Navigation/Sidebar */}
-                <div className="w-full md:w-72 shrink-0">
-                    <div className="bg-white border border-[#2D2926]/10 p-8 flex flex-col items-center text-center shadow-sm mb-8">
-                        <div className="w-24 h-24 rounded-full bg-[#2D2926] text-[#EBE7E0] flex items-center justify-center text-3xl font-display tracking-widest mb-4">
+                <div className="w-full md:w-64 shrink-0">
+                    <div className="bg-white border border-[#2D2926]/10 p-6 flex flex-col items-center text-center shadow-sm mb-4">
+                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#2D2926] text-[#EBE7E0] flex items-center justify-center text-2xl font-display tracking-widest mb-3">
                             {user?.name ? getInitials(user.name) : 'U'}
                         </div>
-                        <h2 className="font-display text-2xl tracking-wide">{user?.name}</h2>
-                        <p className="text-sm font-bold opacity-50 mt-1">{user?.email}</p>
+                        <h2 className="font-display text-xl tracking-wide">{user?.name}</h2>
+                        <p className="text-xs font-bold opacity-50 mt-1 break-all">{user?.email}</p>
                     </div>
 
-                    <nav className="space-y-3 text-[10px] font-bold tracking-[0.2em] uppercase">
-                        <button 
-                            onClick={() => setActiveTab('details')}
-                            className={`w-full text-left p-5 transition-colors duration-300 border border-transparent ${activeTab === 'details' ? 'bg-[#2D2926] text-[#EBE7E0] shadow-lg' : 'bg-white hover:border-[#2D2926]/30 hover:bg-[#2D2926]/5'}`}
-                        >
-                            Profile Details
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('addresses')}
-                            className={`w-full text-left p-5 transition-colors duration-300 border border-transparent ${activeTab === 'addresses' ? 'bg-[#2D2926] text-[#EBE7E0] shadow-lg' : 'bg-white hover:border-[#2D2926]/30 hover:bg-[#2D2926]/5'}`}
-                        >
-                            Saved Addresses
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('orders')}
-                            className={`w-full text-left p-5 transition-colors duration-300 border border-transparent ${activeTab === 'orders' ? 'bg-[#2D2926] text-[#EBE7E0] shadow-lg' : 'bg-white hover:border-[#2D2926]/30 hover:bg-[#2D2926]/5'}`}
-                        >
-                            Order History
-                        </button>
+                    {/* Tab nav — horizontal on mobile, vertical on desktop */}
+                    <nav className="flex md:flex-col gap-2 overflow-x-auto pb-1 md:pb-0">
+                        {[
+                            { id: 'details', label: 'Profile Details' },
+                            { id: 'addresses', label: 'Addresses' },
+                            { id: 'orders', label: 'Order History' },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`shrink-0 md:w-full text-left px-4 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors duration-200 whitespace-nowrap ${
+                                    activeTab === tab.id
+                                        ? 'bg-[#2D2926] text-[#EBE7E0]'
+                                        : 'bg-white hover:bg-[#2D2926]/5 border border-[#2D2926]/10'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </nav>
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 bg-white border border-[#2D2926]/10 p-10 shadow-sm relative overflow-hidden">
+                <div className="flex-1 bg-white border border-[#2D2926]/10 p-6 sm:p-8 shadow-sm relative overflow-hidden min-w-0">
                     <div className="absolute top-0 left-0 w-1 h-full bg-[#2D2926]"></div>
                     
                     {activeTab === 'details' && (
