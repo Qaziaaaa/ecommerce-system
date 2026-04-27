@@ -24,7 +24,10 @@ export default function ProductDetail() {
     queryFn: async () => {
         const { data } = await axiosInstance.get(`/products/${id}`);
         return data.data.product;
-    }
+    },
+    // Always get fresh stock data on product detail page
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: reviews = [], isLoading: isLoadingReviews } = useQuery({
@@ -215,8 +218,9 @@ export default function ProductDetail() {
                 </button>
                 <span className="w-12 text-center text-sm font-bold">{quantity}</span>
                 <button 
-                  onClick={() => setQuantity(quantity + 1)} 
-                  className="px-4 h-full hover:bg-[#2D2926] hover:text-[#EBE7E0] transition-colors duration-300 ease-in-out"
+                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  disabled={quantity >= product.stock}
+                  className="px-4 h-full hover:bg-[#2D2926] hover:text-[#EBE7E0] transition-colors duration-300 ease-in-out disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Plus size={14} />
                 </button>
@@ -224,9 +228,10 @@ export default function ProductDetail() {
               
               <button 
                 onClick={handleAddToCart}
-                className="flex-1 bg-[#2D2926] text-[#EBE7E0] h-12 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-colors flex items-center justify-center gap-2 duration-300 ease-in-out"
+                disabled={product.stock === 0 || quantity > product.stock}
+                className="flex-1 bg-[#2D2926] text-[#EBE7E0] h-12 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-colors flex items-center justify-center gap-2 duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ShoppingBag size={16} /> Add to Cart
+                <ShoppingBag size={16} /> {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
               </button>
             </div>
             

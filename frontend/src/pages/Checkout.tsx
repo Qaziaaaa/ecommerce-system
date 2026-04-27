@@ -268,10 +268,12 @@ export default function Checkout() {
 
       await axiosInstance.post('/orders/checkout', orderData);
       clearCart();
-      // Invalidate all order caches so both user and admin see the new order immediately
+      // Invalidate all order and product caches so stock updates immediately
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['products-home'] });
       setIsSuccess(true);
     } catch (error: any) {
       console.error('Checkout error:', error);
@@ -493,6 +495,8 @@ export default function Checkout() {
                               queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
                               queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
                               queryClient.invalidateQueries({ queryKey: ['my-orders'] });
+                              queryClient.invalidateQueries({ queryKey: ['products'] });
+                              queryClient.invalidateQueries({ queryKey: ['products-home'] });
                               setIsSuccess(true);
                             }}
                             />
