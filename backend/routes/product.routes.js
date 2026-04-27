@@ -20,11 +20,11 @@ router.use('/:productId/reviews', reviewRoutes);
 
 router.route('/')
     .get(optionalAuth, apiCache(CACHE_TTL.PRODUCTS_LIST), getProducts)
-    .post(protect, isAdmin, validateCreateProduct, invalidateCacheMiddleware(['GET:/products', 'GET:/api/v1/products']), createProduct);
+    .post(protect, isAdmin, validateCreateProduct, invalidateCacheMiddleware(['GET:/products*', 'GET:/api/v1/products*']), createProduct);
 
 router.route('/:id')
     .get(optionalAuth, apiCache(CACHE_TTL.PRODUCT_DETAIL), getProductById)
-    .patch(protect, isAdmin, validateUpdateProduct, invalidateCacheMiddleware(['GET:/products', 'GET:/api/v1/products']), updateProduct)
-    .delete(protect, isAdmin, invalidateCacheMiddleware(['GET:/products', 'GET:/api/v1/products']), deleteProduct);
+    .patch(protect, isAdmin, validateUpdateProduct, invalidateCacheMiddleware(['GET:/products*', 'GET:/api/v1/products*']), updateProduct)
+    .delete(protect, isAdmin, invalidateCacheMiddleware(['GET:/products*', 'GET:/api/v1/products*']), deleteProduct);
 
 export default router;

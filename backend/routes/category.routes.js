@@ -8,6 +8,6 @@ const router = express.Router();
 
 router.route('/')
     .get(apiCache(CACHE_TTL.CATEGORIES), getAllCategories)
-    .post(protect, isAdmin, invalidateCacheMiddleware(['GET:/categories', 'GET:/api/v1/categories']), createCategory);
+    .post(protect, isAdmin, invalidateCacheMiddleware(['GET:/categories*', 'GET:/api/v1/categories*']), createCategory);
 
 export default router;
