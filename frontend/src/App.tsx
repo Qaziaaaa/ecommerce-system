@@ -34,17 +34,37 @@ const AdminUsers = React.lazy(() => import('./pages/Admin/Users'));
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            retry: 1, // Only retry once to avoid long loading states
-            refetchOnWindowFocus: false, // Prevent unexpected refetches
-            staleTime: 5 * 60 * 1000, // 5 minutes cache by default
-            gcTime: 10 * 60 * 1000, // Keep unused data in cache for 10 minutes
-            refetchOnReconnect: true, // Refetch when network reconnects
+            retry: 1,
+            refetchOnWindowFocus: false,
+            staleTime: 5 * 60 * 1000,   // 5 minutes
+            gcTime: 15 * 60 * 1000,      // Keep in cache 15 minutes
+            refetchOnReconnect: true,
         },
         mutations: {
-            retry: 0, // Don't retry mutations automatically
+            retry: 0,
         },
     },
 });
+
+// Prefetch critical data immediately on app load so products are ready
+// before the user navigates to Home or Shop (warms up Render cold start)
+const prefetchCriticalData = () => {
+    // Prefetch home products
+    queryClient.prefetchQuery({
+        queryKey: ['products-home'],
+        queryFn: () => axiosInstance.get('/products?limit=8').then(r => r.data.data),
+        staleTime: 5 * 60 * 1000,
+    });
+    // Prefetch categories for nav menu
+    queryClient.prefetchQuery({
+        queryKey: ['categories'],
+        queryFn: () => axiosInstance.get('/categories').then(r => r.data.data),
+        staleTime: 60 * 60 * 1000,
+    });
+};
+
+// Start prefetching immediately (non-blocking)
+prefetchCriticalData();
 
 // Performance monitoring component
 const PerformanceTracker = () => {

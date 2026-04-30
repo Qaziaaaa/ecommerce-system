@@ -6,10 +6,10 @@ import cacheService from '../services/cache.service.js';
  * Requirements: 4.1, 4.5
  */
 export const CACHE_TTL = {
-  PRODUCTS_LIST: 60,       // 1 minute — short so stale data resolves quickly
-  PRODUCT_DETAIL: 120,     // 2 minutes
+  PRODUCTS_LIST: 300,      // 5 minutes — cache invalidation handles freshness
+  PRODUCT_DETAIL: 300,     // 5 minutes
   CATEGORIES: 3600,        // 1 hour
-  PUBLIC_SHORT: 30,        // 30 seconds
+  PUBLIC_SHORT: 60,        // 1 minute
   NO_CACHE: 0,
 };
 
