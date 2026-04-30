@@ -12,6 +12,12 @@
   }
 }
 
+/* Prevent horizontal scroll globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 /* Hide the Stripe floating icon/Link badge in the bottom corner globally */
 iframe[src*="stripe.com"][style*="bottom"],
 iframe[src*="stripe.network"][style*="bottom"],

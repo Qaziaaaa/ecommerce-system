@@ -90,7 +90,7 @@ export default function Shop() {
     <div className="py-12 sm:py-16 lg:py-20 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h1 className="font-display text-5xl lg:text-7xl tracking-tighter mb-6 uppercase">The Collection</h1>
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl tracking-tighter mb-6 uppercase">The Collection</h1>
           <p className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-40 max-w-xl mx-auto px-4">
             Engineered for longevity. Tailored for the modern lifestyle.
           </p>
@@ -138,7 +138,7 @@ export default function Shop() {
 
         {/* --- Advanced Filter Sidebar/Panel --- */}
         {isFilterOpen && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 p-10 bg-white shadow-2xl border border-[#2D2926]/5 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 p-5 sm:p-8 bg-white shadow-2xl border border-[#2D2926]/5 animate-in fade-in slide-in-from-top-4 duration-500">
                 
                 {/* Categories */}
                 <div className="space-y-6">
@@ -204,12 +204,12 @@ export default function Shop() {
         {/* --- Product Grid --- */}
         <div className={`transition-opacity duration-300 ${isPlaceholderData ? 'opacity-50' : 'opacity-100'}`}>
             {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-40 gap-6">
+            <div className="flex flex-col items-center justify-center py-20 gap-6">
                 <Loader2 className="animate-spin text-[#2D2926]" size={40} strokeWidth={1} />
                 <p className="text-[9px] font-bold tracking-[0.4em] uppercase opacity-30 animate-pulse">Syncing Inventory...</p>
             </div>
             ) : products.length === 0 ? (
-            <div className="text-center py-40 border-y border-[#2D2926]/5">
+            <div className="text-center py-20 border-y border-[#2D2926]/5">
                 <p className="text-xl font-display opacity-40 uppercase tracking-widest mb-8">
                 No products found matching your current filters.
                 </p>
@@ -231,8 +231,8 @@ export default function Shop() {
 
         {/* --- Pagination --- */}
         {!isLoading && pagination.totalPages > 1 && (
-            <div className="mt-32 flex flex-col items-center gap-8 border-t border-[#2D2926]/5 pt-20">
-                <div className="flex items-center gap-10">
+            <div className="mt-16 sm:mt-32 flex flex-col items-center gap-6 border-t border-[#2D2926]/5 pt-12 sm:pt-20">
+                <div className="flex items-center gap-4 sm:gap-10">
                     <button 
                         disabled={page === 1}
                         onClick={() => updateParams({ page: (page - 1).toString() })}

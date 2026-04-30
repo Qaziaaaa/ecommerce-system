@@ -28,7 +28,7 @@ export default function Layout() {
   });
 
   return (
-    <div className="min-h-screen bg-[#EBE7E0] text-[#2D2926] font-sans selection:bg-[#2D2926] selection:text-[#EBE7E0] flex flex-col">
+    <div className="min-h-screen bg-[#EBE7E0] text-[#2D2926] font-sans selection:bg-[#2D2926] selection:text-[#EBE7E0] flex flex-col overflow-x-hidden">
       
       {/* Cart Overlay */}
       {isCartOpen && (
@@ -72,7 +72,7 @@ export default function Layout() {
                 </div>
                 <div className="flex-1 flex flex-col justify-between py-1">
                   <div className="flex justify-between items-start">
-                    <h3 className="font-display text-xl tracking-wide leading-none">{item.name}</h3>
+                    <h3 className="font-display text-base sm:text-xl tracking-wide leading-tight line-clamp-2">{item.name}</h3>
                     <button onClick={() => removeFromCart(item.id)} className="text-[#2D2926]/40 hover:text-red-500 transition-colors duration-300 ease-in-out">
                       <Trash2 size={16} />
                     </button>

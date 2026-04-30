@@ -90,23 +90,23 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="py-20 px-12 bg-[#EBE7E0] min-h-screen">
+    <div className="py-10 sm:py-16 lg:py-20 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] min-h-screen">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-3 text-[10px] font-bold tracking-[0.2em] uppercase mb-12 opacity-70">
-          <Link to="/" className="hover:opacity-100 transition-opacity duration-300">Home</Link>
+        <nav className="flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] uppercase mb-8 sm:mb-12 opacity-70 overflow-x-auto whitespace-nowrap pb-1">
+          <Link to="/" className="hover:opacity-100 transition-opacity shrink-0">Home</Link>
           <span>/</span>
-          <Link to="/shop" className="hover:opacity-100 transition-opacity duration-300">Shop</Link>
+          <Link to="/shop" className="hover:opacity-100 transition-opacity shrink-0">Shop</Link>
           <span>/</span>
-          <Link to={`/shop?category=${encodeURIComponent(product.category?.name || 'All')}`} className="hover:opacity-100 transition-opacity duration-300">
+          <Link to={`/shop?category=${encodeURIComponent(product.category?.name || 'All')}`} className="hover:opacity-100 transition-opacity shrink-0">
             {product.category?.name || 'Category'}
           </Link>
           <span>/</span>
-          <span className="opacity-50 truncate max-w-[200px] md:max-w-xs">{product.name}</span>
+          <span className="opacity-50 truncate">{product.name}</span>
         </nav>
 
         {/* Product Details Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 mb-12 lg:mb-24">
           {/* Product Gallery */}
           <div className="flex flex-col gap-6">
             {/* Main Image Container */}
@@ -179,7 +179,7 @@ export default function ProductDetail() {
               </div>
             </div>
             
-            <h1 className="font-display text-6xl tracking-wide mb-4">{product.name}</h1>
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-6xl tracking-wide mb-4">{product.name}</h1>
             
             <div className="flex flex-col items-start gap-4 mb-8">
                 {product.discountPrice ? (
@@ -243,9 +243,9 @@ export default function ProductDetail() {
 
         {/* Reviews Section */}
         <div className="border-t border-[#2D2926]/20 pt-16">
-            <h2 className="font-display text-4xl mb-12">Customer Reviews</h2>
+            <h2 className="font-display text-2xl sm:text-4xl mb-8 sm:mb-12">Customer Reviews</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-16">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-16">
                 
                 {/* Review Form */}
                 <div className="md:col-span-5 border border-[#2D2926] bg-white p-8 self-start">

@@ -52,10 +52,10 @@ export default function Home() {
             </div>
             
             <div className="mt-12 lg:mt-16 flex flex-col sm:flex-row justify-center lg:justify-start gap-4 lg:gap-6">
-              <Link to="/shop" className="bg-[#2D2926] text-[#EBE7E0] px-12 py-5 lg:py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-all flex items-center justify-center gap-2">
+              <Link to="/shop" className="bg-[#2D2926] text-[#EBE7E0] px-8 sm:px-12 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-all flex items-center justify-center gap-2">
                 Shop Collection <ArrowRight size={14} />
               </Link>
-              <Link to="/about" className="border border-[#2D2926] text-[#2D2926] px-12 py-5 lg:py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926] hover:text-[#EBE7E0] transition-colors">
+              <Link to="/about" className="border border-[#2D2926] text-[#2D2926] px-8 sm:px-12 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926] hover:text-[#EBE7E0] transition-colors">
                 Our Story
               </Link>
             </div>
@@ -155,10 +155,10 @@ export default function Home() {
       </section>
 
       {/* Trending Now */}
-      <section className="py-24 px-12 bg-[#EBE7E0] border-t border-[#2D2926]/10">
+      <section className="py-12 sm:py-24 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] border-t border-[#2D2926]/10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-5xl tracking-wide mb-4">TRENDING NOW</h2>
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="font-display text-3xl sm:text-5xl tracking-wide mb-4">TRENDING NOW</h2>
             <p className="text-sm font-medium opacity-60 max-w-md mx-auto">Our most sought-after pieces, curated for the modern aesthetic.</p>
           </div>
 
@@ -173,7 +173,7 @@ export default function Home() {
           </div>
 
           <div className="flex justify-center">
-            <Link to="/shop" className="border border-[#2D2926] text-[#2D2926] px-12 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926] hover:text-[#EBE7E0] transition-colors inline-block duration-300 ease-out">
+            <Link to="/shop" className="border border-[#2D2926] text-[#2D2926] px-8 sm:px-12 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926] hover:text-[#EBE7E0] transition-colors inline-block duration-300 ease-out">
               View All Products
             </Link>
           </div>
@@ -192,9 +192,9 @@ export default function Home() {
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
           />
         </div>
-        <div className="w-full lg:w-1/2 text-[#EBE7E0] p-12 lg:p-24 flex flex-col justify-center">
+        <div className="w-full lg:w-1/2 text-[#EBE7E0] p-8 sm:p-12 lg:p-24 flex flex-col justify-center">
           <span className="text-[10px] font-bold tracking-[0.2em] uppercase mb-6 opacity-60">Our Philosophy</span>
-          <h2 className="font-display text-5xl tracking-wide mb-8 leading-tight">DESIGNED FOR<br/>THE EVERYDAY</h2>
+          <h2 className="font-display text-3xl sm:text-5xl tracking-wide mb-8 leading-tight">DESIGNED FOR<br/>THE EVERYDAY</h2>
           <p className="opacity-80 leading-relaxed mb-10 max-w-lg text-sm font-medium">
             We believe that the objects you interact with daily should bring a sense of joy and purpose. Every piece in our collection is meticulously crafted, balancing minimalist aesthetics with uncompromising functionality.
           </p>
@@ -207,14 +207,14 @@ export default function Home() {
       </section>
 
       {/* New Arrivals */}
-      <section className="py-24 px-12 bg-[#EBE7E0]">
+      <section className="py-12 sm:py-24 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0]">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-12">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-12">
             <div>
-              <h2 className="font-display text-4xl tracking-wide mb-2">NEW ARRIVALS</h2>
+              <h2 className="font-display text-2xl sm:text-4xl tracking-wide mb-2">NEW ARRIVALS</h2>
               <p className="text-sm font-medium opacity-60">The latest additions to our collection.</p>
             </div>
-            <Link to="/shop" className="text-[10px] font-bold tracking-[0.2em] uppercase hover:opacity-70 flex items-center gap-2 transition-opacity duration-300">
+            <Link to="/shop" className="text-[10px] font-bold tracking-[0.2em] uppercase hover:opacity-70 flex items-center gap-2 transition-opacity duration-300 shrink-0">
               Shop New <ArrowRight size={14}/>
             </Link>
           </div>
@@ -232,19 +232,19 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-24 px-12 bg-[#EBE7E0] border-t border-[#2D2926]/10">
+      <section className="py-12 sm:py-24 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] border-t border-[#2D2926]/10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-4xl tracking-wide mb-4">WHAT THEY SAY</h2>
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="font-display text-2xl sm:text-4xl tracking-wide mb-4">WHAT THEY SAY</h2>
           </div>
           
-          <div className="flex lg:grid lg:grid-cols-3 gap-8 overflow-x-auto lg:overflow-visible pb-12 lg:pb-0 snap-x snap-mandatory hide-scrollbar group/slider">
+          <div className="flex lg:grid lg:grid-cols-3 gap-6 overflow-x-auto lg:overflow-visible pb-6 lg:pb-0 snap-x snap-mandatory">
             {[
               { name: "Sarah Jenkins", role: "Interior Designer", quote: "The attention to detail is unmatched. Every piece I've purchased has become a staple in my daily routine." },
               { name: "Marcus Chen", role: "Creative Director", quote: "Finally, a brand that understands the balance between minimalist design and actual, everyday utility." },
               { name: "Elena Rodriguez", role: "Architect", quote: "The quality of materials speaks for itself. These aren't just products; they are investments in better living." }
             ].map((testimonial, i) => (
-              <div key={i} className="min-w-[300px] lg:min-w-0 snap-center group bg-[#EBE7E0] hover:bg-[#2D2926] hover:text-[#EBE7E0] p-10 border border-[#2D2926]/10 flex flex-col justify-between hover:-translate-y-2 transition-all duration-500 ease-out">
+              <div key={i} className="min-w-[280px] sm:min-w-[300px] lg:min-w-0 snap-center group bg-[#EBE7E0] hover:bg-[#2D2926] hover:text-[#EBE7E0] p-6 sm:p-10 border border-[#2D2926]/10 flex flex-col justify-between hover:-translate-y-2 transition-all duration-500 ease-out">
                 <div>
                   <div className="flex gap-1 mb-6">
                     {[...Array(5)].map((_, j) => (
@@ -264,9 +264,9 @@ export default function Home() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-32 px-12 bg-[#2D2926] text-[#EBE7E0] text-center">
+      <section className="py-16 sm:py-32 px-4 sm:px-8 lg:px-12 bg-[#2D2926] text-[#EBE7E0] text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="font-display text-5xl tracking-wide mb-6">JOIN THE CLUB</h2>
+          <h2 className="font-display text-3xl sm:text-5xl tracking-wide mb-6">JOIN THE CLUB</h2>
           <p className="opacity-80 text-sm font-medium leading-relaxed mb-10">
             Subscribe to receive updates, access to exclusive deals, and more.
           </p>
