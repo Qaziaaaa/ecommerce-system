@@ -37,45 +37,32 @@ export const csrfProtection = (req, res, next) => {
         return next();
     }
 
-    // Check for token in Authorization header (fallback for cross-domain)
     const authHeader = req.headers.authorization;
     const headerToken = req.headers['x-xsrf-token'];
     const cookieToken = req.cookies['XSRF-TOKEN'];
 
-    console.log(`🔒 CSRF Check: ${req.method} ${req.path}`);
-    console.log(`   Cookie: ${cookieToken ? cookieToken.substring(0, 8) + '...' : 'MISSING'}`);
-    console.log(`   Header: ${headerToken ? headerToken.substring(0, 8) + '...' : 'MISSING'}`);
-    console.log(`   Auth: ${authHeader ? authHeader.substring(0, 20) + '...' : 'MISSING'}`);
-
     let token = null;
 
-    // Try header first (for cross-domain), then cookie (for same-domain)
     if (headerToken) {
         token = headerToken;
-        console.log('   → Using header token');
     } else if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7); // Remove 'Bearer ' prefix
-        console.log('   → Using auth bearer token');
+        token = authHeader.substring(7);
     } else if (cookieToken) {
         token = cookieToken;
-        console.log('   → Using cookie token');
     }
 
     if (!token) {
-        console.log('   → No token found, rejecting');
         return res.status(403).json({ 
             status: 'fail', 
-            message: 'CSRF token missing. Please include X-XSRF-TOKEN header or Authorization: Bearer token.' 
+            message: 'CSRF token missing. Please refresh the page and try again.',
+            csrfRetry: true
         });
     }
 
-    // Simple token validation (just check if it's a valid hex string)
     if (!/^[a-f0-9]{64}$/i.test(token)) {
-        console.log('   → Invalid token format');
-        return res.status(403).json({ status: 'fail', message: 'Invalid CSRF token format' });
+        return res.status(403).json({ status: 'fail', message: 'Invalid CSRF token.' });
     }
 
-    console.log('   → CSRF validation passed');
     next();
 };
 

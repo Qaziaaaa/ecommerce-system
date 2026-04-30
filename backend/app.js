@@ -75,11 +75,7 @@ app.use(errorRateMiddleware);
 
 // 1. CSRF Bootstrap (MUST be before protection middleware)
 app.get('/api/v1/csrf-token', (req, res) => {
-    console.log(`🔒 CSRF token request from: ${req.get('origin') || 'no-origin'}`);
     const token = crypto.randomBytes(32).toString('hex');
-    console.log(`   → Sending token in response body: ${token.substring(0, 8)}...`);
-    
-    // Send token in response body instead of cookie for cross-domain compatibility
     res.json({ 
         status: 'success', 
         token: token,

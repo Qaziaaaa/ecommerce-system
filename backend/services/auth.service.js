@@ -6,7 +6,7 @@ export const sendAuthenticationOTP = async (email, type = 'login') => {
     const user = await User.findOne({ email });
 
     if (type === 'signup' && user) {
-        throw new Error('User already exists. Please log in instead.');
+        throw new Error('An account with this email already exists. Please log in instead.');
     }
 
     if (type === 'login' && !user) {

@@ -25,7 +25,14 @@ export default function Signup() {
             setStep(2);
             toast.success('OTP sent to your email');
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to send OTP');
+            const msg: string = error.response?.data?.message || '';
+            // If user already exists, redirect them to login instead of showing a confusing error
+            if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('please log in')) {
+                toast.error('An account with this email already exists. Redirecting to login...');
+                setTimeout(() => navigate('/login'), 1500);
+            } else {
+                toast.error(msg || 'Failed to send OTP');
+            }
         } finally {
             setLoading(false);
         }
