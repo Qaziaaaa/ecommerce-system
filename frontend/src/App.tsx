@@ -46,26 +46,6 @@ const queryClient = new QueryClient({
     },
 });
 
-// Prefetch critical data immediately on app load so products are ready
-// before the user navigates to Home or Shop (warms up Render cold start)
-const prefetchCriticalData = () => {
-    // Prefetch home products
-    queryClient.prefetchQuery({
-        queryKey: ['products-home'],
-        queryFn: () => axiosInstance.get('/products?limit=8').then(r => r.data.data),
-        staleTime: 5 * 60 * 1000,
-    });
-    // Prefetch categories for nav menu
-    queryClient.prefetchQuery({
-        queryKey: ['categories'],
-        queryFn: () => axiosInstance.get('/categories').then(r => r.data.data),
-        staleTime: 60 * 60 * 1000,
-    });
-};
-
-// Start prefetching immediately (non-blocking)
-prefetchCriticalData();
-
 // Performance monitoring component
 const PerformanceTracker = () => {
   const location = useLocation();
@@ -98,6 +78,25 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 export default function App() {
   // Initialize performance monitoring
   usePerformanceMonitoring();
+  
+  // Prefetch critical data after mount to warm up Render cold start
+  useEffect(() => {
+    // Small delay so the initial render completes first
+    const timer = setTimeout(() => {
+      queryClient.prefetchQuery({
+        queryKey: ['products-home'],
+        queryFn: () => axiosInstance.get('/products?limit=8').then(r => r.data.data),
+        staleTime: 5 * 60 * 1000,
+      }).catch(() => {}); // Silent — prefetch failure is non-fatal
+
+      queryClient.prefetchQuery({
+        queryKey: ['categories'],
+        queryFn: () => axiosInstance.get('/categories').then(r => r.data.data),
+        staleTime: 60 * 60 * 1000,
+      }).catch(() => {});
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Initialize bundle monitoring in development
   useEffect(() => {
