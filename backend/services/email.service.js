@@ -23,6 +23,11 @@ export const sendOTPEmail = async (email, otp) => {
         current_year: new Date().getFullYear().toString()
     };
 
+    // In development, log OTP to console so devs can see it without email
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`\n[DEV] OTP for ${email}: ${otp}\n`);
+    }
+
     try {
         await emailjs.send(
             serviceId,
