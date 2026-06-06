@@ -50,6 +50,8 @@ frontend/playwright-report/
 frontend/test-results/
 
 # Misc
+.agents/
+skills-lock.json
 frontend/lint_output.txt
 frontend/metadata.json
 backend/test-*.js

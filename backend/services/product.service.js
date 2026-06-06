@@ -54,7 +54,7 @@ export const createProductService = async (productData) => {
 export const getAllProductsService = async (queryParams, user) => {
     // 1. Advanced Filtering
     const queryObj = { ...queryParams };
-    const excludedFields = ['page', 'sort', 'limit', 'search', 'fields', 'minPrice', 'maxPrice', 'category'];
+    const excludedFields = ['page', 'sort', 'limit', 'search', 'fields', 'minPrice', 'maxPrice', 'category', 'ids'];
     excludedFields.forEach(el => delete queryObj[el]);
 
     // Role-based visibility
@@ -67,6 +67,14 @@ export const getAllProductsService = async (queryParams, user) => {
         const category = await Category.findOne({ slug: queryParams.category });
         if (category) {
             queryObj.category = category._id;
+        }
+    }
+
+    // Filter by specific IDs (e.g. for wishlist)
+    if (queryParams.ids) {
+        const idArray = queryParams.ids.split(',').filter(Boolean);
+        if (idArray.length > 0) {
+            queryObj._id = { $in: idArray };
         }
     }
 
