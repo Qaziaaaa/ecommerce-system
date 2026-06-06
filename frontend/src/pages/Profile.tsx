@@ -4,6 +4,7 @@ import axiosInstance from '../api/axios';
 import { User, Lock, Mail, Loader2, Save, MapPin, Plus, Trash2, CheckCircle, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import UserOrders from './UserOrders';
+import SEOMeta from '../components/SEOMeta';
 
 export default function Profile() {
     const { user, setUser } = useAuthStore();
@@ -92,6 +93,7 @@ export default function Profile() {
 
     return (
         <div className="min-h-screen bg-[#EBE7E0] py-12 px-4 sm:px-8 lg:px-12">
+      <SEOMeta title="My Profile" />
             <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
                 
                 {/* Profile Navigation/Sidebar */}

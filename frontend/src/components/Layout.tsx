@@ -30,22 +30,36 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-[#EBE7E0] text-[#2D2926] font-sans selection:bg-[#2D2926] selection:text-[#EBE7E0] flex flex-col overflow-x-hidden">
       
+      {/* Skip to content link - hidden until focused */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-[#2D2926] focus:text-[#EBE7E0] focus:px-6 focus:py-3 focus:text-sm focus:font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2D2926]"
+      >
+        Skip to content
+      </a>
+
       {/* Cart Overlay */}
       {isCartOpen && (
         <div 
           className="fixed inset-0 bg-[#2D2926]/40 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out"
           onClick={() => setIsCartOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* Cart Drawer */}
-      <div className={`fixed top-0 right-0 h-full w-full sm:w-[450px] bg-[#EBE7E0] z-50 border-l border-[#2D2926] flex flex-col transform transition-transform duration-300 ease-in-out ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping cart"
+        className={`fixed top-0 right-0 h-full w-full sm:w-[450px] bg-[#EBE7E0] z-50 border-l border-[#2D2926] flex flex-col transform transition-transform duration-300 ease-in-out ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
         <div className="p-6 border-b border-[#2D2926] flex justify-between items-center bg-[#2D2926] text-[#EBE7E0]">
           <div className="flex items-center gap-3">
             <ShoppingCart size={24} />
             <h2 className="font-display text-3xl tracking-wide pt-1">YOUR CART</h2>
           </div>
-          <button onClick={() => setIsCartOpen(false)} className="hover:rotate-90 transition-transform duration-300 ease-in-out">
+          <button onClick={() => setIsCartOpen(false)} aria-label="Close cart" className="hover:rotate-90 transition-transform duration-300 ease-in-out">
             <X size={24} />
           </button>
         </div>
@@ -111,10 +125,15 @@ export default function Layout() {
       </div>
       
       {/* 🍔 Full-Screen Mobile Menu Overlay */}
-      <div className={`fixed inset-0 bg-[#EBE7E0] z-[60] flex flex-col transform transition-transform duration-500 ease-in-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+        className={`fixed inset-0 bg-[#EBE7E0] z-[60] flex flex-col transform transition-transform duration-500 ease-in-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
         <div className="p-8 border-b border-[#2D2926]/10 flex justify-between items-center bg-[#2D2926] text-[#EBE7E0]">
           <Link to="/" onClick={() => setIsMenuOpen(false)} className="font-display text-2xl font-bold tracking-[0.15em]">NOVA</Link>
-          <button onClick={() => setIsMenuOpen(false)} className="hover:rotate-90 transition-transform duration-300">
+          <button onClick={() => setIsMenuOpen(false)} aria-label="Close menu" className="hover:rotate-90 transition-transform duration-300">
             <X size={28} />
           </button>
         </div>
@@ -226,7 +245,7 @@ export default function Layout() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
+      <main id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
         <Outlet />
       </main>
 
@@ -236,17 +255,18 @@ export default function Layout() {
           <div className="col-span-1 lg:col-span-4">
             <div className="font-display text-3xl font-bold tracking-[0.15em] mb-8 lg:mb-10">NOVA</div>
             <div className="flex flex-col sm:flex-row mb-10 gap-4 sm:gap-0">
-              <input type="email" placeholder="email address" className="bg-transparent border border-[#EBE7E0]/30 px-5 py-4 text-[10px] sm:text-xs w-full sm:w-72 focus:outline-none focus:border-[#EBE7E0] transition-colors duration-300" />
-              <button className="bg-[#EBE7E0] text-[#2D2926] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#EBE7E0]/80 transition-colors">Join</button>
+              <label htmlFor="newsletter-email" className="sr-only">Email address for newsletter</label>
+              <input id="newsletter-email" type="email" placeholder="email address" className="bg-transparent border border-[#EBE7E0]/30 px-5 py-4 text-[10px] sm:text-xs w-full sm:w-72 focus:outline-none focus:border-[#EBE7E0] transition-colors duration-300" />
+              <button aria-label="Join newsletter" className="bg-[#EBE7E0] text-[#2D2926] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#EBE7E0]/80 transition-colors">Join</button>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-4" aria-label="Social media links">
               {[
-                { Icon: Facebook, url: 'https://facebook.com' },
-                { Icon: Twitter, url: 'https://twitter.com' },
-                { Icon: Instagram, url: 'https://instagram.com' },
-                { Icon: Linkedin, url: 'https://linkedin.com' }
-              ].map(({ Icon, url }, i) => (
-                <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 border border-[#EBE7E0]/30 flex items-center justify-center hover:bg-[#EBE7E0] hover:text-[#2D2926] transition-colors rounded-sm">
+                { Icon: Facebook, url: 'https://facebook.com', label: 'Facebook' },
+                { Icon: Twitter, url: 'https://twitter.com', label: 'Twitter' },
+                { Icon: Instagram, url: 'https://instagram.com', label: 'Instagram' },
+                { Icon: Linkedin, url: 'https://linkedin.com', label: 'LinkedIn' }
+              ].map(({ Icon, url, label }, i) => (
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-10 h-10 border border-[#EBE7E0]/30 flex items-center justify-center hover:bg-[#EBE7E0] hover:text-[#2D2926] transition-colors rounded-sm">
                   <Icon size={16} />
                 </a>
               ))}

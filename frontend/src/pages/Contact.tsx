@@ -1,9 +1,11 @@
 import React from 'react';
 import { Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import SEOMeta from '../components/SEOMeta';
 
 export default function Contact() {
   return (
     <div className="bg-[#EBE7E0] min-h-screen text-[#2D2926] selection:bg-[#2D2926] selection:text-[#EBE7E0]">
+      <SEOMeta title="Contact" />
       {/* Header Section */}
       <section className="pt-32 pb-20 px-6 md:px-12 border-b border-[#2D2926]/20">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-12">

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useQueryClient } from '@tanstack/react-query';
+import SEOMeta from '../components/SEOMeta';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -309,6 +310,7 @@ export default function Checkout() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#EBE7E0] px-12 py-20">
+        <SEOMeta title="Checkout" />
         <CheckCircle size={64} className="text-green-600 mb-6" />
         <h1 className="font-display text-5xl tracking-wide mb-4">ORDER CONFIRMED</h1>
         <p className="text-sm font-medium opacity-70 mb-12 text-center max-w-md">
@@ -325,6 +327,7 @@ export default function Checkout() {
   if (cart.length === 0) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center bg-[#EBE7E0] px-12">
+        <SEOMeta title="Checkout" />
         <h1 className="font-display text-5xl tracking-wide mb-4">CART IS EMPTY</h1>
         <p className="text-sm font-medium opacity-70 mb-12 text-center max-w-md">
           Add some products to your cart before proceeding to checkout.
@@ -338,6 +341,7 @@ export default function Checkout() {
 
   return (
     <div className="py-10 sm:py-16 lg:py-20 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] min-h-screen">
+      <SEOMeta title="Checkout" />
       <div className="max-w-6xl mx-auto">
         <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-wide mb-10 sm:mb-16 text-center">SECURE CHECKOUT</h1>
 

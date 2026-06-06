@@ -18,6 +18,7 @@ import './models/OTP.js';
 import './models/Category.js';
 import './models/Product.js';
 import './models/Order.js';
+import './models/AuditLog.js';
 
 // 4. Initialize Performance Monitoring
 import './utils/database-performance.js';

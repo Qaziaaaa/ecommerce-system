@@ -1,9 +1,20 @@
 import * as productService from '../services/product.service.js';
 import AppError from '../utils/AppError.js';
+import { logAuditAction } from '../services/audit.service.js';
 
 export const createProduct = async (req, res, next) => {
     try {
         const product = await productService.createProductService(req.body);
+        logAuditAction({
+            admin: req.user._id,
+            action: 'PRODUCT_CREATED',
+            targetModel: 'Product',
+            targetId: product._id,
+            changes: { name: product.name, price: product.price },
+            description: `Admin created product "${product.name}"`,
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+        });
         res.status(201).json({
             status: 'success',
             data: { product }
@@ -54,6 +65,17 @@ export const updateProduct = async (req, res, next) => {
             return next(new AppError('No product found with that ID', 404));
         }
 
+        logAuditAction({
+            admin: req.user._id,
+            action: 'PRODUCT_UPDATED',
+            targetModel: 'Product',
+            targetId: product._id,
+            changes: { updates: Object.keys(req.body) },
+            description: `Admin updated product "${product.name}"`,
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+        });
+
         res.status(200).json({
             status: 'success',
             data: { product }
@@ -70,6 +92,17 @@ export const deleteProduct = async (req, res, next) => {
         if (!product) {
             return next(new AppError('No product found with that ID', 404));
         }
+
+        logAuditAction({
+            admin: req.user._id,
+            action: 'PRODUCT_DELETED',
+            targetModel: 'Product',
+            targetId: product._id,
+            changes: { name: product.name },
+            description: `Admin deactivated product "${product.name}"`,
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+        });
 
         res.status(200).json({
             status: 'success',

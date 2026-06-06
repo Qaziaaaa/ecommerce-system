@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'motion/react';
+import SEOMeta from '../components/SEOMeta';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -57,6 +58,7 @@ export default function ProductDetail() {
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-[#EBE7E0] gap-4">
+        <SEOMeta title="Product Details" />
         <Loader2 className="animate-spin text-[#2D2926]" size={32} />
         <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-50">Loading Product...</p>
       </div>
@@ -66,6 +68,7 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-[#EBE7E0]">
+        <SEOMeta title="Product Details" />
         <h1 className="font-display text-4xl mb-4">Product Not Found</h1>
         <Link to="/shop" className="border border-[#2D2926] px-8 py-3 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926] hover:text-[#EBE7E0] transition-colors duration-300 ease-in-out">
           Return to Shop
@@ -89,8 +92,24 @@ export default function ProductDetail() {
     submitReviewMutation.mutate({ rating, comment });
   };
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "description": product.description,
+    "image": product.images?.[0]?.url,
+    "brand": { "@type": "Brand", "name": product.brand || "NOVA" },
+    "offers": {
+      "@type": "Offer",
+      "price": product.price,
+      "priceCurrency": "USD",
+      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  };
+
   return (
     <div className="py-10 sm:py-16 lg:py-20 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] min-h-screen">
+      <SEOMeta title={`Product Details - ${product.name}`} jsonLd={productJsonLd} />
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] uppercase mb-8 sm:mb-12 opacity-70 overflow-x-auto whitespace-nowrap pb-1">

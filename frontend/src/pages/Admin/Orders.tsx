@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../../api/axios';
 import { User, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SEOMeta from '../../components/SEOMeta';
 
 export default function AdminOrders() {
     const queryClient = useQueryClient();
@@ -55,6 +56,7 @@ export default function AdminOrders() {
 
     return (
         <div className="space-y-6">
+            <SEOMeta title="Manage Orders" />
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold tracking-wide">Orders</h1>

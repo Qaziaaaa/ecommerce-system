@@ -7,6 +7,37 @@ import logger from '../utils/logger.js';
 const router = express.Router();
 
 /**
+ * @openapi
+ * /upload:
+ *   post:
+ *     tags: [Upload]
+ *     summary: Upload an image to Cloudinary (Admin only)
+ *     security: [{ BearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [image]
+ *             properties:
+ *               image: { type: string, format: binary }
+ *     responses:
+ *       200:
+ *         description: Image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status: { type: string, example: success }
+ *                 imageUrl: { type: string }
+ *       400:
+ *         description: Upload failed
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized
  * @route   POST /api/v1/upload
  * @desc    Upload an image to Cloudinary
  * @access  Private (Admin)

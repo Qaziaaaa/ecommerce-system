@@ -4,6 +4,7 @@ import axiosInstance from '../api/axios';
 import toast from 'react-hot-toast';
 import { Package, Clock, Truck, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEOMeta from '../components/SEOMeta';
 
 export default function UserOrders({ isEmbedded = false }: { isEmbedded?: boolean }) {
     const queryClient = useQueryClient();
@@ -214,6 +215,7 @@ export default function UserOrders({ isEmbedded = false }: { isEmbedded?: boolea
 
     return (
         <div className="min-h-screen bg-[#EBE7E0] py-12 px-4 sm:px-8 lg:px-12">
+            <SEOMeta title="My Orders" />
             <div className="max-w-3xl mx-auto">{content}</div>
         </div>
     );

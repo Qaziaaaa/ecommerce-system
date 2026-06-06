@@ -6,6 +6,10 @@ import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import crypto from 'crypto';
+import * as Sentry from '@sentry/node';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
+import requestIdMiddleware from './middlewares/requestId.middleware.js';
 import { globalErrorHandler } from './middlewares/error.middleware.js';
 import { 
   performanceMiddleware, 
@@ -17,6 +21,15 @@ import { errorRateMiddleware } from './middlewares/resilience.middleware.js';
 import routes from './routes/index.js';
 import webhookRoutes from './routes/webhook.routes.js';
 import { csrfProtection, setTokenCookie } from './middlewares/csrf.middleware.js';
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: 0.1,
+    profilesSampleRate: 0.1,
+  });
+}
 
 const app = express();
 
@@ -39,7 +52,25 @@ app.use(compression({
 }));
 
 // Security Middlewares
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      scriptSrc: ["'self'", 'https://js.stripe.com', 'https://m.stripe.network'],
+      frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      connectSrc: ["'self'", 'https://api.stripe.com', 'https://m.stripe.network'],
+      upgradeInsecureRequests: [],
+    },
+  },
+  strictTransportSecurity: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? (process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean)
   : ['http://localhost:5173', 'http://127.0.0.1:5173'];
@@ -69,6 +100,18 @@ app.use('/api/v1/webhooks', webhookRoutes);
 // Request Parsing
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// Request ID Middleware (must be before all route handlers)
+app.use(requestIdMiddleware);
+
+// API Documentation
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: 'Nova E-Commerce API Docs',
+  customfavIcon: '',
+}));
+
+// Redirect /api-docs to /api/v1/docs
+app.get('/api-docs', (req, res) => res.redirect('/api/v1/docs'));
 
 // Performance Monitoring Middleware
 app.use(performanceMiddleware);
@@ -124,6 +167,9 @@ app.all('*', (req, res, next) => {
 });
 
 // Global Error Middleware
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 app.use(globalErrorHandler);
 
 export default app;

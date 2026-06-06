@@ -4,6 +4,7 @@ import { Search, Loader2, ChevronLeft, ChevronRight, SlidersHorizontal } from 'l
 import { ProductCard } from '../components/ProductCard';
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
+import SEOMeta from '../components/SEOMeta';
 
 export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -90,6 +91,7 @@ export default function Shop() {
 
   return (
     <div className="py-12 sm:py-16 lg:py-20 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] min-h-screen">
+      <SEOMeta title="Shop" />
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl tracking-tighter mb-6 uppercase">The Collection</h1>

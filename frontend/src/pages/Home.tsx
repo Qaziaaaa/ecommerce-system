@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SEOMeta from '../components/SEOMeta';
 import { ArrowRight, Truck, Shield, RefreshCw, Clock, Star, Loader2 } from 'lucide-react';
 import { useCart } from '../store/useCartStore';
 import { useQuery } from '@tanstack/react-query';
@@ -43,6 +44,19 @@ export default function Home() {
 
   return (
     <>
+      <SEOMeta title="Home" jsonLd={{
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "NOVA",
+        "url": "https://nova.com",
+        "description": "Premium e-commerce destination for quality leather goods, clothing, and accessories.",
+        "foundingDate": "2024",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer service",
+          "email": "support@nova.com"
+        }
+      }} />
       {/* Hero Section */}
       <section className="relative min-h-screen lg:min-h-[calc(100vh-85px)] flex flex-col overflow-hidden">
         {/* Background Split - Responsive Adaptation */}

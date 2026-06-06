@@ -1,5 +1,6 @@
 import * as adminService from '../services/admin.service.js';
 import AppError from '../utils/AppError.js';
+import { logAuditAction } from '../services/audit.service.js';
 
 export const getDashboardOverview = async (req, res, next) => {
     try {
@@ -90,6 +91,17 @@ export const updateUserRole = async (req, res, next) => {
         if (!user) {
             return next(new AppError('No user found with that ID', 404));
         }
+
+        logAuditAction({
+            admin: req.user._id,
+            action: 'USER_ROLE_CHANGED',
+            targetModel: 'User',
+            targetId: id,
+            changes: { previousRole: user.role, newRole: role },
+            description: `Admin changed user ${user.name || id} role from ${user.role} to ${role}`,
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+        });
 
         res.status(200).json({
             status: 'success',

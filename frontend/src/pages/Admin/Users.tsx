@@ -4,6 +4,7 @@ import axiosInstance from '../../api/axios';
 import { Shield, User as UserIcon, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/useAuthStore';
+import SEOMeta from '../../components/SEOMeta';
 
 export default function AdminUsers() {
     const queryClient = useQueryClient();
@@ -56,6 +57,7 @@ export default function AdminUsers() {
 
     return (
         <div className="space-y-6">
+            <SEOMeta title="Manage Users" />
             <div>
                 <h1 className="text-2xl font-bold tracking-wide">Users</h1>
                 <p className="text-sm text-[#2D2926]/50 mt-1">{userList.length} registered user{userList.length !== 1 ? 's' : ''}</p>

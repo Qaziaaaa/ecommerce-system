@@ -1,8 +1,10 @@
 import React from 'react';
+import SEOMeta from '../components/SEOMeta';
 
 export default function TermsOfService() {
   return (
     <div className="py-20 px-12 bg-[#EBE7E0] min-h-screen">
+      <SEOMeta title="Terms of Service" />
       <div className="max-w-3xl mx-auto">
         <h1 className="font-display text-5xl tracking-wide mb-10">TERMS OF SERVICE</h1>
         <div className="space-y-6 text-sm opacity-80 leading-relaxed">

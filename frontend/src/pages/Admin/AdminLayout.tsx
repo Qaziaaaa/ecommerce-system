@@ -11,6 +11,7 @@ import {
     X,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
+import SEOMeta from '../../components/SEOMeta';
 
 export default function AdminLayout() {
     const { logout, user } = useAuthStore();
@@ -83,6 +84,7 @@ export default function AdminLayout() {
 
     return (
         <div className="min-h-screen bg-[#F5F3F0] text-[#2D2926] flex">
+            <SEOMeta title="Admin Panel" />
             {/* Mobile overlay */}
             {sidebarOpen && (
                 <div

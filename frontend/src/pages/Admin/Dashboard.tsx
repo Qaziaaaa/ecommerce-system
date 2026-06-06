@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '../../api/axios';
+import SEOMeta from '../../components/SEOMeta';
 import { 
     TrendingUp, 
     ShoppingBag, 
@@ -93,6 +94,7 @@ export default function Dashboard() {
 
     return (
         <div className="space-y-12 pb-20">
+            <SEOMeta title="Admin Dashboard" />
             <div>
                 <h1 className="font-display text-5xl tracking-wide mb-2">BI DASHBOARD</h1>
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-50">Advanced Business Intelligence & Metrics</p>

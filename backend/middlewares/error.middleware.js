@@ -66,6 +66,7 @@ const buildErrorResponse = (statusCode, status, message, code, extras = {}) => (
   message,
   code: code || (statusCode >= 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR'),
   timestamp: new Date().toISOString(),
+  requestId: extras.requestId || null,
   ...extras,
 });
 
@@ -102,11 +103,15 @@ export const globalErrorHandler = (err, req, res, next) => {
     ({ statusCode, status, message, code } = handleMulterError(err));
   }
 
+  // ── Attach requestId ───────────────────────────────────────────────────────
+  extras.requestId = req.requestId;
+
   // ── Log ───────────────────────────────────────────────────────────────────
   const logData = {
     statusCode,
     status,
     message,
+    requestId: req.requestId,
     path: req.originalUrl,
     method: req.method,
     ip: req.ip,

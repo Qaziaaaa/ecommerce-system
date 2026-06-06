@@ -1,10 +1,12 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEOMeta from '../components/SEOMeta';
 
 export default function About() {
   return (
     <div className="bg-[#EBE7E0] min-h-screen text-[#2D2926] selection:bg-[#2D2926] selection:text-[#EBE7E0]">
+      <SEOMeta title="About Us" />
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0%); }

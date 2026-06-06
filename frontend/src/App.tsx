@@ -2,6 +2,7 @@ import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
+import { HelmetProvider } from 'react-helmet-async';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -124,6 +125,7 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
         <Router>
             <ErrorBoundary scope="App" maxRetries={3}>
             <PerformanceTracker />
@@ -223,9 +225,10 @@ export default function App() {
                     } />
                 </Route>
             </Routes>
-            <Toaster position="bottom-right" />
+            <div aria-live="polite" aria-atomic="true"><Toaster position="bottom-right" /></div>
             </ErrorBoundary>
         </Router>
+        </HelmetProvider>
     </QueryClientProvider>
   );
 }

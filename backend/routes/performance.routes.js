@@ -15,17 +15,89 @@ import { isAdmin } from '../middlewares/role.middleware.js';
 
 const router = express.Router();
 
-// Health check endpoint (public)
+/**
+ * @openapi
+ * /performance/health:
+ *   get:
+ *     tags: [Performance]
+ *     summary: Health check endpoint
+ *     responses:
+ *       200:
+ *         description: Server is healthy
+ */
 router.get('/health', healthCheck);
 
-// Receive performance metrics from frontend (public — no auth for perf tracking)
+/**
+ * @openapi
+ * /performance/metrics:
+ *   post:
+ *     tags: [Performance]
+ *     summary: Receive performance metrics from frontend (public)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Metrics received
+ */
 router.post('/metrics', receiveMetrics);
 
-// Protected endpoints
+/**
+ * @openapi
+ * /performance/summary:
+ *   get:
+ *     tags: [Performance]
+ *     summary: Get performance summary
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Performance summary
+ */
 router.get('/summary', protect, getPerformanceSummary);
+
+/**
+ * @openapi
+ * /performance/metrics/query:
+ *   get:
+ *     tags: [Performance]
+ *     summary: Query performance metrics
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Performance metrics
+ */
 router.get('/metrics/query', protect, getMetrics);
 
-// Admin-only endpoints
+/**
+ * @openapi
+ * /performance/alerts:
+ *   get:
+ *     tags: [Performance]
+ *     summary: Get configured alerts
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Alerts list
+ * /performance/alerts/rules:
+ *   post:
+ *     tags: [Performance]
+ *     summary: Configure alert rules
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Alert rules updated
+ * /performance/alerts/channels:
+ *   post:
+ *     tags: [Performance]
+ *     summary: Add alert notification channel
+ *     security: [{ BearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Channel added
+ */
 router.get('/alerts', protect, isAdmin, getAlerts);
 router.get('/report/daily', protect, isAdmin, getDailyReport);
 router.get('/report/deployment', protect, isAdmin, getDeploymentReport);

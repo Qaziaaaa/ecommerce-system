@@ -4,6 +4,7 @@ import { Mail, Lock, ArrowRight, Loader2, Shield } from 'lucide-react';
 import axiosInstance from '../api/axios';
 import { useAuthStore } from '../store/useAuthStore';
 import toast from 'react-hot-toast';
+import SEOMeta from '../components/SEOMeta';
 
 export default function Login() {
     const [step, setStep] = useState(1); // 1: Email, 2: OTP
@@ -77,6 +78,7 @@ export default function Login() {
 
     return (
         <div className="min-h-[calc(100vh-85px)] flex items-center justify-center bg-[#EBE7E0] px-4 sm:px-8 py-12">
+      <SEOMeta title="Sign In" />
             <div className="w-full max-w-md bg-white border border-[#2D2926]/10 p-8 sm:p-12">
                 <div className="text-center mb-10">
                     <h1 className="font-display text-4xl tracking-wide mb-2">WELCOME BACK</h1>

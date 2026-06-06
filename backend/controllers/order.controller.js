@@ -2,6 +2,7 @@ import * as orderService from '../services/order.service.js';
 import AppError from '../utils/AppError.js';
 import logger from '../utils/logger.js';
 import { stripeCircuitBreaker, CircuitOpenError } from '../utils/circuit-breaker.js';
+import { logAuditAction } from '../services/audit.service.js';
 
 /**
  * Map Stripe error codes to user-friendly messages.
@@ -164,6 +165,17 @@ export const updateOrderStatus = async (req, res, next) => {
         if (!order) {
             return next(new AppError('No order found with that ID', 404));
         }
+
+        logAuditAction({
+            admin: req.user._id,
+            action: 'ORDER_STATUS_CHANGED',
+            targetModel: 'Order',
+            targetId: order._id,
+            changes: { newStatus: orderStatus },
+            description: `Admin changed order ${order._id} status to ${orderStatus}`,
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+        });
 
         res.status(200).json({
             status: 'success',

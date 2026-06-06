@@ -46,6 +46,8 @@ Thumbs.db
 # Testing
 frontend/coverage/
 backend/coverage/
+frontend/playwright-report/
+frontend/test-results/
 
 # Misc
 frontend/lint_output.txt

@@ -28,6 +28,7 @@ const fileFormat = winston.format.combine(
 
 const logger = winston.createLogger({
     level: isProd ? 'info' : 'debug',
+    defaultMeta: {},
     transports: [
         // 1. Console Transport
         new winston.transports.Console({
@@ -53,5 +54,9 @@ const logger = winston.createLogger({
         new winston.transports.File({ filename: path.join(LOG_DIR, 'rejections.log') })
     ]
 });
+
+export const childLogger = (requestId) => {
+    return logger.child({ requestId });
+};
 
 export default logger;

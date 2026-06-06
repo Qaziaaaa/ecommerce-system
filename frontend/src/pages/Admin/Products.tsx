@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../../api/axios';
+import SEOMeta from '../../components/SEOMeta';
 import { Plus, Search, MoreVertical, Edit2, Trash2, X, Upload, Check, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -273,6 +274,7 @@ export default function AdminProducts() {
 
     return (
         <div className="space-y-12">
+            <SEOMeta title="Manage Products" />
             <div className="flex justify-between items-end">
                 <div>
                     <h1 className="font-display text-4xl tracking-wide mb-2">INVENTORY</h1>
