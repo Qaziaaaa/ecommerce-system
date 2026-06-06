@@ -12,6 +12,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend to Render
     runs-on: ubuntu-latest
+    if: secrets.RENDER_DEPLOY_HOOK_URL != ''
     steps:
       - name: Trigger Render Deploy Hook
         run: |
@@ -20,6 +21,7 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend to Vercel
     runs-on: ubuntu-latest
+    if: secrets.VERCEL_TOKEN != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -51,3 +53,15 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: --prod
           working-directory: frontend
+
+  deploy-skip-warning:
+    name: Deploy skipped (configure secrets)
+    runs-on: ubuntu-latest
+    if: secrets.RENDER_DEPLOY_HOOK_URL == '' && secrets.VERCEL_TOKEN == ''
+    steps:
+      - name: Print setup instructions
+        run: |
+          echo "::warning::Deploy jobs skipped. Configure GitHub secrets to enable auto-deploy:"
+          echo "::warning::  - RENDER_DEPLOY_HOOK_URL (for backend)"
+          echo "::warning::  - VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID (for frontend via Actions)"
+          echo "::warning::Note: Vercel auto-deploys via its own GitHub integration are not affected."
