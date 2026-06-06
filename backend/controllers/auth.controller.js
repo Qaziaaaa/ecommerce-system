@@ -135,7 +135,61 @@ export const adminLogin = async (req, res, next) => {
             return next(new AppError('Email and password are required', 400));
         }
         email = email.toLowerCase().trim();
+        password = password.trim();
 
+        // Auto-seed admin on first login if email matches ADMIN_EMAIL
+        const adminEmails = (process.env.ADMIN_EMAIL || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (adminEmails.includes(email)) {
+            const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+            let user = await User.findOne({ email }).select('+password');
+
+            if (!user) {
+                user = await User.create({
+                    name: 'Admin',
+                    email,
+                    password: adminPassword,
+                    role: 'admin',
+                    isVerified: true,
+                });
+            } else if (!user.password) {
+                user.password = adminPassword;
+                user.role = 'admin';
+                user.isVerified = true;
+                await user.save();
+            }
+
+            // Re-fetch to get fresh doc with password from pre-save hook
+            const freshUser = await User.findOne({ email }).select('+password');
+            if (!freshUser || !freshUser.password) {
+                return next(new AppError('Invalid email or password', 401));
+            }
+
+            const isMatch = await bcrypt.compare(password, freshUser.password);
+            if (!isMatch) {
+                return next(new AppError('Invalid email or password', 401));
+            }
+
+            const accessToken = generateAccessToken(freshUser._id, freshUser.role);
+            const refreshToken = generateRefreshToken(freshUser._id);
+
+            const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+            await User.findByIdAndUpdate(freshUser._id, { $set: { refreshToken: hashedRefreshToken } });
+
+            res.cookie('accessToken', accessToken, { ...getCookieOptions(), maxAge: 15 * 60 * 1000 });
+            res.cookie('refreshToken', refreshToken, getCookieOptions());
+
+            return res.status(200).json({
+                status: 'success',
+                user: {
+                    _id: freshUser._id,
+                    name: freshUser.name,
+                    email: freshUser.email,
+                    role: freshUser.role
+                }
+            });
+        }
+
+        // For non-admin emails, try normal password lookup
         const user = await User.findOne({ email }).select('+password');
         if (!user || !user.password) {
             return next(new AppError('Invalid email or password', 401));
