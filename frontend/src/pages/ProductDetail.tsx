@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Minus, Plus, ShoppingBag, Loader2, Star, User, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, ShoppingBag, Loader2, Star, User, AlertCircle, Heart } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useCart } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useWishlistStore } from '../store/useWishlistStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
 import toast from 'react-hot-toast';
@@ -13,6 +14,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuthStore();
+  const { items: wishlistItems, toggleItem } = useWishlistStore();
   const queryClient = useQueryClient();
   
   const [quantity, setQuantity] = useState(1);
@@ -245,6 +247,13 @@ export default function ProductDetail() {
                 </button>
               </div>
               
+              <button
+                onClick={() => toggleItem(product._id)}
+                className="w-12 h-12 border border-[#2D2926] flex items-center justify-center hover:bg-red-50 hover:border-red-300 transition-colors"
+                aria-label={wishlistItems.includes(product._id) ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+              >
+                <Heart size={18} className={wishlistItems.includes(product._id) ? 'fill-red-500 text-red-500' : ''} />
+              </button>
               <button 
                 onClick={handleAddToCart}
                 disabled={product.stock === 0 || quantity > product.stock}

@@ -20,6 +20,32 @@ router.use('/:productId/reviews', reviewRoutes);
 
 /**
  * @openapi
+ * /products/search/typeahead:
+ *   get:
+ *     tags: [Products]
+ *     summary: Lightweight search for typeahead (returns id, name, price, image, slug)
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema: { type: string }
+ *         description: Search term (min 2 characters)
+ *     responses:
+ *       200:
+ *         description: Matching products
+ */
+router.get('/search/typeahead', async (req, res, next) => {
+  try {
+    const { searchProductsTypeahead } = await import('../services/product.service.js');
+    const results = await searchProductsTypeahead(req.query.q, 8);
+    res.json({ status: 'success', results });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
  * /products:
  *   get:
  *     tags: [Products]

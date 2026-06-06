@@ -24,6 +24,7 @@ const Login = React.lazy(() => import('./pages/Login'));
 const Signup = React.lazy(() => import('./pages/Signup'));
 const UserOrders = React.lazy(() => import('./pages/UserOrders'));
 const Profile = React.lazy(() => import('./pages/Profile'));
+const Wishlist = React.lazy(() => import('./pages/Wishlist'));
 
 // Admin components - separate chunk
 const AdminLayout = React.lazy(() => import('./pages/Admin/AdminLayout'));
@@ -191,6 +192,11 @@ export default function App() {
                     <Route path="profile" element={
                         <Suspense fallback={<LoadingSpinner message="Loading profile..." />}>
                             <Profile />
+                        </Suspense>
+                    } />
+                    <Route path="wishlist" element={
+                        <Suspense fallback={<LoadingSpinner message="Loading wishlist..." />}>
+                            <Wishlist />
                         </Suspense>
                     } />
                 </Route>

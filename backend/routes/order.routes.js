@@ -4,18 +4,69 @@ import { isAdmin } from '../middlewares/role.middleware.js';
 import { orderLimiter, userApiLimiter } from '../middlewares/rateLimiter.js';
 import {
     checkoutOrder,
+    guestCheckoutOrder,
     getMyOrders,
     getSingleOrder,
     updateOrderStatus,
     getAllOrders,
     createPaymentIntent,
+    guestCreatePaymentIntent,
     cancelPaymentIntent,
     deleteOrder
 } from '../controllers/order.controller.js';
 
 const router = express.Router();
 
-// Protect all order routes
+// Guest checkout routes (no authentication required)
+/**
+ * @openapi
+ * /orders/guest-checkout:
+ *   post:
+ *     tags: [Orders]
+ *     summary: Guest checkout — auto-creates account by email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, shippingAddress, paymentMethod, orderItems]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               shippingAddress: { $ref: '#/components/schemas/Address' }
+ *               paymentMethod: { type: string, enum: [cod, card] }
+ *               orderItems: { type: array, items: { type: object, properties: { product: { type: string }, quantity: { type: integer }, price: { type: number } } } }
+ *               couponCode: { type: string }
+ *     responses:
+ *       201:
+ *         description: Order created
+ *       400:
+ *         description: Invalid request
+ */
+router.post('/guest-checkout', orderLimiter, guestCheckoutOrder);
+
+/**
+ * @openapi
+ * /orders/guest-create-payment-intent:
+ *   post:
+ *     tags: [Orders]
+ *     summary: Create Stripe payment intent (guest)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               orderItems: { type: array }
+ *               couponCode: { type: string }
+ *     responses:
+ *       200:
+ *         description: Payment intent created
+ */
+router.post('/guest-create-payment-intent', userApiLimiter, guestCreatePaymentIntent);
+
+// Protect all remaining order routes
 router.use(protect);
 
 /**

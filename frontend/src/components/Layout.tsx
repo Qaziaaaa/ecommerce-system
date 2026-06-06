@@ -1,16 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { ShoppingCart, ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, Facebook, Twitter, Instagram, Linkedin, ChevronDown, Menu, User } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, Facebook, Twitter, Instagram, Linkedin, ChevronDown, Menu, User, Heart, Search } from 'lucide-react';
 import { useCart } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useWishlistStore } from '../store/useWishlistStore';
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
 
 export default function Layout() {
   const { cart, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
   const { isAuthenticated, user, logout } = useAuthStore();
+  const { items: wishlistItems } = useWishlistStore();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
   const navigate = useNavigate();
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (value.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearchOpen(false);
+      return;
+    }
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const { data } = await axiosInstance.get(`/products/search/typeahead?q=${encodeURIComponent(value)}`);
+        setSearchResults(data.results || []);
+        setIsSearchOpen(true);
+      } catch { /* ignore */ }
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 🛡️ Perfect Security Alignment: CSRF Bootstrap
   React.useEffect(() => {
@@ -151,6 +185,7 @@ export default function Layout() {
             {isAuthenticated ? (
               <>
                 <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="font-display text-3xl tracking-tight">MY PROFILE</Link>
+                <Link to="/wishlist" onClick={() => setIsMenuOpen(false)} className="font-display text-3xl tracking-tight">WISHLIST</Link>
                 <Link to="/orders" onClick={() => setIsMenuOpen(false)} className="font-display text-3xl tracking-tight">ORDER HISTORY</Link>
                 {user?.role === 'admin' && (
                   <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="font-display text-3xl tracking-tight text-amber-700">ADMIN PORTAL</Link>
@@ -202,7 +237,58 @@ export default function Layout() {
           </nav>
         </div>
 
-        <div className="flex justify-end items-center gap-4 lg:gap-8">
+        <div className="flex justify-end items-center gap-3 lg:gap-6">
+
+          {/* Search */}
+          <div ref={searchRef} className="relative hidden lg:block">
+            <div className="flex items-center border border-[#2D2926]/20 bg-white/80 focus-within:border-[#2D2926] transition-colors">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onFocus={() => { if (searchResults.length > 0) setIsSearchOpen(true); }}
+                placeholder="Search..."
+                className="w-32 xl:w-44 bg-transparent px-3 py-2 text-[11px] font-medium outline-none"
+                aria-label="Search products"
+              />
+              <Search size={14} className="mr-2 opacity-40" />
+            </div>
+            {isSearchOpen && searchResults.length > 0 && (
+              <div className="absolute top-full right-0 mt-1 w-72 bg-white border border-[#2D2926]/20 shadow-2xl z-50 max-h-96 overflow-y-auto">
+                {searchResults.map((p: any) => (
+                  <Link
+                    key={p._id}
+                    to={`/product/${p._id}`}
+                    onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#EBE7E0] transition-colors border-b border-[#2D2926]/5 last:border-0"
+                  >
+                    <div className="w-10 h-10 bg-white border border-[#2D2926]/10 flex items-center justify-center">
+                      <img src={p.image || '/placeholder.png'} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold truncate">{p.name}</p>
+                      <p className="text-[10px] opacity-60">${p.price?.toFixed(2)}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Wishlist */}
+          <Link
+            to="/wishlist"
+            className="relative hidden lg:flex items-center gap-1 text-[#2D2926] hover:opacity-70 transition-opacity"
+            aria-label="Wishlist"
+          >
+            <Heart size={18} />
+            {wishlistItems.length > 0 && (
+              <span className="text-[9px] font-bold w-4 h-4 flex items-center justify-center bg-[#2D2926] text-[#EBE7E0] rounded-full">
+                {wishlistItems.length}
+              </span>
+            )}
+          </Link>
+
           <button 
             onClick={() => setIsCartOpen(true)}
             className="relative text-[#2D2926] hover:opacity-70 transition-opacity flex items-center gap-2 duration-300 ease-in-out"

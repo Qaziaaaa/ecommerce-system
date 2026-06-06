@@ -39,6 +39,66 @@ const logPaymentFailure = (context, error, userId) => {
   });
 };
 
+export const guestCheckoutOrder = async (req, res, next) => {
+  try {
+    const { email, shippingAddress, paymentMethod, orderItems } = req.body;
+
+    if (!email || !shippingAddress || !paymentMethod || !orderItems || orderItems.length === 0) {
+      return next(new AppError('Please provide email, orderItems, shippingAddress, and paymentMethod', 400));
+    }
+
+    const order = await orderService.guestCheckoutOrderService(email, req.body);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Order created successfully',
+      data: { order }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const guestCreatePaymentIntent = async (req, res, next) => {
+  try {
+    const { orderItems, couponCode } = req.body;
+
+    if (!orderItems || orderItems.length === 0) {
+      return next(new AppError('Cart is empty', 400));
+    }
+
+    const amount = await orderService.calculateOrderAmountService(orderItems, couponCode);
+
+    if (amount < 0.5) {
+      return next(new AppError('Order amount must be at least $0.50', 400));
+    }
+
+    const Stripe = (await import('stripe')).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+    const paymentIntent = await stripeCircuitBreaker.execute(() =>
+      stripe.paymentIntents.create({
+        amount: Math.round(amount * 100),
+        currency: 'usd',
+        payment_method_types: ['card'],
+      })
+    );
+
+    res.status(200).json({
+      status: 'success',
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id
+    });
+  } catch (error) {
+    if (error instanceof CircuitOpenError) {
+      return next(new AppError('Payment service is temporarily unavailable. Please try again in a few minutes.', 503));
+    }
+    logPaymentFailure('guestCreatePaymentIntent', error);
+    const userMessage = getStripeUserMessage(error);
+    next(new AppError(userMessage, 402));
+  }
+};
+
 export const checkoutOrder = async (req, res, next) => {
     try {
         const { shippingAddress, paymentMethod, orderItems } = req.body;

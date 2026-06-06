@@ -7,6 +7,28 @@ import { parsePaginationParams, buildPaginationMeta } from './pagination.service
  * @param {Object} productData 
  * @returns {Promise<Object>} Created product
  */
+export const searchProductsTypeahead = async (searchTerm, limit = 8) => {
+  if (!searchTerm || searchTerm.trim().length < 2) return [];
+
+  const products = await Product.find(
+    { $text: { $search: searchTerm }, isActive: true },
+    { score: { $meta: 'textScore' } }
+  )
+    .select('name price images slug brand')
+    .sort({ score: { $meta: 'textScore' } })
+    .limit(limit)
+    .lean();
+
+  return products.map(p => ({
+    _id: p._id,
+    name: p.name,
+    price: p.price,
+    image: p.images?.[0]?.url || null,
+    slug: p.slug,
+    brand: p.brand,
+  }));
+};
+
 export const createProductService = async (productData) => {
     // Basic slug generation if not provided (though good practice is to handle it in a pre-save hook, we do it here for simplicity or assume front-end sends it)
     if (!productData.slug && productData.name) {

@@ -54,6 +54,26 @@ export const calculateOrderAmountService = async (clientItems, couponCode) => {
     return totalAmount;
 };
 
+export const guestCheckoutOrderService = async (email, checkoutData) => {
+  const { orderItems: clientItems, shippingAddress, paymentMethod, paymentIntentId, couponCode } = checkoutData;
+
+  if (!clientItems || clientItems.length === 0) {
+    throw new Error('Your cart is empty');
+  }
+
+  // Find existing user by email or create a new guest account
+  let user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    user = await User.create({
+      name: email.split('@')[0],
+      email: email.toLowerCase(),
+      isVerified: false,
+    });
+  }
+
+  return checkoutOrderService(user._id, checkoutData);
+};
+
 export const checkoutOrderService = async (userId, checkoutData) => {
     const { orderItems: clientItems, shippingAddress, paymentMethod, paymentIntentId, couponCode } = checkoutData;
 

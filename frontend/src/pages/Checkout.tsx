@@ -17,6 +17,7 @@ function StripePaymentSection({
   cart,
   finalTotal,
   appliedCoupon,
+  isGuest,
   onSuccess
 }: any) {
   const stripe = useStripe();
@@ -80,7 +81,11 @@ function StripePaymentSection({
           totalAmount: finalTotal
         };
 
-        await axiosInstance.post('/orders/checkout', orderData);
+        const endpoint = isGuest ? '/orders/guest-checkout' : '/orders/checkout';
+        if (isGuest) {
+          (orderData as any).email = addressData.email;
+        }
+        await axiosInstance.post(endpoint, orderData);
         clearCart();
         onSuccess();
       } else {
@@ -165,7 +170,7 @@ export default function Checkout() {
   const [codLoading, setCodLoading] = useState(false);
   const [codError, setCodError] = useState('');
 
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     if (user) {
@@ -207,7 +212,8 @@ export default function Checkout() {
             } catch { /* best-effort */ }
           }
           setStripeError('');
-          const { data } = await axiosInstance.post('/orders/create-payment-intent', {
+          const endpoint = isAuthenticated ? '/orders/create-payment-intent' : '/orders/guest-create-payment-intent';
+      const { data } = await axiosInstance.post(endpoint, {
             orderItems: cart.map((item: any) => ({
               product: item._id || item.id,
               quantity: item.quantity,
@@ -279,7 +285,11 @@ export default function Checkout() {
         totalAmount: finalTotal
       };
 
-      await axiosInstance.post('/orders/checkout', orderData);
+      const endpoint = isAuthenticated ? '/orders/checkout' : '/orders/guest-checkout';
+      if (!isAuthenticated) {
+        (orderData as any).email = email;
+      }
+      await axiosInstance.post(endpoint, orderData);
       clearCart();
       // Invalidate all order and product caches so stock updates immediately
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
@@ -468,17 +478,6 @@ export default function Checkout() {
                         <div className="bg-red-100 text-red-700 p-4 text-sm font-medium border border-red-200">
                             {stripeError}
                         </div>
-                        ) : !user ? (
-                            <div className="flex flex-col items-center justify-center py-12 px-8 bg-white border border-[#2D2926]/10 text-center">
-                                <Lock size={32} className="opacity-20 mb-4" />
-                                <h3 className="text-xs font-bold tracking-[0.2em] uppercase mb-2">Authentication Required</h3>
-                                <p className="text-[10px] opacity-40 uppercase tracking-widest max-w-xs leading-relaxed mb-8">
-                                    To securely process your credit card, please sign in to your NOVA account.
-                                </p>
-                                <Link to="/login" className="bg-[#2D2926] text-[#EBE7E0] px-10 py-3 text-[10px] font-bold tracking-[0.2em] uppercase hover:opacity-90 transition-all shadow-md">
-                                    Sign In to Pay
-                                </Link>
-                            </div>
                         ) : clientSecret ? (
                         <Elements stripe={stripePromise} options={{ 
                             clientSecret,
@@ -516,6 +515,7 @@ export default function Checkout() {
                             cart={cart}
                             finalTotal={finalTotal}
                             appliedCoupon={appliedCoupon}
+                            isGuest={!isAuthenticated}
                             onSuccess={() => {
                               queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
                               queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
