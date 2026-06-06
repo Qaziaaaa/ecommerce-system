@@ -9,7 +9,8 @@ import {
     removeAddress, 
     setDefaultAddress,
     logout,
-    refreshToken
+    refreshToken,
+    adminLogin
 } from '../controllers/auth.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
 import { signupSchema, loginSchema, verifyOtpSchema, validate } from '../middlewares/validation.middleware.js';
@@ -18,6 +19,8 @@ import { otpSendLimiter, otpVerifyLimiter, authLimiter } from '../middlewares/ra
 const router = express.Router();
 
 // Auth Routes with validation and rate limiting
+router.post('/admin-login', authLimiter, adminLogin);
+
 router.post('/send-otp', otpSendLimiter, sendOTP);
 router.post('/signup', otpSendLimiter, validate(signupSchema), sendOTP);
 router.post('/login', otpSendLimiter, validate(loginSchema), sendOTP);

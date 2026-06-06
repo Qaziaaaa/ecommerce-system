@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema(
     {
@@ -12,6 +13,11 @@ const userSchema = new mongoose.Schema(
             unique: true,
             lowercase: true,
             index: true
+        },
+        password: {
+            type: String,
+            select: false,
+            minlength: [6, 'Password must be at least 6 characters']
         },
         role: {
             type: String,
@@ -62,6 +68,19 @@ const userSchema = new mongoose.Schema(
         timestamps: true
     }
 );
+
+// Pre-save hook: hash password when it's set or modified
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password') || !this.password) return next();
+    this.password = await bcrypt.hash(this.password, 12);
+    next();
+});
+
+// Instance method: compare passwords
+userSchema.methods.comparePassword = async function (candidatePassword) {
+    if (!this.password) return false;
+    return bcrypt.compare(candidatePassword, this.password);
+};
 
 // Indexes for frequent query patterns (Requirements: 3.1)
 userSchema.index({ role: 1 });                  // Admin user management

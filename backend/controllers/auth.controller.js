@@ -128,6 +128,47 @@ export const logout = async (req, res, next) => {
     }
 };
 
+export const adminLogin = async (req, res, next) => {
+    try {
+        let { email, password } = req.body;
+        if (!email || !password) {
+            return next(new AppError('Email and password are required', 400));
+        }
+        email = email.toLowerCase().trim();
+
+        const user = await User.findOne({ email }).select('+password');
+        if (!user || !user.password) {
+            return next(new AppError('Invalid email or password', 401));
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return next(new AppError('Invalid email or password', 401));
+        }
+
+        const accessToken = generateAccessToken(user._id, user.role);
+        const refreshToken = generateRefreshToken(user._id);
+
+        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+        await User.findByIdAndUpdate(user._id, { $set: { refreshToken: hashedRefreshToken } });
+
+        res.cookie('accessToken', accessToken, { ...getCookieOptions(), maxAge: 15 * 60 * 1000 });
+        res.cookie('refreshToken', refreshToken, getCookieOptions());
+
+        res.status(200).json({
+            status: 'success',
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const resendOTP = async (req, res, next) => {
     try {
         let { email, type } = req.body;
