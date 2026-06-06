@@ -147,10 +147,13 @@ axiosInstance.interceptors.response.use(
         }
 
         // ── JWT refresh on 401 ────────────────────────────────────────────
+        // Don't refresh for auth endpoints (login, signup, verify-otp, etc.)
+        // — they're self-contained and don't need an existing token
+        const isAuthEndpoint = originalRequest.url?.includes('/auth/');
         if (
             error.response?.status === 401 &&
             !originalRequest._retry &&
-            !originalRequest.url?.includes('/auth/refresh')
+            !isAuthEndpoint
         ) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
