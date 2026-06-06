@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
@@ -69,8 +69,9 @@ const PerformanceTracker = () => {
 // Protected Route for Admin
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     const { user, isAuthenticated } = useAuthStore();
+    const location = useLocation();
     if (!isAuthenticated || user?.role !== 'admin') {
-        return <Navigate to="/login" replace />;
+        return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
     }
     return <>{children}</>;
 };

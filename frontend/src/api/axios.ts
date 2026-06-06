@@ -86,7 +86,6 @@ axiosInstance.interceptors.request.use(
                 delete config.headers['Content-Type'];
             }
             config.headers['X-XSRF-TOKEN'] = token;
-            config.headers['Authorization'] = `Bearer ${token}`;
         }
 
         return config;
@@ -143,7 +142,6 @@ axiosInstance.interceptors.response.use(
             const newToken = await getCsrfToken();
             if (newToken) {
                 originalRequest.headers['X-XSRF-TOKEN'] = newToken;
-                originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
             }
             return axiosInstance(originalRequest);
         }

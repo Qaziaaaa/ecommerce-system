@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import axiosInstance from '../api/axios';
 import { useAuthStore } from '../store/useAuthStore';
@@ -12,6 +12,8 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const setAuth = useAuthStore((state) => state.setAuth);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const redirectTo = searchParams.get('redirect') || '/';
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,8 +49,8 @@ export default function Login() {
             // data is the body: { status, user, token }
             setAuth(data.user);
             toast.success('Logged in successfully');
-            if (data.user.role === 'admin') navigate('/admin');
-            else navigate('/');
+            const target = redirectTo && redirectTo.startsWith('/admin') ? redirectTo : (data.user.role === 'admin' ? '/admin' : '/');
+            navigate(target);
         } catch (error: any) {
             const message = error.response?.data?.message || (error instanceof Error ? error.message : 'Invalid OTP');
             toast.error(message);

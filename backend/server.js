@@ -5,7 +5,7 @@ import { validateEnv } from './config/env.js';
 import logger from './utils/logger.js';
 import dns from 'dns';
 
-// 1. Load environment variables
+// 1. Load environment variables FIRST — before anything else
 dotenv.config();
 
 // 2. DNS Fix: Force IPv4 & Use Stable DNS (Essential for Atlas SRV on some Windows setups)
@@ -26,7 +26,7 @@ import alertingService from './services/alerting.service.js';
 import cacheService from './services/cache.service.js';
 import deploymentService from './services/deployment.service.js';
 
-// 4. Validate Environment Variables
+// 5. Validate Environment Variables — fail fast before attempting DB connection
 validateEnv();
 
 const PORT = process.env.PORT || 5000;
@@ -103,9 +103,16 @@ connectWithRetry()
               loader: () => Category.find({ isActive: { $ne: false } }).lean(),
               ttl: 3600,
             },
+            // Cache warming for the cache middleware key format: METHOD:/path:queryJSON
+            // This matches the apiCache middleware's getCacheKey() exactly
             {
-              key: 'products:featured',
-              loader: () => Product.find({ isActive: true, isFeatured: true }).limit(8).populate('category', 'name slug').lean(),
+              key: 'GET:/products:{"limit":"8"}',
+              loader: () => Product.find({ isActive: true }).sort('-createdAt').limit(8).populate('category', 'name slug').lean(),
+              ttl: 300,
+            },
+            {
+              key: 'GET:/products:{"limit":"12"}',
+              loader: () => Product.find({ isActive: true }).sort('-createdAt').limit(12).populate('category', 'name slug').lean(),
               ttl: 300,
             },
           ]);

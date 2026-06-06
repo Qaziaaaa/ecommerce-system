@@ -29,10 +29,14 @@ export const verifyAuthenticationOTP = async (email, otpCode, name) => {
         if (!name) {
             throw new Error('Name is required for registration');
         }
+
+        const adminEmails = (process.env.ADMIN_EMAIL || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        const role = adminEmails.includes(email) ? 'admin' : 'user';
         
         user = await User.create({
             email,
             name,
+            role,
             isVerified: true
         });
     } else {

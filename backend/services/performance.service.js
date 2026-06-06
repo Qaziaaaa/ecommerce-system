@@ -7,20 +7,22 @@ import logger from '../utils/logger.js';
 class PerformanceService {
   constructor() {
     this.metrics = new Map();
+    // Use relaxed thresholds in development to avoid false alerts
+    const isDev = process.env.NODE_ENV === 'development';
     this.thresholds = {
       apiResponseTime: {
-        cached: 200, // 200ms for cached responses
-        uncached: 500, // 500ms for non-cached responses
+        cached: isDev ? 1000 : 200,
+        uncached: isDev ? 3000 : 500,
       },
       databaseQueryTime: {
-        simple: 100, // 100ms for simple queries
-        aggregation: 300, // 300ms for aggregation queries
-        slow: 200, // 200ms threshold for slow query logging
+        simple: isDev ? 500 : 100,
+        aggregation: isDev ? 1500 : 300,
+        slow: isDev ? 1000 : 200,
       },
-      errorRate: 0.01, // 1% error rate threshold
+      errorRate: 0.01,
       resourceUsage: {
-        cpu: 80, // 80% CPU usage threshold
-        memory: 80, // 80% memory usage threshold
+        cpu: isDev ? 95 : 80,
+        memory: isDev ? 95 : 80,
       },
     };
     this.alertCallbacks = [];

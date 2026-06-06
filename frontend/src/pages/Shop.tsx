@@ -79,8 +79,10 @@ export default function Shop() {
     queryKey: ['categories'],
     queryFn: async () => {
       const { data } = await axiosInstance.get('/categories');
-      return data.data;
-    }
+      return data.data.categories;
+    },
+    staleTime: 60 * 60 * 1000,
+    gcTime: 2 * 60 * 60 * 1000,
   });
 
   const products = data?.products || [];
@@ -144,7 +146,7 @@ export default function Shop() {
                 <div className="space-y-6">
                     <h3 className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-40 pb-4 border-b border-[#2D2926]/5">CATEGORIES</h3>
                     <div className="flex flex-wrap gap-2">
-                        {['all', ...(Array.isArray(categoriesData) ? categoriesData.map((c: any) => c.slug) : (categoriesData?.categories ? categoriesData.categories.map((c: any) => c.slug) : []))].map((slug) => (
+                        {['all', ...(Array.isArray(categoriesData) ? categoriesData.map((c: any) => c.slug) : [])].map((slug) => (
                             <button
                                 key={slug}
                                 onClick={() => updateParams({ category: slug, page: '1' })}

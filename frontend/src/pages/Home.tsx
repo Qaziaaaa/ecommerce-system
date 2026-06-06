@@ -6,16 +6,33 @@ import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
 import { ProductCard } from '../components/ProductCard';
 import LazyImage from '../components/LazyImage';
+import { PRODUCTS } from '../data/products';
+
+const FALLBACK_PRODUCTS = PRODUCTS.map((p, i) => ({
+  _id: `fallback-${i}`,
+  name: p.name,
+  price: p.price,
+  description: p.description,
+  images: [p.img],
+  stock: 10,
+  ratingsAverage: 4.5,
+  ratingsCount: 0,
+  isFeatured: i < 4,
+  category: { name: p.category, slug: p.category.toLowerCase() },
+}));
 
 export default function Home() {
   const { addToCart } = useCart();
   
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, isPlaceholderData } = useQuery({
     queryKey: ['products-home'],
     queryFn: async () => {
         const { data } = await axiosInstance.get('/products?limit=8');
         return data.data.products;
-    }
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    placeholderData: FALLBACK_PRODUCTS,
   });
 
   const trendingProducts = products.slice(0, 4);

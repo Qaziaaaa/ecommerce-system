@@ -1,12 +1,13 @@
-import Stripe from 'stripe';
 import Order from '../models/Order.js';
 import logger from '../utils/logger.js';
 
 // Lazy-initialize Stripe so it reads the env var at request time, not module load time
-const getStripe = () => {
+// NOTE: Do NOT import Stripe at the top level — it crashes on startup if STRIPE_SECRET_KEY is missing
+const getStripe = async () => {
     if (!process.env.STRIPE_SECRET_KEY) {
         throw new Error('STRIPE_SECRET_KEY is not configured');
     }
+    const { default: Stripe } = await import('stripe');
     return new Stripe(process.env.STRIPE_SECRET_KEY);
 };
 
@@ -20,7 +21,8 @@ export const handleStripeWebhook = async (req, res) => {
 
     try {
         // 1. Verify Signature (Requires raw body from req.body)
-        event = getStripe().webhooks.constructEvent(
+        const stripe = await getStripe();
+        event = stripe.webhooks.constructEvent(
             req.body, 
             sig, 
             process.env.STRIPE_WEBHOOK_SECRET

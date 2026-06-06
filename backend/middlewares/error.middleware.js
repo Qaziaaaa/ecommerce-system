@@ -114,7 +114,7 @@ export const globalErrorHandler = (err, req, res, next) => {
   };
 
   if (statusCode >= 500) {
-    logger.error('Server error', { ...logData, stack: err.stack });
+    logger.error(`💥 Error caught by Global Handler: ${message}`, { ...logData, stack: err.stack });
   } else {
     logger.warn('Client error', logData);
   }

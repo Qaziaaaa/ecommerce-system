@@ -48,11 +48,13 @@ export const getAllProductsService = async (queryParams, user) => {
         }
     }
 
-    // Price Range
-    if (queryParams.minPrice || queryParams.maxPrice) {
+    // Price Range — clamp to non-negative values to prevent nonsensical queries
+    const minPrice = queryParams.minPrice !== undefined ? Number(queryParams.minPrice) : undefined;
+    const maxPrice = queryParams.maxPrice !== undefined ? Number(queryParams.maxPrice) : undefined;
+    if ((minPrice !== undefined && !isNaN(minPrice)) || (maxPrice !== undefined && !isNaN(maxPrice))) {
         queryObj.price = {};
-        if (queryParams.minPrice) queryObj.price.$gte = Number(queryParams.minPrice);
-        if (queryParams.maxPrice) queryObj.price.$lte = Number(queryParams.maxPrice);
+        if (minPrice !== undefined && !isNaN(minPrice)) queryObj.price.$gte = Math.max(0, minPrice);
+        if (maxPrice !== undefined && !isNaN(maxPrice)) queryObj.price.$lte = Math.max(0, maxPrice);
     }
 
     let query = Product.find(queryObj);

@@ -49,12 +49,16 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS: Origin ${origin} not allowed`));
+    // Don't leak the origin value in the error message in production
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-XSRF-Token', 'X-XSRF-TOKEN']
 }));
+
+// Explicitly handle OPTIONS preflight so CORS headers are always present
+app.options('*', cors());
 
 // Cookie Parser
 app.use(cookieParser());
