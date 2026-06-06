@@ -141,21 +141,24 @@ export const adminLogin = async (req, res, next) => {
         const adminEmails = (process.env.ADMIN_EMAIL || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
         if (adminEmails.includes(email)) {
             const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
-            let user = await User.findOne({ email }).select('+password');
 
-            if (!user) {
-                user = await User.create({
+            // Always upsert: overwrite existing admin user with fresh password hash
+            // This handles the case where a previous broken pre-save hook left the
+            // user without a password or with a corrupt hash.
+            const existing = await User.findOne({ email }).select('+password');
+            if (!existing) {
+                await User.create({
                     name: 'Admin',
                     email,
                     password: adminPassword,
                     role: 'admin',
                     isVerified: true,
                 });
-            } else if (!user.password) {
-                user.password = adminPassword;
-                user.role = 'admin';
-                user.isVerified = true;
-                await user.save();
+            } else {
+                existing.password = adminPassword;
+                existing.role = 'admin';
+                existing.isVerified = true;
+                await existing.save();
             }
 
             // Re-fetch to get fresh doc with password from pre-save hook

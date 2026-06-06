@@ -21,8 +21,8 @@ class PerformanceService {
       },
       errorRate: 0.01,
       resourceUsage: {
-        cpu: isDev ? 95 : 80,
-        memory: isDev ? 95 : 80,
+        cpu: isDev ? 100 : 80,
+        memory: isDev ? 100 : 80,
       },
     };
     this.alertCallbacks = [];
