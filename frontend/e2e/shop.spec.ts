@@ -3,15 +3,11 @@ import { test, expect } from '@playwright/test';
 const API_BASE = 'http://localhost:5001/api/v1';
 
 test.describe('Shop & Product Browsing', () => {
-  const mockProducts = {
-    status: 'success',
-    results: 3,
-    totalPages: 1,
-    currentPage: 1,
-    data: [
-      { _id: '1', name: 'Leather Jacket', description: 'Premium leather jacket', price: 299.99, brand: 'Nova', stock: 10, images: [{ url: '/test.jpg', alt: 'Leather Jacket' }], ratings: { average: 4.5, count: 12 }, isActive: true, category: { _id: 'c1', name: 'Clothing', slug: 'clothing' } },
-      { _id: '2', name: 'Wool Scarf', description: 'Hand-knitted wool scarf', price: 49.99, brand: 'Nova', stock: 25, images: [{ url: '/test2.jpg', alt: 'Wool Scarf' }], ratings: { average: 4.0, count: 8 }, isActive: true, category: { _id: 'c1', name: 'Clothing', slug: 'clothing' } },
-      { _id: '3', name: 'Leather Boots', description: 'Durable leather boots', price: 199.99, brand: 'Nova', stock: 15, images: [{ url: '/test3.jpg', alt: 'Leather Boots' }], ratings: { average: 5.0, count: 3 }, isActive: true, category: { _id: 'c2', name: 'Shoes', slug: 'shoes' } },
+  const mockData = {
+    products: [
+      { _id: '1', name: 'Leather Jacket', description: 'Premium leather jacket', price: 299.99, brand: 'Nova', stock: 10, images: ['/test.jpg'], slug: 'leather-jacket', ratingsAverage: 4.5, ratingsCount: 12, isActive: true, isFeatured: false, category: { _id: 'c1', name: 'Clothing', slug: 'clothing' }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { _id: '2', name: 'Wool Scarf', description: 'Hand-knitted wool scarf', price: 49.99, brand: 'Nova', stock: 25, images: ['/test2.jpg'], slug: 'wool-scarf', ratingsAverage: 4.0, ratingsCount: 8, isActive: true, isFeatured: false, category: { _id: 'c1', name: 'Clothing', slug: 'clothing' }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { _id: '3', name: 'Leather Boots', description: 'Durable leather boots', price: 199.99, brand: 'Nova', stock: 15, images: ['/test3.jpg'], slug: 'leather-boots', ratingsAverage: 5.0, ratingsCount: 3, isActive: true, isFeatured: false, category: { _id: 'c2', name: 'Shoes', slug: 'shoes' }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     ]
   };
 
@@ -22,27 +18,51 @@ test.describe('Shop & Product Browsing', () => {
     await page.route(`${API_BASE}/categories`, async (route) => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'success', data: { categories: [{ _id: 'c1', name: 'Clothing', slug: 'clothing' }, { _id: 'c2', name: 'Shoes', slug: 'shoes' }] } }) });
     });
-    await page.route(`${API_BASE}/products?*`, async (route) => {
+    // Use regex to match products list endpoint with query params
+    await page.route(/\/api\/v1\/products(\?.*)?$/, async (route) => {
       const url = new URL(route.request().url());
       const search = url.searchParams.get('search');
-      const data = search ? mockProducts.data.filter(p => p.name.toLowerCase().includes(search.toLowerCase())) : mockProducts.data;
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...mockProducts, results: data.length, data }) });
+      const filtered = search ? mockData.products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())) : mockData.products;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'success',
+          results: filtered.length,
+          pagination: { currentPage: 1, totalPages: 1, totalItems: filtered.length, itemsPerPage: 12, hasNext: false, hasPrev: false },
+          data: { products: filtered }
+        })
+      });
+    });
+    // Mock single product fetch and related products
+    await page.route(/\/api\/v1\/products\/(?!search)(?!typeahead)[a-f0-9]+$/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'success', data: { product: mockData.products[0] } })
+      });
+    });
+    await page.route(/\/api\/v1\/products\/.*\/related/, async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'success', data: { products: [] } }) });
+    });
+    await page.route(/\/api\/v1\/products\/search\/typeahead/, async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'success', results: mockData.products.map(p => ({ _id: p._id, name: p.name, price: p.price, image: p.images[0], slug: p.slug, brand: p.brand })) }) });
     });
   });
 
   test('should display products on shop page', async ({ page }) => {
     await page.goto('/shop');
-    await expect(page.getByText(/leather jacket/i)).toBeVisible();
-    await expect(page.getByText(/wool scarf/i)).toBeVisible();
+    await expect(page.getByText(/leather jacket/i).first()).toBeVisible();
+    await expect(page.getByText(/wool scarf/i).first()).toBeVisible();
     await expect(page.getByText(/299.99/)).toBeVisible();
   });
 
   test('should search products by name', async ({ page }) => {
     await page.goto('/shop');
-    const searchInput = page.getByPlaceholder(/search/i);
+    const searchInput = page.getByRole('textbox', { name: /search collection/i });
     await searchInput.fill('Boots');
-    await expect(page.getByText(/leather boots/i)).toBeVisible();
-    await expect(page.getByText(/leather jacket/i)).not.toBeVisible();
+    await expect(page.getByText(/leather boots/i).first()).toBeVisible();
+    await expect(page.getByText(/leather jacket/i).first()).not.toBeVisible();
   });
 
   test('should navigate to product detail page', async ({ page }) => {
@@ -52,14 +72,6 @@ test.describe('Shop & Product Browsing', () => {
   });
 
   test('should add product to cart from shop page', async ({ page }) => {
-    await page.route(`${API_BASE}/cart`, async (route) => {
-      if (route.request().method() === 'POST') {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'success', data: { items: [{ product: '1', quantity: 1, price: 299.99 }], total: 299.99 } }) });
-      } else {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'success', data: { items: [], total: 0 } }) });
-      }
-    });
-
     await page.addInitScript(() => {
       localStorage.setItem('auth-storage', JSON.stringify({
         state: { user: { _id: '1', name: 'Test User', email: 'test@example.com', role: 'user' }, isAuthenticated: true, accessToken: 'test-token' }
@@ -74,11 +86,19 @@ test.describe('Shop & Product Browsing', () => {
   });
 
   test('should filter products by category', async ({ page }) => {
-    await page.route(`${API_BASE}/products?*`, async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...mockProducts, results: 1, data: [mockProducts.data[2]] }) });
+    await page.route(/\/api\/v1\/products(\?.*)?$/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'success',
+          results: 1,
+          pagination: { currentPage: 1, totalPages: 1, totalItems: 1, itemsPerPage: 12, hasNext: false, hasPrev: false },
+          data: { products: [mockData.products[2]] }
+        })
+      });
     });
-
     await page.goto('/shop?category=Shoes');
-    await expect(page.getByText(/leather boots/i)).toBeVisible();
+    await expect(page.getByText(/leather boots/i).first()).toBeVisible();
   });
 });
