@@ -126,8 +126,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
           onError={handleError}
           referrerPolicy={referrerPolicy}
           decoding={decoding}
-          // @ts-ignore — fetchPriority is valid HTML but TS types may lag
-          fetchpriority={fetchPriority}
+          fetchPriority={fetchPriority}
           width={width}
           height={height}
           style={style}
