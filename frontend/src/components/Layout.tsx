@@ -323,6 +323,7 @@ export default function Layout() {
             <button 
                 onClick={() => setIsMenuOpen(true)}
                 className="lg:hidden p-2 -mr-2 text-[#2D2926] hover:opacity-70 transition-opacity"
+                aria-label="Open menu"
             >
                 <Menu size={24} />
             </button>
