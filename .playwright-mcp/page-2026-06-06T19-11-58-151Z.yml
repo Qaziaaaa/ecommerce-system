@@ -1,0 +1,942 @@
+- generic [active] [ref=e1]:
+  - img
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - img [ref=e8]
+      - button [ref=e44] [cursor=pointer]:
+        - img [ref=e45]
+    - generic [ref=e47]:
+      - generic:
+        - img
+      - generic [ref=e48]:
+        - generic [ref=e52]:
+          - heading "Nova E-Commerce API 1.0.0 OAS 3.0" [level=1] [ref=e54]:
+            - text: Nova E-Commerce API
+            - generic [ref=e55]:
+              - generic [ref=e57]: 1.0.0
+              - generic [ref=e59]: OAS 3.0
+          - paragraph [ref=e62]: Production-grade e-commerce API with authentication, product management, cart, orders, payments, and admin dashboard.
+        - generic [ref=e64]:
+          - generic [ref=e66]:
+            - text: Servers
+            - combobox [ref=e69]:
+              - option "/api/v1 - API v1 (relative path)" [selected]
+              - option "http://localhost:5001/api/v1 - Development server"
+          - button "Authorize" [ref=e71] [cursor=pointer]:
+            - generic [ref=e72]: Authorize
+            - img [ref=e73]
+        - generic [ref=e77]:
+          - generic [ref=e79]:
+            - heading "Wishlist Collapse operation" [level=3] [ref=e80] [cursor=pointer]:
+              - link "Wishlist" [ref=e81]:
+                - /url: "#/Wishlist"
+              - button "Collapse operation" [expanded] [ref=e82]:
+                - img [ref=e83]
+            - generic [ref=e86]:
+              - generic [ref=e89] [cursor=pointer]:
+                - button "GET /wishlist Get current user's wishlist" [ref=e90]:
+                  - generic [ref=e91]: GET
+                  - generic [ref=e92]:
+                    - link "/wishlist" [ref=e94]:
+                      - /url: "#/Wishlist/get_wishlist"
+                    - generic [ref=e95]: Get current user's wishlist
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e98]:
+                  - img [ref=e99]
+                - button "get /wishlist" [ref=e101]:
+                  - img [ref=e102]
+              - generic [ref=e106] [cursor=pointer]:
+                - 'button "POST /wishlist/{productId} Add a product to wishlist" [ref=e107]':
+                  - generic [ref=e108]: POST
+                  - generic [ref=e109]:
+                    - 'link "/wishlist/{productId}" [ref=e111]':
+                      - /url: "#/Wishlist/post_wishlist__productId_"
+                      - generic [ref=e112]:
+                        - text: /wishlist
+                        - text: "/{productId}"
+                    - generic [ref=e113]: Add a product to wishlist
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e116]:
+                  - img [ref=e117]
+                - 'button "post /wishlist/{productId}" [ref=e119]':
+                  - img [ref=e120]
+              - generic [ref=e124] [cursor=pointer]:
+                - 'button "DELETE /wishlist/{productId} Remove a product from wishlist" [ref=e125]':
+                  - generic [ref=e126]: DELETE
+                  - generic [ref=e127]:
+                    - 'link "/wishlist/{productId}" [ref=e129]':
+                      - /url: "#/Wishlist/delete_wishlist__productId_"
+                      - generic [ref=e130]:
+                        - text: /wishlist
+                        - text: "/{productId}"
+                    - generic [ref=e131]: Remove a product from wishlist
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e134]:
+                  - img [ref=e135]
+                - 'button "delete /wishlist/{productId}" [ref=e137]':
+                  - img [ref=e138]
+          - generic [ref=e141]:
+            - heading "Upload Collapse operation" [level=3] [ref=e142] [cursor=pointer]:
+              - link "Upload" [ref=e143]:
+                - /url: "#/Upload"
+              - button "Collapse operation" [expanded] [ref=e144]:
+                - img [ref=e145]
+            - generic [ref=e151] [cursor=pointer]:
+              - button "POST /upload Upload an image to Cloudinary (Admin only)" [ref=e152]:
+                - generic [ref=e153]: POST
+                - generic [ref=e154]:
+                  - link "/upload" [ref=e156]:
+                    - /url: "#/Upload/post_upload"
+                  - generic [ref=e157]: Upload an image to Cloudinary (Admin only)
+              - generic "Copy to clipboard"
+              - button "authorization button unlocked" [ref=e160]:
+                - img [ref=e161]
+              - button "post /upload" [ref=e163]:
+                - img [ref=e164]
+          - generic [ref=e167]:
+            - heading "Products Collapse operation" [level=3] [ref=e168] [cursor=pointer]:
+              - link "Products" [ref=e169]:
+                - /url: "#/Products"
+              - button "Collapse operation" [expanded] [ref=e170]:
+                - img [ref=e171]
+            - generic [ref=e174]:
+              - generic [ref=e177] [cursor=pointer]:
+                - button "GET /products/search/typeahead Lightweight search for typeahead (returns id, name, price, image, slug)" [ref=e178]:
+                  - generic [ref=e179]: GET
+                  - generic [ref=e180]:
+                    - link "/products/search/typeahead" [ref=e182]:
+                      - /url: "#/Products/get_products_search_typeahead"
+                      - generic [ref=e183]:
+                        - text: /products
+                        - text: /search
+                        - text: /typeahead
+                    - generic [ref=e184]: Lightweight search for typeahead (returns id, name, price, image, slug)
+                - generic "Copy to clipboard"
+                - button "get /products/search/typeahead" [ref=e187]:
+                  - img [ref=e188]
+              - generic [ref=e192] [cursor=pointer]:
+                - button "GET /products Get all products (with search, filter, pagination)" [ref=e193]:
+                  - generic [ref=e194]: GET
+                  - generic [ref=e195]:
+                    - link "/products" [ref=e197]:
+                      - /url: "#/Products/get_products"
+                    - generic [ref=e198]: Get all products (with search, filter, pagination)
+                - generic "Copy to clipboard"
+                - button "get /products" [ref=e201]:
+                  - img [ref=e202]
+              - generic [ref=e206] [cursor=pointer]:
+                - button "POST /products Create a new product (Admin only)" [ref=e207]:
+                  - generic [ref=e208]: POST
+                  - generic [ref=e209]:
+                    - link "/products" [ref=e211]:
+                      - /url: "#/Products/post_products"
+                    - generic [ref=e212]: Create a new product (Admin only)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e215]:
+                  - img [ref=e216]
+                - button "post /products" [ref=e218]:
+                  - img [ref=e219]
+              - generic [ref=e223] [cursor=pointer]:
+                - 'button "GET /products/{id} Get a single product by ID" [ref=e224]':
+                  - generic [ref=e225]: GET
+                  - generic [ref=e226]:
+                    - 'link "/products/{id}" [ref=e228]':
+                      - /url: "#/Products/get_products__id_"
+                      - generic [ref=e229]:
+                        - text: /products
+                        - text: "/{id}"
+                    - generic [ref=e230]: Get a single product by ID
+                - generic "Copy to clipboard"
+                - 'button "get /products/{id}" [ref=e233]':
+                  - img [ref=e234]
+              - generic [ref=e238] [cursor=pointer]:
+                - 'button "PATCH /products/{id} Update a product (Admin only)" [ref=e239]':
+                  - generic [ref=e240]: PATCH
+                  - generic [ref=e241]:
+                    - 'link "/products/{id}" [ref=e243]':
+                      - /url: "#/Products/patch_products__id_"
+                      - generic [ref=e244]:
+                        - text: /products
+                        - text: "/{id}"
+                    - generic [ref=e245]: Update a product (Admin only)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e248]:
+                  - img [ref=e249]
+                - 'button "patch /products/{id}" [ref=e251]':
+                  - img [ref=e252]
+              - generic [ref=e256] [cursor=pointer]:
+                - 'button "DELETE /products/{id} Delete a product (Admin only)" [ref=e257]':
+                  - generic [ref=e258]: DELETE
+                  - generic [ref=e259]:
+                    - 'link "/products/{id}" [ref=e261]':
+                      - /url: "#/Products/delete_products__id_"
+                      - generic [ref=e262]:
+                        - text: /products
+                        - text: "/{id}"
+                    - generic [ref=e263]: Delete a product (Admin only)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e266]:
+                  - img [ref=e267]
+                - 'button "delete /products/{id}" [ref=e269]':
+                  - img [ref=e270]
+          - generic [ref=e273]:
+            - heading "Performance Collapse operation" [level=3] [ref=e274] [cursor=pointer]:
+              - link "Performance" [ref=e275]:
+                - /url: "#/Performance"
+              - button "Collapse operation" [expanded] [ref=e276]:
+                - img [ref=e277]
+            - generic [ref=e280]:
+              - generic [ref=e283] [cursor=pointer]:
+                - button "GET /performance/health Health check endpoint" [ref=e284]:
+                  - generic [ref=e285]: GET
+                  - generic [ref=e286]:
+                    - link "/performance/health" [ref=e288]:
+                      - /url: "#/Performance/get_performance_health"
+                      - generic [ref=e289]:
+                        - text: /performance
+                        - text: /health
+                    - generic [ref=e290]: Health check endpoint
+                - generic "Copy to clipboard"
+                - button "get /performance/health" [ref=e293]:
+                  - img [ref=e294]
+              - generic [ref=e298] [cursor=pointer]:
+                - button "POST /performance/metrics Receive performance metrics from frontend (public)" [ref=e299]:
+                  - generic [ref=e300]: POST
+                  - generic [ref=e301]:
+                    - link "/performance/metrics" [ref=e303]:
+                      - /url: "#/Performance/post_performance_metrics"
+                      - generic [ref=e304]:
+                        - text: /performance
+                        - text: /metrics
+                    - generic [ref=e305]: Receive performance metrics from frontend (public)
+                - generic "Copy to clipboard"
+                - button "post /performance/metrics" [ref=e308]:
+                  - img [ref=e309]
+              - generic [ref=e313] [cursor=pointer]:
+                - button "GET /performance/summary Get performance summary" [ref=e314]:
+                  - generic [ref=e315]: GET
+                  - generic [ref=e316]:
+                    - link "/performance/summary" [ref=e318]:
+                      - /url: "#/Performance/get_performance_summary"
+                      - generic [ref=e319]:
+                        - text: /performance
+                        - text: /summary
+                    - generic [ref=e320]: Get performance summary
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e323]:
+                  - img [ref=e324]
+                - button "get /performance/summary" [ref=e326]:
+                  - img [ref=e327]
+              - generic [ref=e331] [cursor=pointer]:
+                - button "GET /performance/metrics/query Query performance metrics" [ref=e332]:
+                  - generic [ref=e333]: GET
+                  - generic [ref=e334]:
+                    - link "/performance/metrics/query" [ref=e336]:
+                      - /url: "#/Performance/get_performance_metrics_query"
+                      - generic [ref=e337]:
+                        - text: /performance
+                        - text: /metrics
+                        - text: /query
+                    - generic [ref=e338]: Query performance metrics
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e341]:
+                  - img [ref=e342]
+                - button "get /performance/metrics/query" [ref=e344]:
+                  - img [ref=e345]
+              - generic [ref=e349] [cursor=pointer]:
+                - button "GET /performance/alerts Get configured alerts" [ref=e350]:
+                  - generic [ref=e351]: GET
+                  - generic [ref=e352]:
+                    - link "/performance/alerts" [ref=e354]:
+                      - /url: "#/Performance/get_performance_alerts"
+                      - generic [ref=e355]:
+                        - text: /performance
+                        - text: /alerts
+                    - generic [ref=e356]: Get configured alerts
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e359]:
+                  - img [ref=e360]
+                - button "get /performance/alerts" [ref=e362]:
+                  - img [ref=e363]
+              - generic [ref=e367] [cursor=pointer]:
+                - button "POST /performance/alerts/rules Configure alert rules" [ref=e368]:
+                  - generic [ref=e369]: POST
+                  - generic [ref=e370]:
+                    - link "/performance/alerts/rules" [ref=e372]:
+                      - /url: "#/Performance/post_performance_alerts_rules"
+                      - generic [ref=e373]:
+                        - text: /performance
+                        - text: /alerts
+                        - text: /rules
+                    - generic [ref=e374]: Configure alert rules
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e377]:
+                  - img [ref=e378]
+                - button "post /performance/alerts/rules" [ref=e380]:
+                  - img [ref=e381]
+              - generic [ref=e385] [cursor=pointer]:
+                - button "POST /performance/alerts/channels Add alert notification channel" [ref=e386]:
+                  - generic [ref=e387]: POST
+                  - generic [ref=e388]:
+                    - link "/performance/alerts/channels" [ref=e390]:
+                      - /url: "#/Performance/post_performance_alerts_channels"
+                      - generic [ref=e391]:
+                        - text: /performance
+                        - text: /alerts
+                        - text: /channels
+                    - generic [ref=e392]: Add alert notification channel
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e395]:
+                  - img [ref=e396]
+                - button "post /performance/alerts/channels" [ref=e398]:
+                  - img [ref=e399]
+          - generic [ref=e402]:
+            - heading "Orders Collapse operation" [level=3] [ref=e403] [cursor=pointer]:
+              - link "Orders" [ref=e404]:
+                - /url: "#/Orders"
+              - button "Collapse operation" [expanded] [ref=e405]:
+                - img [ref=e406]
+            - generic [ref=e409]:
+              - generic [ref=e412] [cursor=pointer]:
+                - button "POST /orders/guest-checkout Guest checkout — auto-creates account by email" [ref=e413]:
+                  - generic [ref=e414]: POST
+                  - generic [ref=e415]:
+                    - link "/orders/guest-checkout" [ref=e417]:
+                      - /url: "#/Orders/post_orders_guest_checkout"
+                      - generic [ref=e418]:
+                        - text: /orders
+                        - text: /guest-checkout
+                    - generic [ref=e419]: Guest checkout — auto-creates account by email
+                - generic "Copy to clipboard"
+                - button "post /orders/guest-checkout" [ref=e422]:
+                  - img [ref=e423]
+              - generic [ref=e427] [cursor=pointer]:
+                - button "POST /orders/guest-create-payment-intent Create Stripe payment intent (guest)" [ref=e428]:
+                  - generic [ref=e429]: POST
+                  - generic [ref=e430]:
+                    - link "/orders/guest-create-payment-intent" [ref=e432]:
+                      - /url: "#/Orders/post_orders_guest_create_payment_intent"
+                      - generic [ref=e433]:
+                        - text: /orders
+                        - text: /guest-create-payment-intent
+                    - generic [ref=e434]: Create Stripe payment intent (guest)
+                - generic "Copy to clipboard"
+                - button "post /orders/guest-create-payment-intent" [ref=e437]:
+                  - img [ref=e438]
+              - generic [ref=e442] [cursor=pointer]:
+                - button "GET /orders Get all orders (Admin only)" [ref=e443]:
+                  - generic [ref=e444]: GET
+                  - generic [ref=e445]:
+                    - link "/orders" [ref=e447]:
+                      - /url: "#/Orders/get_orders"
+                    - generic [ref=e448]: Get all orders (Admin only)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e451]:
+                  - img [ref=e452]
+                - button "get /orders" [ref=e454]:
+                  - img [ref=e455]
+              - generic [ref=e459] [cursor=pointer]:
+                - button "POST /orders/checkout Create a new order (Cash on Delivery)" [ref=e460]:
+                  - generic [ref=e461]: POST
+                  - generic [ref=e462]:
+                    - link "/orders/checkout" [ref=e464]:
+                      - /url: "#/Orders/post_orders_checkout"
+                      - generic [ref=e465]:
+                        - text: /orders
+                        - text: /checkout
+                    - generic [ref=e466]: Create a new order (Cash on Delivery)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e469]:
+                  - img [ref=e470]
+                - button "post /orders/checkout" [ref=e472]:
+                  - img [ref=e473]
+              - generic [ref=e477] [cursor=pointer]:
+                - button "POST /orders/create-payment-intent Create Stripe payment intent (Card payments)" [ref=e478]:
+                  - generic [ref=e479]: POST
+                  - generic [ref=e480]:
+                    - link "/orders/create-payment-intent" [ref=e482]:
+                      - /url: "#/Orders/post_orders_create_payment_intent"
+                      - generic [ref=e483]:
+                        - text: /orders
+                        - text: /create-payment-intent
+                    - generic [ref=e484]: Create Stripe payment intent (Card payments)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e487]:
+                  - img [ref=e488]
+                - button "post /orders/create-payment-intent" [ref=e490]:
+                  - img [ref=e491]
+              - generic [ref=e495] [cursor=pointer]:
+                - button "POST /orders/cancel-payment-intent Cancel a Stripe payment intent" [ref=e496]:
+                  - generic [ref=e497]: POST
+                  - generic [ref=e498]:
+                    - link "/orders/cancel-payment-intent" [ref=e500]:
+                      - /url: "#/Orders/post_orders_cancel_payment_intent"
+                      - generic [ref=e501]:
+                        - text: /orders
+                        - text: /cancel-payment-intent
+                    - generic [ref=e502]: Cancel a Stripe payment intent
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e505]:
+                  - img [ref=e506]
+                - button "post /orders/cancel-payment-intent" [ref=e508]:
+                  - img [ref=e509]
+              - generic [ref=e513] [cursor=pointer]:
+                - button "GET /orders/my-orders Get current user's orders" [ref=e514]:
+                  - generic [ref=e515]: GET
+                  - generic [ref=e516]:
+                    - link "/orders/my-orders" [ref=e518]:
+                      - /url: "#/Orders/get_orders_my_orders"
+                      - generic [ref=e519]:
+                        - text: /orders
+                        - text: /my-orders
+                    - generic [ref=e520]: Get current user's orders
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e523]:
+                  - img [ref=e524]
+                - button "get /orders/my-orders" [ref=e526]:
+                  - img [ref=e527]
+              - generic [ref=e531] [cursor=pointer]:
+                - 'button "GET /orders/{id} Get a single order by ID" [ref=e532]':
+                  - generic [ref=e533]: GET
+                  - generic [ref=e534]:
+                    - 'link "/orders/{id}" [ref=e536]':
+                      - /url: "#/Orders/get_orders__id_"
+                      - generic [ref=e537]:
+                        - text: /orders
+                        - text: "/{id}"
+                    - generic [ref=e538]: Get a single order by ID
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e541]:
+                  - img [ref=e542]
+                - 'button "get /orders/{id}" [ref=e544]':
+                  - img [ref=e545]
+              - generic [ref=e549] [cursor=pointer]:
+                - 'button "DELETE /orders/{id} Cancel/delete an order" [ref=e550]':
+                  - generic [ref=e551]: DELETE
+                  - generic [ref=e552]:
+                    - 'link "/orders/{id}" [ref=e554]':
+                      - /url: "#/Orders/delete_orders__id_"
+                      - generic [ref=e555]:
+                        - text: /orders
+                        - text: "/{id}"
+                    - generic [ref=e556]: Cancel/delete an order
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e559]:
+                  - img [ref=e560]
+                - 'button "delete /orders/{id}" [ref=e562]':
+                  - img [ref=e563]
+              - generic [ref=e567] [cursor=pointer]:
+                - 'button "PATCH /orders/{id}/status Update order status (Admin only)" [ref=e568]':
+                  - generic [ref=e569]: PATCH
+                  - generic [ref=e570]:
+                    - 'link "/orders/{id}/status" [ref=e572]':
+                      - /url: "#/Orders/patch_orders__id__status"
+                      - generic [ref=e573]:
+                        - text: /orders
+                        - text: "/{id}"
+                        - text: /status
+                    - generic [ref=e574]: Update order status (Admin only)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e577]:
+                  - img [ref=e578]
+                - 'button "patch /orders/{id}/status" [ref=e580]':
+                  - img [ref=e581]
+          - generic [ref=e584]:
+            - heading "Coupons Collapse operation" [level=3] [ref=e585] [cursor=pointer]:
+              - link "Coupons" [ref=e586]:
+                - /url: "#/Coupons"
+              - button "Collapse operation" [expanded] [ref=e587]:
+                - img [ref=e588]
+            - generic [ref=e594] [cursor=pointer]:
+              - button "POST /coupons/apply Apply a coupon code to get discount" [ref=e595]:
+                - generic [ref=e596]: POST
+                - generic [ref=e597]:
+                  - link "/coupons/apply" [ref=e599]:
+                    - /url: "#/Coupons/post_coupons_apply"
+                    - generic [ref=e600]:
+                      - text: /coupons
+                      - text: /apply
+                  - generic [ref=e601]: Apply a coupon code to get discount
+              - generic "Copy to clipboard"
+              - button "authorization button unlocked" [ref=e604]:
+                - img [ref=e605]
+              - button "post /coupons/apply" [ref=e607]:
+                - img [ref=e608]
+          - generic [ref=e611]:
+            - heading "Categories Collapse operation" [level=3] [ref=e612] [cursor=pointer]:
+              - link "Categories" [ref=e613]:
+                - /url: "#/Categories"
+              - button "Collapse operation" [expanded] [ref=e614]:
+                - img [ref=e615]
+            - generic [ref=e618]:
+              - generic [ref=e621] [cursor=pointer]:
+                - button "GET /categories Get all categories" [ref=e622]:
+                  - generic [ref=e623]: GET
+                  - generic [ref=e624]:
+                    - link "/categories" [ref=e626]:
+                      - /url: "#/Categories/get_categories"
+                    - generic [ref=e627]: Get all categories
+                - generic "Copy to clipboard"
+                - button "get /categories" [ref=e630]:
+                  - img [ref=e631]
+              - generic [ref=e635] [cursor=pointer]:
+                - button "POST /categories Create a new category (Admin only)" [ref=e636]:
+                  - generic [ref=e637]: POST
+                  - generic [ref=e638]:
+                    - link "/categories" [ref=e640]:
+                      - /url: "#/Categories/post_categories"
+                    - generic [ref=e641]: Create a new category (Admin only)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e644]:
+                  - img [ref=e645]
+                - button "post /categories" [ref=e647]:
+                  - img [ref=e648]
+          - generic [ref=e651]:
+            - heading "Cart Collapse operation" [level=3] [ref=e652] [cursor=pointer]:
+              - link "Cart" [ref=e653]:
+                - /url: "#/Cart"
+              - button "Collapse operation" [expanded] [ref=e654]:
+                - img [ref=e655]
+            - generic [ref=e658]:
+              - generic [ref=e661] [cursor=pointer]:
+                - button "GET /cart Get current user's cart" [ref=e662]:
+                  - generic [ref=e663]: GET
+                  - generic [ref=e664]:
+                    - link "/cart" [ref=e666]:
+                      - /url: "#/Cart/get_cart"
+                    - generic [ref=e667]: Get current user's cart
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e670]:
+                  - img [ref=e671]
+                - button "get /cart" [ref=e673]:
+                  - img [ref=e674]
+              - generic [ref=e678] [cursor=pointer]:
+                - button "POST /cart Add item to cart" [ref=e679]:
+                  - generic [ref=e680]: POST
+                  - generic [ref=e681]:
+                    - link "/cart" [ref=e683]:
+                      - /url: "#/Cart/post_cart"
+                    - generic [ref=e684]: Add item to cart
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e687]:
+                  - img [ref=e688]
+                - button "post /cart" [ref=e690]:
+                  - img [ref=e691]
+              - generic [ref=e695] [cursor=pointer]:
+                - 'button "PATCH /cart/{productId} Update cart item quantity" [ref=e696]':
+                  - generic [ref=e697]: PATCH
+                  - generic [ref=e698]:
+                    - 'link "/cart/{productId}" [ref=e700]':
+                      - /url: "#/Cart/patch_cart__productId_"
+                      - generic [ref=e701]:
+                        - text: /cart
+                        - text: "/{productId}"
+                    - generic [ref=e702]: Update cart item quantity
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e705]:
+                  - img [ref=e706]
+                - 'button "patch /cart/{productId}" [ref=e708]':
+                  - img [ref=e709]
+              - generic [ref=e713] [cursor=pointer]:
+                - 'button "DELETE /cart/{productId} Remove item from cart" [ref=e714]':
+                  - generic [ref=e715]: DELETE
+                  - generic [ref=e716]:
+                    - 'link "/cart/{productId}" [ref=e718]':
+                      - /url: "#/Cart/delete_cart__productId_"
+                      - generic [ref=e719]:
+                        - text: /cart
+                        - text: "/{productId}"
+                    - generic [ref=e720]: Remove item from cart
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e723]:
+                  - img [ref=e724]
+                - 'button "delete /cart/{productId}" [ref=e726]':
+                  - img [ref=e727]
+          - generic [ref=e730]:
+            - heading "Authentication Collapse operation" [level=3] [ref=e731] [cursor=pointer]:
+              - link "Authentication" [ref=e732]:
+                - /url: "#/Authentication"
+              - button "Collapse operation" [expanded] [ref=e733]:
+                - img [ref=e734]
+            - generic [ref=e737]:
+              - generic [ref=e740] [cursor=pointer]:
+                - button "POST /auth/admin-login Admin login" [ref=e741]:
+                  - generic [ref=e742]: POST
+                  - generic [ref=e743]:
+                    - link "/auth/admin-login" [ref=e745]:
+                      - /url: "#/Authentication/post_auth_admin_login"
+                      - generic [ref=e746]:
+                        - text: /auth
+                        - text: /admin-login
+                    - generic [ref=e747]: Admin login
+                - generic "Copy to clipboard"
+                - button "post /auth/admin-login" [ref=e750]:
+                  - img [ref=e751]
+              - generic [ref=e755] [cursor=pointer]:
+                - button "POST /auth/send-otp Send OTP for authentication" [ref=e756]:
+                  - generic [ref=e757]: POST
+                  - generic [ref=e758]:
+                    - link "/auth/send-otp" [ref=e760]:
+                      - /url: "#/Authentication/post_auth_send_otp"
+                      - generic [ref=e761]:
+                        - text: /auth
+                        - text: /send-otp
+                    - generic [ref=e762]: Send OTP for authentication
+                - generic "Copy to clipboard"
+                - button "post /auth/send-otp" [ref=e765]:
+                  - img [ref=e766]
+              - generic [ref=e770] [cursor=pointer]:
+                - button "POST /auth/signup Register a new user" [ref=e771]:
+                  - generic [ref=e772]: POST
+                  - generic [ref=e773]:
+                    - link "/auth/signup" [ref=e775]:
+                      - /url: "#/Authentication/post_auth_signup"
+                      - generic [ref=e776]:
+                        - text: /auth
+                        - text: /signup
+                    - generic [ref=e777]: Register a new user
+                - generic "Copy to clipboard"
+                - button "post /auth/signup" [ref=e780]:
+                  - img [ref=e781]
+              - generic [ref=e785] [cursor=pointer]:
+                - button "POST /auth/login Login with email" [ref=e786]:
+                  - generic [ref=e787]: POST
+                  - generic [ref=e788]:
+                    - link "/auth/login" [ref=e790]:
+                      - /url: "#/Authentication/post_auth_login"
+                      - generic [ref=e791]:
+                        - text: /auth
+                        - text: /login
+                    - generic [ref=e792]: Login with email
+                - generic "Copy to clipboard"
+                - button "post /auth/login" [ref=e795]:
+                  - img [ref=e796]
+              - generic [ref=e800] [cursor=pointer]:
+                - button "POST /auth/verify-otp Verify OTP and complete authentication" [ref=e801]:
+                  - generic [ref=e802]: POST
+                  - generic [ref=e803]:
+                    - link "/auth/verify-otp" [ref=e805]:
+                      - /url: "#/Authentication/post_auth_verify_otp"
+                      - generic [ref=e806]:
+                        - text: /auth
+                        - text: /verify-otp
+                    - generic [ref=e807]: Verify OTP and complete authentication
+                - generic "Copy to clipboard"
+                - button "post /auth/verify-otp" [ref=e810]:
+                  - img [ref=e811]
+              - generic [ref=e815] [cursor=pointer]:
+                - button "POST /auth/resend-otp Resend OTP" [ref=e816]:
+                  - generic [ref=e817]: POST
+                  - generic [ref=e818]:
+                    - link "/auth/resend-otp" [ref=e820]:
+                      - /url: "#/Authentication/post_auth_resend_otp"
+                      - generic [ref=e821]:
+                        - text: /auth
+                        - text: /resend-otp
+                    - generic [ref=e822]: Resend OTP
+                - generic "Copy to clipboard"
+                - button "post /auth/resend-otp" [ref=e825]:
+                  - img [ref=e826]
+              - generic [ref=e830] [cursor=pointer]:
+                - button "POST /auth/refresh Refresh access token" [ref=e831]:
+                  - generic [ref=e832]: POST
+                  - generic [ref=e833]:
+                    - link "/auth/refresh" [ref=e835]:
+                      - /url: "#/Authentication/post_auth_refresh"
+                      - generic [ref=e836]:
+                        - text: /auth
+                        - text: /refresh
+                    - generic [ref=e837]: Refresh access token
+                - generic "Copy to clipboard"
+                - button "post /auth/refresh" [ref=e840]:
+                  - img [ref=e841]
+              - generic [ref=e845] [cursor=pointer]:
+                - button "POST /auth/logout Logout user" [ref=e846]:
+                  - generic [ref=e847]: POST
+                  - generic [ref=e848]:
+                    - link "/auth/logout" [ref=e850]:
+                      - /url: "#/Authentication/post_auth_logout"
+                      - generic [ref=e851]:
+                        - text: /auth
+                        - text: /logout
+                    - generic [ref=e852]: Logout user
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e855]:
+                  - img [ref=e856]
+                - button "post /auth/logout" [ref=e858]:
+                  - img [ref=e859]
+          - generic [ref=e862]:
+            - heading "Profile Collapse operation" [level=3] [ref=e863] [cursor=pointer]:
+              - link "Profile" [ref=e864]:
+                - /url: "#/Profile"
+              - button "Collapse operation" [expanded] [ref=e865]:
+                - img [ref=e866]
+            - generic [ref=e869]:
+              - generic [ref=e872] [cursor=pointer]:
+                - button "GET /auth/profile Get current user profile" [ref=e873]:
+                  - generic [ref=e874]: GET
+                  - generic [ref=e875]:
+                    - link "/auth/profile" [ref=e877]:
+                      - /url: "#/Profile/get_auth_profile"
+                      - generic [ref=e878]:
+                        - text: /auth
+                        - text: /profile
+                    - generic [ref=e879]: Get current user profile
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e882]:
+                  - img [ref=e883]
+                - button "get /auth/profile" [ref=e885]:
+                  - img [ref=e886]
+              - generic [ref=e890] [cursor=pointer]:
+                - button "PUT /auth/profile Update current user profile" [ref=e891]:
+                  - generic [ref=e892]: PUT
+                  - generic [ref=e893]:
+                    - link "/auth/profile" [ref=e895]:
+                      - /url: "#/Profile/put_auth_profile"
+                      - generic [ref=e896]:
+                        - text: /auth
+                        - text: /profile
+                    - generic [ref=e897]: Update current user profile
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e900]:
+                  - img [ref=e901]
+                - button "put /auth/profile" [ref=e903]:
+                  - img [ref=e904]
+              - generic [ref=e908] [cursor=pointer]:
+                - button "POST /auth/profile/addresses Add a new address" [ref=e909]:
+                  - generic [ref=e910]: POST
+                  - generic [ref=e911]:
+                    - link "/auth/profile/addresses" [ref=e913]:
+                      - /url: "#/Profile/post_auth_profile_addresses"
+                      - generic [ref=e914]:
+                        - text: /auth
+                        - text: /profile
+                        - text: /addresses
+                    - generic [ref=e915]: Add a new address
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e918]:
+                  - img [ref=e919]
+                - button "post /auth/profile/addresses" [ref=e921]:
+                  - img [ref=e922]
+              - generic [ref=e926] [cursor=pointer]:
+                - 'button "DELETE /auth/profile/addresses/{id} Remove an address" [ref=e927]':
+                  - generic [ref=e928]: DELETE
+                  - generic [ref=e929]:
+                    - 'link "/auth/profile/addresses/{id}" [ref=e931]':
+                      - /url: "#/Profile/delete_auth_profile_addresses__id_"
+                      - generic [ref=e932]:
+                        - text: /auth
+                        - text: /profile
+                        - text: /addresses
+                        - text: "/{id}"
+                    - generic [ref=e933]: Remove an address
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e936]:
+                  - img [ref=e937]
+                - 'button "delete /auth/profile/addresses/{id}" [ref=e939]':
+                  - img [ref=e940]
+              - generic [ref=e944] [cursor=pointer]:
+                - 'button "PUT /auth/profile/addresses/{id}/default Set address as default" [ref=e945]':
+                  - generic [ref=e946]: PUT
+                  - generic [ref=e947]:
+                    - 'link "/auth/profile/addresses/{id}/default" [ref=e949]':
+                      - /url: "#/Profile/put_auth_profile_addresses__id__default"
+                      - generic [ref=e950]:
+                        - text: /auth
+                        - text: /profile
+                        - text: /addresses
+                        - text: "/{id}"
+                        - text: /default
+                    - generic [ref=e951]: Set address as default
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e954]:
+                  - img [ref=e955]
+                - 'button "put /auth/profile/addresses/{id}/default" [ref=e957]':
+                  - img [ref=e958]
+          - generic [ref=e961]:
+            - heading "Admin Collapse operation" [level=3] [ref=e962] [cursor=pointer]:
+              - link "Admin" [ref=e963]:
+                - /url: "#/Admin"
+              - button "Collapse operation" [expanded] [ref=e964]:
+                - img [ref=e965]
+            - generic [ref=e968]:
+              - generic [ref=e971] [cursor=pointer]:
+                - button "GET /admin/dashboard Get dashboard overview (total users, orders, revenue)" [ref=e972]:
+                  - generic [ref=e973]: GET
+                  - generic [ref=e974]:
+                    - link "/admin/dashboard" [ref=e976]:
+                      - /url: "#/Admin/get_admin_dashboard"
+                      - generic [ref=e977]:
+                        - text: /admin
+                        - text: /dashboard
+                    - generic [ref=e978]: Get dashboard overview (total users, orders, revenue)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e981]:
+                  - img [ref=e982]
+                - button "get /admin/dashboard" [ref=e984]:
+                  - img [ref=e985]
+              - generic [ref=e989] [cursor=pointer]:
+                - button "GET /admin/sales/monthly Get monthly sales analytics" [ref=e990]:
+                  - generic [ref=e991]: GET
+                  - generic [ref=e992]:
+                    - link "/admin/sales/monthly" [ref=e994]:
+                      - /url: "#/Admin/get_admin_sales_monthly"
+                      - generic [ref=e995]:
+                        - text: /admin
+                        - text: /sales
+                        - text: /monthly
+                    - generic [ref=e996]: Get monthly sales analytics
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e999]:
+                  - img [ref=e1000]
+                - button "get /admin/sales/monthly" [ref=e1002]:
+                  - img [ref=e1003]
+              - generic [ref=e1007] [cursor=pointer]:
+                - button "GET /admin/products/top Get top selling products" [ref=e1008]:
+                  - generic [ref=e1009]: GET
+                  - generic [ref=e1010]:
+                    - link "/admin/products/top" [ref=e1012]:
+                      - /url: "#/Admin/get_admin_products_top"
+                      - generic [ref=e1013]:
+                        - text: /admin
+                        - text: /products
+                        - text: /top
+                    - generic [ref=e1014]: Get top selling products
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e1017]:
+                  - img [ref=e1018]
+                - button "get /admin/products/top" [ref=e1020]:
+                  - img [ref=e1021]
+              - generic [ref=e1025] [cursor=pointer]:
+                - button "GET /admin/orders/recent Get recent orders" [ref=e1026]:
+                  - generic [ref=e1027]: GET
+                  - generic [ref=e1028]:
+                    - link "/admin/orders/recent" [ref=e1030]:
+                      - /url: "#/Admin/get_admin_orders_recent"
+                      - generic [ref=e1031]:
+                        - text: /admin
+                        - text: /orders
+                        - text: /recent
+                    - generic [ref=e1032]: Get recent orders
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e1035]:
+                  - img [ref=e1036]
+                - button "get /admin/orders/recent" [ref=e1038]:
+                  - img [ref=e1039]
+              - generic [ref=e1043] [cursor=pointer]:
+                - button "GET /admin/products/low-stock Get low stock alerts" [ref=e1044]:
+                  - generic [ref=e1045]: GET
+                  - generic [ref=e1046]:
+                    - link "/admin/products/low-stock" [ref=e1048]:
+                      - /url: "#/Admin/get_admin_products_low_stock"
+                      - generic [ref=e1049]:
+                        - text: /admin
+                        - text: /products
+                        - text: /low-stock
+                    - generic [ref=e1050]: Get low stock alerts
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e1053]:
+                  - img [ref=e1054]
+                - button "get /admin/products/low-stock" [ref=e1056]:
+                  - img [ref=e1057]
+              - generic [ref=e1061] [cursor=pointer]:
+                - button "GET /admin/users Get all users" [ref=e1062]:
+                  - generic [ref=e1063]: GET
+                  - generic [ref=e1064]:
+                    - link "/admin/users" [ref=e1066]:
+                      - /url: "#/Admin/get_admin_users"
+                      - generic [ref=e1067]:
+                        - text: /admin
+                        - text: /users
+                    - generic [ref=e1068]: Get all users
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e1071]:
+                  - img [ref=e1072]
+                - button "get /admin/users" [ref=e1074]:
+                  - img [ref=e1075]
+              - generic [ref=e1079] [cursor=pointer]:
+                - 'button "PATCH /admin/users/{id}/role Update user role" [ref=e1080]':
+                  - generic [ref=e1081]: PATCH
+                  - generic [ref=e1082]:
+                    - 'link "/admin/users/{id}/role" [ref=e1084]':
+                      - /url: "#/Admin/patch_admin_users__id__role"
+                      - generic [ref=e1085]:
+                        - text: /admin
+                        - text: /users
+                        - text: "/{id}"
+                        - text: /role
+                    - generic [ref=e1086]: Update user role
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e1089]:
+                  - img [ref=e1090]
+                - 'button "patch /admin/users/{id}/role" [ref=e1092]':
+                  - img [ref=e1093]
+              - generic [ref=e1097] [cursor=pointer]:
+                - button "GET /admin/analytics/category Get category distribution analytics" [ref=e1098]:
+                  - generic [ref=e1099]: GET
+                  - generic [ref=e1100]:
+                    - link "/admin/analytics/category" [ref=e1102]:
+                      - /url: "#/Admin/get_admin_analytics_category"
+                      - generic [ref=e1103]:
+                        - text: /admin
+                        - text: /analytics
+                        - text: /category
+                    - generic [ref=e1104]: Get category distribution analytics
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e1107]:
+                  - img [ref=e1108]
+                - button "get /admin/analytics/category" [ref=e1110]:
+                  - img [ref=e1111]
+              - generic [ref=e1115] [cursor=pointer]:
+                - button "GET /admin/analytics/logistics Get order status distribution analytics" [ref=e1116]:
+                  - generic [ref=e1117]: GET
+                  - generic [ref=e1118]:
+                    - link "/admin/analytics/logistics" [ref=e1120]:
+                      - /url: "#/Admin/get_admin_analytics_logistics"
+                      - generic [ref=e1121]:
+                        - text: /admin
+                        - text: /analytics
+                        - text: /logistics
+                    - generic [ref=e1122]: Get order status distribution analytics
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e1125]:
+                  - img [ref=e1126]
+                - button "get /admin/analytics/logistics" [ref=e1128]:
+                  - img [ref=e1129]
+              - generic [ref=e1133] [cursor=pointer]:
+                - button "GET /admin/audit-logs Get audit logs (Admin only)" [ref=e1134]:
+                  - generic [ref=e1135]: GET
+                  - generic [ref=e1136]:
+                    - link "/admin/audit-logs" [ref=e1138]:
+                      - /url: "#/Admin/get_admin_audit_logs"
+                      - generic [ref=e1139]:
+                        - text: /admin
+                        - text: /audit-logs
+                    - generic [ref=e1140]: Get audit logs (Admin only)
+                - generic "Copy to clipboard"
+                - button "authorization button unlocked" [ref=e1143]:
+                  - img [ref=e1144]
+                - button "get /admin/audit-logs" [ref=e1146]:
+                  - img [ref=e1147]
+        - generic [ref=e1151]:
+          - heading "Schemas" [level=4] [ref=e1152] [cursor=pointer]:
+            - button "Schemas" [expanded] [ref=e1153]:
+              - generic [ref=e1154]: Schemas
+              - img [ref=e1155]
+          - generic [ref=e1157]:
+            - button "Error" [ref=e1160] [cursor=pointer]:
+              - generic [ref=e1162]: Error
+            - button "User" [ref=e1166] [cursor=pointer]:
+              - generic [ref=e1168]: User
+            - button "Address" [ref=e1172] [cursor=pointer]:
+              - generic [ref=e1174]: Address
+            - button "Product" [ref=e1178] [cursor=pointer]:
+              - generic [ref=e1180]: Product
+            - button "Order" [ref=e1184] [cursor=pointer]:
+              - generic [ref=e1186]: Order
+            - button "Cart" [ref=e1190] [cursor=pointer]:
+              - generic [ref=e1192]: Cart
+            - button "Category" [ref=e1196] [cursor=pointer]:
+              - generic [ref=e1198]: Category
+            - button "Coupon" [ref=e1202] [cursor=pointer]:
+              - generic [ref=e1204]: Coupon

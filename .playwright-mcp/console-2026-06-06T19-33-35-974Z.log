@@ -1,0 +1,46 @@
+[     157ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=94e81f43:20102
+[     271ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     271ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     339ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     343ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     344ms] [LOG] 🔍 Starting bundle size monitoring... @ http://localhost:5173/src/services/bundleMonitoring.ts:32
+[     344ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[     345ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[     345ms] [LOG] 🔍 Starting bundle size monitoring... @ http://localhost:5173/src/services/bundleMonitoring.ts:32
+[     346ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[     346ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[     346ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     347ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     347ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     374ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     565ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     782ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[    1302ms] [ERROR] Invalid DOM property `%s`. Did you mean `%s`? fetchpriority fetchPriority @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=94e81f43:2396
+[   30351ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[   30351ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[   30352ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[   30352ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[   44133ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[   44413ms] [WARNING] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS. @ https://js.stripe.com/clover/stripe.js:0
+[   51812ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[   60354ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[   60355ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[   60356ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[   60356ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[   90353ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[   90353ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[   90354ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[   90354ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[  120353ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[  120353ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[  120354ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[  120354ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[  150355ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[  150355ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[  150356ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[  150356ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[  150759ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[  180354ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[  180354ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[  180355ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[  180355ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134

@@ -1,0 +1,18 @@
+[      65ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=94e81f43:20102
+[     166ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     166ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     214ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     221ms] [LOG] 🔍 Starting bundle size monitoring... @ http://localhost:5173/src/services/bundleMonitoring.ts:32
+[     221ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[     221ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[     222ms] [LOG] 🔍 Starting bundle size monitoring... @ http://localhost:5173/src/services/bundleMonitoring.ts:32
+[     223ms] [LOG] 🚨 Bundle Alert: Bundle size exceeds critical threshold: 1.22 MB @ http://localhost:5173/src/services/bundleMonitoring.ts:178
+[     223ms] [LOG] Bundle Alert: {type: threshold_exceeded, severity: error, message: Bundle size exceeds critical threshold: 1.22 MB, currentSize: 1280000, threshold: 1048576} @ http://localhost:5173/src/App.tsx:134
+[     223ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     224ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     225ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     225ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     273ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     457ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[     682ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/api/v1/performance/metrics:0
+[    1027ms] [ERROR] Invalid DOM property `%s`. Did you mean `%s`? fetchpriority fetchPriority @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=94e81f43:2396

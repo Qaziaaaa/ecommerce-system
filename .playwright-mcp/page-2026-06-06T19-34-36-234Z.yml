@@ -1,0 +1,226 @@
+- generic [ref=e3]:
+  - link "Skip to content" [ref=e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - dialog "Shopping cart" [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - img [ref=e9]
+        - heading "YOUR CART" [level=2] [ref=e13]
+      - button "Close cart" [ref=e14]:
+        - img [ref=e15]
+    - generic [ref=e19]:
+      - img "Test Premium Jacket" [ref=e21]
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - heading "Test Premium Jacket" [level=3] [ref=e24]
+          - button [ref=e25]:
+            - img [ref=e26]
+        - generic [ref=e29]: $129.99
+        - generic [ref=e31]:
+          - button [ref=e32]:
+            - img [ref=e33]
+          - generic [ref=e34]: "1"
+          - button [ref=e35]:
+            - img [ref=e36]
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - generic [ref=e39]: Subtotal
+        - generic [ref=e40]: $129.99
+      - button "Proceed to Checkout" [active] [ref=e41]:
+        - text: Proceed to Checkout
+        - img [ref=e42]
+  - dialog "Navigation menu" [ref=e44]:
+    - generic [ref=e45]:
+      - link "NOVA" [ref=e46] [cursor=pointer]:
+        - /url: /
+      - button "Close menu" [ref=e47]:
+        - img [ref=e48]
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - paragraph [ref=e53]: Navigation
+        - link "HOME" [ref=e54] [cursor=pointer]:
+          - /url: /
+        - link "SHOP COLLECTION" [ref=e55] [cursor=pointer]:
+          - /url: /shop
+        - link "OUR STORY" [ref=e56] [cursor=pointer]:
+          - /url: /about
+      - generic [ref=e57]:
+        - paragraph [ref=e58]: Account
+        - link "SIGN IN" [ref=e59] [cursor=pointer]:
+          - /url: /login
+    - link "Need Help? Contact Us" [ref=e61] [cursor=pointer]:
+      - /url: /contact
+  - banner [ref=e62]:
+    - generic [ref=e63]:
+      - link "NOVA" [ref=e64] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e65]:
+        - link "Shop" [ref=e67] [cursor=pointer]:
+          - /url: /shop
+          - text: Shop
+          - img [ref=e68]
+        - link "About Us" [ref=e70] [cursor=pointer]:
+          - /url: /about
+        - link "Contact" [ref=e71] [cursor=pointer]:
+          - /url: /contact
+    - generic [ref=e72]:
+      - generic [ref=e74]:
+        - textbox "Search products" [ref=e75]:
+          - /placeholder: Search...
+        - img [ref=e76]
+      - link "Wishlist" [ref=e79] [cursor=pointer]:
+        - /url: /wishlist
+        - img [ref=e80]
+        - generic [ref=e82]: "1"
+      - button [ref=e83]:
+        - img [ref=e84]
+      - link "Sign In" [ref=e89] [cursor=pointer]:
+        - /url: /login
+  - main [ref=e90]:
+    - generic [ref=e235]:
+      - heading "SECURE CHECKOUT" [level=1] [ref=e236]
+      - generic [ref=e237]:
+        - generic [ref=e239]:
+          - generic [ref=e240]:
+            - heading "1 Contact Information" [level=2] [ref=e242]:
+              - generic [ref=e243]: "1"
+              - text: Contact Information
+            - generic [ref=e245]:
+              - generic [ref=e246]: Email Address
+              - textbox "you@example.com" [ref=e247]
+          - generic [ref=e248]:
+            - heading "2 Shipping Address" [level=2] [ref=e250]:
+              - generic [ref=e251]: "2"
+              - text: Shipping Address
+            - generic [ref=e252]:
+              - generic [ref=e253]:
+                - generic [ref=e254]: First Name
+                - textbox [ref=e255]
+              - generic [ref=e256]:
+                - generic [ref=e257]: Last Name
+                - textbox [ref=e258]
+              - generic [ref=e259]:
+                - generic [ref=e260]: Address
+                - textbox "123 Shopping Lane, Apt 4" [ref=e261]
+              - generic [ref=e262]:
+                - generic [ref=e263]: City
+                - textbox [ref=e264]
+              - generic [ref=e265]:
+                - generic [ref=e266]: Postal Code
+                - textbox [ref=e267]
+          - generic [ref=e268]:
+            - generic [ref=e270]:
+              - heading "3 Payment Details" [level=2] [ref=e271]:
+                - generic [ref=e272]: "3"
+                - text: Payment Details
+              - generic [ref=e273]:
+                - img [ref=e274]
+                - text: Secure 256-bit Encryption
+            - generic [ref=e277]:
+              - generic [ref=e278] [cursor=pointer]:
+                - radio "Credit Card Powered by Stripe" [ref=e279]
+                - img [ref=e280]
+                - generic [ref=e282]: Credit Card
+                - generic [ref=e283]: Powered by Stripe
+              - generic [ref=e284] [cursor=pointer]:
+                - radio "Cash on Delivery Pay at doorstep" [checked] [ref=e285]
+                - img [ref=e286]
+                - generic [ref=e289]: Cash on Delivery
+                - generic [ref=e290]: Pay at doorstep
+            - button "Place COD Order - $129.99" [ref=e292]:
+              - img [ref=e293]
+              - text: Place COD Order - $129.99
+        - generic [ref=e296]:
+          - generic [ref=e297]:
+            - heading "Promo Code" [level=2] [ref=e298]:
+              - img [ref=e299]
+              - text: Promo Code
+            - generic [ref=e302]:
+              - textbox "Enter code here" [ref=e303]
+              - button "Apply" [disabled] [ref=e304]
+          - generic [ref=e305]:
+            - heading "Order Summary" [level=2] [ref=e306]
+            - generic [ref=e308]:
+              - img "Test Premium Jacket" [ref=e310]
+              - generic [ref=e311]:
+                - heading "Test Premium Jacket" [level=3] [ref=e312]
+                - generic [ref=e313]:
+                  - generic [ref=e314]: "Qty: 1"
+                  - generic [ref=e315]: $129.99
+            - generic [ref=e316]:
+              - generic [ref=e317]:
+                - generic [ref=e318]: Subtotal
+                - generic [ref=e319]: $129.99
+              - generic [ref=e320]:
+                - generic [ref=e321]: Shipping
+                - generic [ref=e322]: Free
+              - generic [ref=e323]:
+                - generic [ref=e324]: Total
+                - generic [ref=e325]: $129.99
+  - contentinfo [ref=e94]:
+    - generic [ref=e95]:
+      - generic [ref=e96]:
+        - generic [ref=e97]: NOVA
+        - generic [ref=e98]:
+          - generic [ref=e99]: Email address for newsletter
+          - textbox "Email address for newsletter" [ref=e100]:
+            - /placeholder: email address
+          - button "Join newsletter" [ref=e101]: Join
+        - generic "Social media links" [ref=e102]:
+          - link "Facebook" [ref=e103] [cursor=pointer]:
+            - /url: https://facebook.com
+            - img [ref=e104]
+          - link "Twitter" [ref=e106] [cursor=pointer]:
+            - /url: https://twitter.com
+            - img [ref=e107]
+          - link "Instagram" [ref=e109] [cursor=pointer]:
+            - /url: https://instagram.com
+            - img [ref=e110]
+          - link "LinkedIn" [ref=e113] [cursor=pointer]:
+            - /url: https://linkedin.com
+            - img [ref=e114]
+      - generic [ref=e119]:
+        - button "Company Info" [ref=e120]
+        - list [ref=e122]:
+          - listitem [ref=e123]:
+            - link "About Us" [ref=e124] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=e125]:
+            - link "Careers" [ref=e126] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e127]:
+            - link "Press & Media" [ref=e128] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e129]:
+            - link "Blog" [ref=e130] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e132]:
+        - button "Quick Links" [ref=e133]
+        - list [ref=e135]:
+          - listitem [ref=e136]:
+            - link "Products/Services" [ref=e137] [cursor=pointer]:
+              - /url: /shop
+          - listitem [ref=e138]:
+            - link "Testimonials" [ref=e139] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e140]:
+            - link "Pricing" [ref=e141] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e142]:
+            - link "FAQs" [ref=e143] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e145]:
+        - button "Legal" [ref=e146]
+        - list [ref=e148]:
+          - listitem [ref=e149]:
+            - link "Terms of Service" [ref=e150] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e151]:
+            - link "Privacy Policy" [ref=e152] [cursor=pointer]:
+              - /url: /privacy
+          - listitem [ref=e153]:
+            - link "Refund Policy" [ref=e154] [cursor=pointer]:
+              - /url: "#"
+    - generic [ref=e155]:
+      - heading "NOVA" [level=1] [ref=e156]
+      - paragraph [ref=e158]: © NOVA - 2026. All Rights Reserved.

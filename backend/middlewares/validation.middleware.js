@@ -9,10 +9,11 @@ export const validate = (schema) => (req, res, next) => {
         });
         next();
     } catch (error) {
+        const zodErrors = error.issues || error.errors || [];
         return res.status(400).json({
             status: 'fail',
-            errors: error.errors.map(err => ({
-                path: err.path[1],
+            errors: zodErrors.map(err => ({
+                path: err.path?.[1] || err.path?.[0],
                 message: err.message
             }))
         });
