@@ -68,7 +68,7 @@ describe('Layout', () => {
 
         it('shows cart button with item count', () => {
             useCartStore.setState({
-                cart: [{ _id: 'p1', id: 1, name: 'Test', price: 10, quantity: 2 }],
+                cart: [{ _id: 'p1', id: 1, name: 'Test', price: 10, quantity: 2, description: '', category: '', images: [], stock: 0 }],
             });
             renderLayout();
             expect(screen.getByText(/cart \(2\)/i)).toBeInTheDocument();
@@ -101,7 +101,7 @@ describe('Layout', () => {
         it('displays cart items with name and quantity', () => {
             useCartStore.setState({
                 isCartOpen: true,
-                cart: [{ _id: 'p1', id: 1, name: 'Leather Jacket', price: 299.99, quantity: 1, images: ['/test.jpg'] }],
+                cart: [{ _id: 'p1', id: 1, name: 'Leather Jacket', price: 299.99, quantity: 1, images: ['/test.jpg'], description: '', category: '', stock: 0 }],
             });
             renderLayout();
             expect(screen.getByText('Leather Jacket')).toBeInTheDocument();
@@ -115,8 +115,8 @@ describe('Layout', () => {
             useCartStore.setState({
                 isCartOpen: true,
                 cart: [
-                    { _id: 'p1', id: 1, name: 'Item A', price: 50, quantity: 2, images: [] },
-                    { _id: 'p2', id: 2, name: 'Item B', price: 25, quantity: 1, images: [] },
+                    { _id: 'p1', id: 1, name: 'Item A', price: 50, quantity: 2, images: [], description: '', category: '', stock: 0 },
+                    { _id: 'p2', id: 2, name: 'Item B', price: 25, quantity: 1, images: [], description: '', category: '', stock: 0 },
                 ],
             });
             renderLayout();

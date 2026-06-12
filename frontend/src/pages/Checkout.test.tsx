@@ -36,6 +36,10 @@ const mockProduct = {
   price: 199.99,
   quantity: 2,
   img: '/test.jpg',
+  description: '',
+  category: '',
+  images: [],
+  stock: 0,
 };
 
 import axiosInstance from '../api/axios';
