@@ -70,11 +70,10 @@ describe('getAllProductsService', () => {
       skip: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
       populate: vi.fn().mockReturnThis(),
-      find: vi.fn().mockReturnThis(),
+      lean: vi.fn().mockResolvedValue(products),
     };
     Product.find.mockReturnValue(query);
     Product.countDocuments.mockResolvedValue(1);
-    query.populate.mockResolvedValue(products);
 
     const result = await productService.getAllProductsService({}, { role: 'user' });
     expect(result.products).toEqual(products);
@@ -88,12 +87,12 @@ describe('getAllProductsService', () => {
       skip: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
       populate: vi.fn().mockReturnThis(),
-      find: vi.fn().mockReturnThis(),
+      lean: vi.fn().mockResolvedValue([]),
     };
+    const catQuery = { select: vi.fn().mockReturnThis(), lean: vi.fn().mockResolvedValue({ _id: 'cat1' }) };
     Product.find.mockReturnValue(query);
     Product.countDocuments.mockResolvedValue(0);
-    query.populate.mockResolvedValue([]);
-    Category.findOne.mockResolvedValue({ _id: 'cat1' });
+    Category.findOne.mockReturnValue(catQuery);
 
     await productService.getAllProductsService({ category: 'shoes' }, { role: 'user' });
     expect(Category.findOne).toHaveBeenCalledWith({ slug: 'shoes' });
@@ -106,11 +105,10 @@ describe('getAllProductsService', () => {
       skip: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
       populate: vi.fn().mockReturnThis(),
-      find: vi.fn().mockReturnThis(),
+      lean: vi.fn().mockResolvedValue([]),
     };
     Product.find.mockReturnValue(query);
     Product.countDocuments.mockResolvedValue(0);
-    query.populate.mockResolvedValue([]);
 
     await productService.getAllProductsService({}, { role: 'user' });
     expect(Product.find).toHaveBeenCalledWith(expect.objectContaining({ isActive: true }));

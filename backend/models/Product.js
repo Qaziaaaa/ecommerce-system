@@ -76,9 +76,12 @@ const productSchema = new mongoose.Schema(
 productSchema.index({ name: 'text', description: 'text', brand: 'text' });
 
 // Compound indexes for common filter patterns (Requirements: 3.1, 3.3)
-productSchema.index({ category: 1, isActive: 1, price: 1 });   // Category browse with price sort
-productSchema.index({ isActive: 1, isFeatured: 1 });            // Featured products query
-productSchema.index({ isActive: 1, createdAt: -1 });            // Latest products
+productSchema.index({ category: 1, isActive: 1, createdAt: -1, price: 1 });  // Category browse with sort + price
+productSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });           // Featured products query (with sort)
+productSchema.index({ isActive: 1, createdAt: -1 });            // Latest products (default paginated query)
+productSchema.index({ isActive: 1, price: 1, createdAt: -1 });  // Price filter + sort
+productSchema.index({ category: 1, isActive: 1, price: 1, createdAt: -1 }); // Category + price range + sort
+productSchema.index({ isActive: 1, ratingsAverage: -1 });        // Sort by rating (popular)
 
 const Product = mongoose.model('Product', productSchema);
 export default Product;

@@ -56,7 +56,7 @@ describe('Shop', () => {
   it('shows loading state', () => {
     (globalThis as any).__testLoading = true;
     renderShop();
-    expect(screen.getByText(/Syncing Inventory/i)).toBeInTheDocument();
+    expect(screen.getByText(/Loading Collection/i)).toBeInTheDocument();
   });
 
   it('shows empty state when no products', () => {

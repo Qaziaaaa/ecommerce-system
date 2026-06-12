@@ -11,6 +11,9 @@ vi.mock('@tanstack/react-query', () => ({
     isLoading: (globalThis as any).__testHomeLoading ?? false,
     isPlaceholderData: false,
   })),
+  useQueryClient: vi.fn(() => ({
+    prefetchQuery: vi.fn(),
+  })),
 }));
 
 vi.mock('../api/axios', () => ({

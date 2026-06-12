@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SEOMeta from '../components/SEOMeta';
 import { ArrowRight, Truck, Shield, RefreshCw, Clock, Star, Loader2 } from 'lucide-react';
 import { useCart } from '../store/useCartStore';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
 import { ProductCard } from '../components/ProductCard';
 import LazyImage from '../components/LazyImage';
@@ -24,6 +24,26 @@ const FALLBACK_PRODUCTS = PRODUCTS.map((p, i) => ({
 
 export default function Home() {
   const { addToCart } = useCart();
+  const queryClient = useQueryClient();
+
+  // Prefetch shop page data so navigation to /shop is instant
+  useEffect(() => {
+    const controller = new AbortController();
+    const prefetch = async () => {
+      await queryClient.prefetchQuery({
+        queryKey: ['products', 1, 'all', 'newest', '', '', ''],
+        queryFn: async () => {
+          const { data } = await axiosInstance.get('/products?page=1&limit=12&sort=newest', {
+            signal: controller.signal,
+          });
+          return data.data;
+        },
+        staleTime: 60_000,
+      });
+    };
+    prefetch();
+    return () => controller.abort();
+  }, [queryClient]);
   
   const { data: products = [], isLoading, isPlaceholderData } = useQuery({
     queryKey: ['products-home'],

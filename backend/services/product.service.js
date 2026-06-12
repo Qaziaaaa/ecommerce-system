@@ -1,6 +1,10 @@
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
+import CacheService from './cache.service.js';
 import { parsePaginationParams, buildPaginationMeta } from './pagination.service.js';
+
+// In-memory category slug → _id cache (resets on server restart)
+const categorySlugCache = new Map();
 
 /**
  * Create a new product
@@ -62,11 +66,18 @@ export const getAllProductsService = async (queryParams, user) => {
         queryObj.isActive = true;
     }
 
-    // Category Filter (Slug to ID mapping)
+    // Category Filter (Slug to ID mapping) — with in-memory cache
     if (queryParams.category) {
-        const category = await Category.findOne({ slug: queryParams.category });
-        if (category) {
-            queryObj.category = category._id;
+        let catId = categorySlugCache.get(queryParams.category);
+        if (!catId) {
+            const category = await Category.findOne({ slug: queryParams.category }).select('_id').lean();
+            if (category) {
+                catId = category._id;
+                categorySlugCache.set(queryParams.category, catId);
+            }
+        }
+        if (catId) {
+            queryObj.category = catId;
         }
     }
 
@@ -116,7 +127,12 @@ export const getAllProductsService = async (queryParams, user) => {
     // 4. Pagination — use standardized pagination service
     const { page, limit, skip } = parsePaginationParams(queryParams);
 
-    query = query.skip(skip).limit(limit).populate('category', 'name slug');
+    query = query
+        .skip(skip)
+        .limit(limit)
+        .select('name price images slug stock ratingsAverage ratingsCount isActive category brand description createdAt')
+        .populate('category', 'name slug')
+        .lean({ virtuals: false });
 
     // Execute query in parallel for performance
     const [products, totalCount] = await Promise.all([
