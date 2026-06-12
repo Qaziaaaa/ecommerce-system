@@ -53,8 +53,9 @@ const orderSchema = new mongoose.Schema(
         stripePaymentIntentId: {
             type: String,
             unique: true,
-            sparse: true // Allows multiple 'null' or missing values if needed
-        }
+            sparse: true
+        },
+        processedEventIds: [String]
     },
     {
         timestamps: true

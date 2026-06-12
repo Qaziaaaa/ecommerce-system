@@ -18,6 +18,7 @@ function StripePaymentSection({
   finalTotal,
   appliedCoupon,
   isGuest,
+  orderId,
   onSuccess
 }: any) {
   const stripe = useStripe();
@@ -62,7 +63,7 @@ function StripePaymentSection({
       }
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        const orderData = {
+        const orderData: Record<string, any> = {
           shippingAddress: {
             street: addressData.address,
             city: addressData.city,
@@ -78,12 +79,12 @@ function StripePaymentSection({
             price: item.price
           })),
           couponCode: appliedCoupon ? appliedCoupon.code : undefined,
-          totalAmount: finalTotal
+          orderId: orderId,
         };
 
         const endpoint = isGuest ? '/orders/guest-checkout' : '/orders/checkout';
         if (isGuest) {
-          (orderData as any).email = addressData.email;
+          orderData.email = addressData.email;
         }
         await axiosInstance.post(endpoint, orderData);
         clearCart();
@@ -159,6 +160,7 @@ export default function Checkout() {
   const [clientSecret, setClientSecret] = useState('');
   const [stripeError, setStripeError] = useState('');
   const paymentIntentIdRef = React.useRef<string | null>(null);
+  const orderIdRef = React.useRef<string | null>(null);
 
   // Controlled form state
   const [email, setEmail] = useState('');
@@ -213,15 +215,20 @@ export default function Checkout() {
           }
           setStripeError('');
           const endpoint = isAuthenticated ? '/orders/create-payment-intent' : '/orders/guest-create-payment-intent';
-      const { data } = await axiosInstance.post(endpoint, {
+          const body: Record<string, any> = {
             orderItems: cart.map((item: any) => ({
               product: item._id || item.id,
               quantity: item.quantity,
               price: item.price
             })),
             couponCode: appliedCoupon?.code
-          });
+          };
+          if (!isAuthenticated) {
+            body.email = email;
+          }
+          const { data } = await axiosInstance.post(endpoint, body);
           paymentIntentIdRef.current = data.paymentIntentId;
+          orderIdRef.current = data.orderId;
           setClientSecret(data.clientSecret);
         } catch (error: any) {
           console.error('Failed to init payment intent:', error);
@@ -516,6 +523,7 @@ export default function Checkout() {
                             finalTotal={finalTotal}
                             appliedCoupon={appliedCoupon}
                             isGuest={!isAuthenticated}
+                            orderId={orderIdRef.current}
                             onSuccess={() => {
                               queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
                               queryClient.invalidateQueries({ queryKey: ['admin-stats'] });

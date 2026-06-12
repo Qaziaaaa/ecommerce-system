@@ -1,4 +1,5 @@
 import * as orderService from '../services/order.service.js';
+import User from '../models/User.js';
 import AppError from '../utils/AppError.js';
 import logger from '../utils/logger.js';
 import { stripeCircuitBreaker, CircuitOpenError } from '../utils/circuit-breaker.js';
@@ -61,7 +62,7 @@ export const guestCheckoutOrder = async (req, res, next) => {
 
 export const guestCreatePaymentIntent = async (req, res, next) => {
   try {
-    const { orderItems, couponCode } = req.body;
+    const { orderItems, couponCode, email } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
       return next(new AppError('Cart is empty', 400));
@@ -73,6 +74,13 @@ export const guestCreatePaymentIntent = async (req, res, next) => {
       return next(new AppError('Order amount must be at least $0.50', 400));
     }
 
+    let user = await User.findOne({ email: email?.toLowerCase() });
+    if (!user) {
+      user = { _id: null };
+    }
+
+    const pendingOrder = await orderService.createPendingOrderService(user._id, orderItems, couponCode);
+
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -81,13 +89,18 @@ export const guestCreatePaymentIntent = async (req, res, next) => {
         amount: Math.round(amount * 100),
         currency: 'usd',
         payment_method_types: ['card'],
+        metadata: { orderId: pendingOrder._id.toString() },
       })
     );
+
+    pendingOrder.stripePaymentIntentId = paymentIntent.id;
+    await pendingOrder.save();
 
     res.status(200).json({
       status: 'success',
       clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id
+      paymentIntentId: paymentIntent.id,
+      orderId: pendingOrder._id,
     });
   } catch (error) {
     if (error instanceof CircuitOpenError) {
@@ -155,6 +168,8 @@ export const createPaymentIntent = async (req, res, next) => {
              return next(new AppError('Order amount must be at least $0.50', 400));
         }
 
+        const pendingOrder = await orderService.createPendingOrderService(req.user._id, orderItems, couponCode);
+
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -163,13 +178,18 @@ export const createPaymentIntent = async (req, res, next) => {
                 amount: Math.round(amount * 100),
                 currency: 'usd',
                 payment_method_types: ['card'],
+                metadata: { orderId: pendingOrder._id.toString() },
             })
         );
+
+        pendingOrder.stripePaymentIntentId = paymentIntent.id;
+        await pendingOrder.save();
 
         res.status(200).json({
             status: 'success',
             clientSecret: paymentIntent.client_secret,
-            paymentIntentId: paymentIntent.id
+            paymentIntentId: paymentIntent.id,
+            orderId: pendingOrder._id,
         });
     } catch (error) {
         if (error instanceof CircuitOpenError) {

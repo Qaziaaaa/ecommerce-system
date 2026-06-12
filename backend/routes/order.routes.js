@@ -66,6 +66,27 @@ router.post('/guest-checkout', orderLimiter, guestCheckoutOrder);
  */
 router.post('/guest-create-payment-intent', userApiLimiter, guestCreatePaymentIntent);
 
+/**
+ * @openapi
+ * /orders/cancel-payment-intent:
+ *   post:
+ *     tags: [Orders]
+ *     summary: Cancel a Stripe payment intent (guest + authenticated)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [paymentIntentId]
+ *             properties:
+ *               paymentIntentId: { type: string }
+ *     responses:
+ *       200:
+ *         description: Payment intent cancelled
+ */
+router.post('/cancel-payment-intent', userApiLimiter, cancelPaymentIntent);
+
 // Protect all remaining order routes
 router.use(protect);
 
@@ -153,30 +174,6 @@ router.post('/checkout', orderLimiter, checkoutOrder);
  *         description: Not authenticated
  */
 router.post('/create-payment-intent', userApiLimiter, createPaymentIntent);
-
-/**
- * @openapi
- * /orders/cancel-payment-intent:
- *   post:
- *     tags: [Orders]
- *     summary: Cancel a Stripe payment intent
- *     security: [{ BearerAuth: [] }]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [orderId]
- *             properties:
- *               orderId: { type: string }
- *     responses:
- *       200:
- *         description: Payment intent cancelled
- *       401:
- *         description: Not authenticated
- */
-router.post('/cancel-payment-intent', userApiLimiter, cancelPaymentIntent);
 
 /**
  * @openapi

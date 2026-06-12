@@ -13,6 +13,7 @@ vi.mock('../utils/AppError.js', () => {
 vi.mock('../services/order.service.js', () => ({
   guestCheckoutOrderService: vi.fn(),
   calculateOrderAmountService: vi.fn(),
+  createPendingOrderService: vi.fn(),
   checkoutOrderService: vi.fn(),
   getUserOrdersService: vi.fn(),
   getSingleOrderService: vi.fn(),
@@ -20,6 +21,8 @@ vi.mock('../services/order.service.js', () => ({
   getAllOrdersService: vi.fn(),
   deleteOrderService: vi.fn(),
 }));
+
+vi.mock('../models/User.js', () => ({ default: { findOne: vi.fn() } }));
 
 vi.mock('../services/audit.service.js', () => ({ logAuditAction: vi.fn() }));
 
@@ -94,6 +97,7 @@ describe('guestCreatePaymentIntent', () => {
     const { req, res, next } = mockReqRes();
     req.body = { orderItems: [{ product: 'p1', quantity: 1 }], couponCode: null };
     orderService.calculateOrderAmountService.mockResolvedValue(50);
+    orderService.createPendingOrderService.mockResolvedValue({ _id: 'po1', stripePaymentIntentId: null, save: vi.fn().mockResolvedValue(true) });
     mockStripe.paymentIntents.create.mockResolvedValue({ client_secret: 'cs_123', id: 'pi_123' });
     await controller.guestCreatePaymentIntent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
@@ -104,6 +108,7 @@ describe('guestCreatePaymentIntent', () => {
     const { req, res, next } = mockReqRes();
     req.body = { orderItems: [{ product: 'p1', quantity: 1 }] };
     orderService.calculateOrderAmountService.mockResolvedValue(50);
+    orderService.createPendingOrderService.mockResolvedValue({ _id: 'po1', stripePaymentIntentId: null, save: vi.fn().mockResolvedValue(true) });
     mockStripe.paymentIntents.create.mockImplementation(() => { throw new CircuitOpenError('open'); });
     await controller.guestCreatePaymentIntent(req, res, next);
     expect(next).toHaveBeenCalled();
@@ -117,6 +122,7 @@ describe('createPaymentIntent', () => {
     const { req, res, next } = mockReqRes();
     req.body = { orderItems: [{ product: 'p1', quantity: 1 }] };
     orderService.calculateOrderAmountService.mockResolvedValue(75);
+    orderService.createPendingOrderService.mockResolvedValue({ _id: 'po1', stripePaymentIntentId: null, save: vi.fn().mockResolvedValue(true) });
     mockStripe.paymentIntents.create.mockResolvedValue({ client_secret: 'cs_456', id: 'pi_456' });
     await controller.createPaymentIntent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);

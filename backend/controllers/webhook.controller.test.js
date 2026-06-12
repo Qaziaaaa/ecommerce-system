@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../models/Order.js', () => ({ default: { findById: vi.fn(), findByIdAndUpdate: vi.fn() } }));
-
+vi.mock('../models/Order.js', () => ({ default: { findById: vi.fn() } }));
+vi.mock('../models/Product.js', () => ({ default: { bulkWrite: vi.fn() } }));
 vi.mock('stripe', () => ({ default: vi.fn() }));
 
 const mockLogger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
 vi.mock('../utils/logger.js', () => ({ default: mockLogger }));
 
-let Order, controller, mockStripe;
+let Order, Product, controller, mockStripe;
 
 beforeEach(async () => {
   vi.clearAllMocks();
@@ -22,6 +22,7 @@ beforeEach(async () => {
   Stripe.mockImplementation(function () { return mockStripe; });
 
   Order = (await import('../models/Order.js')).default;
+  Product = (await import('../models/Product.js')).default;
   controller = await import('./webhook.controller.js');
 });
 
@@ -35,16 +36,23 @@ describe('handleStripeWebhook', () => {
 
     mockStripe.webhooks.constructEvent.mockReturnValue({
       type: 'payment_intent.succeeded',
+      id: 'evt_1',
       data: { object: { id: 'pi_1', metadata: { orderId: 'o1' } } },
     });
+    const saveFn = vi.fn().mockResolvedValue(true);
     Order.findById.mockResolvedValue({
       _id: 'o1',
       paymentStatus: 'pending',
-      save: vi.fn().mockResolvedValue(true),
+      orderStatus: 'pending',
+      orderItems: [],
+      processedEventIds: [],
+      stripePaymentIntentId: null,
+      save: saveFn,
     });
 
     await controller.handleStripeWebhook(req, res);
     expect(res.json).toHaveBeenCalledWith({ received: true });
+    expect(saveFn).toHaveBeenCalled();
   });
 
   it('returns 400 on signature verification failure', async () => {
@@ -65,10 +73,19 @@ describe('handleStripeWebhook', () => {
 
     mockStripe.webhooks.constructEvent.mockReturnValue({
       type: 'payment_intent.payment_failed',
+      id: 'evt_2',
       data: { object: { id: 'pi_fail', metadata: { orderId: 'o1' } } },
+    });
+    const saveFn = vi.fn().mockResolvedValue(true);
+    Order.findById.mockResolvedValue({
+      _id: 'o1',
+      paymentStatus: 'pending',
+      processedEventIds: [],
+      save: saveFn,
     });
 
     await controller.handleStripeWebhook(req, res);
-    expect(Order.findByIdAndUpdate).toHaveBeenCalledWith('o1', { paymentStatus: 'failed', stripePaymentIntentId: 'pi_fail' });
+    expect(res.json).toHaveBeenCalledWith({ received: true });
+    expect(saveFn).toHaveBeenCalled();
   });
 });
