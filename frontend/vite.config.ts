@@ -90,7 +90,13 @@ export default defineConfig(({mode}) => {
         globals: true,
         environment: 'jsdom',
         setupFiles: ['./src/test/setup.ts'],
-        exclude: ['e2e/**', 'node_modules/**'],
+        exclude: ['e2e/**', 'node_modules/**', 'temp_test/**'],
+        env: {
+            VITE_API_URL: env.VITE_API_URL || 'http://localhost:5001/api/v1',
+            VITE_STRIPE_PUBLIC_KEY: env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_placeholder',
+            VITE_APP_URL: env.VITE_APP_URL || 'http://localhost:5173',
+            VITE_SENTRY_DSN: env.VITE_SENTRY_DSN || '',
+        },
     },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
