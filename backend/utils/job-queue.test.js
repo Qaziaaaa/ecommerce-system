@@ -30,21 +30,14 @@ describe('JobQueue', () => {
   });
 
   it('retries failed jobs up to maxRetries', async () => {
-    vi.useFakeTimers();
     const q = new JobQueue('test', { concurrency: 1, retries: 2, retryDelay: 10 });
-    const fn = vi.fn().mockRejectedValue(new Error('transient'));
+    const fn = vi.fn().mockImplementation(async () => { throw new Error('transient'); });
     const promise = q.enqueue(fn, { name: 'fail-job' });
-
-    // Process the retry delays
-    for (let i = 0; i < 5; i++) {
-      await vi.advanceTimersByTimeAsync(50);
-    }
 
     await expect(promise).rejects.toThrow('transient');
     expect(fn).toHaveBeenCalledTimes(3);
     expect(q.stats.failed).toBe(1);
     expect(q.stats.retried).toBe(2);
-    vi.useRealTimers();
   });
 
   it('drain resolves when queue is empty', async () => {
