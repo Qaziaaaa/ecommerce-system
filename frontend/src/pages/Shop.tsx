@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Loader2, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { Search, Loader2, SlidersHorizontal } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
 import SEOMeta from '../components/SEOMeta';
 
@@ -36,7 +36,6 @@ const SKELETON_COUNT = 8;
 export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const page = parseInt(searchParams.get('page') || '1', 10);
   const category = searchParams.get('category') || 'all';
   const sort = searchParams.get('sort') || 'newest';
   const minPrice = searchParams.get('minPrice') || '';
@@ -49,7 +48,7 @@ export default function Shop() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchInput !== search) {
-        updateParams({ search: searchInput, page: '1' });
+        updateParams({ search: searchInput });
       }
     }, 500);
     return () => clearTimeout(timer);
@@ -71,24 +70,37 @@ export default function Shop() {
     setSearchParams(newParams);
   };
 
-  const queryParams = useMemo(() => ({
-    page: page.toString(),
-    limit: '12',
+  const filterParams = useMemo(() => ({
     sort,
     ...(category !== 'all' && { category }),
     ...(minPrice && { minPrice }),
     ...(maxPrice && { maxPrice }),
     ...(search && { search }),
-  }), [page, category, sort, minPrice, maxPrice, search]);
+  }), [category, sort, minPrice, maxPrice, search]);
 
-  const { data, isLoading, isPlaceholderData, isFetching } = useQuery({
-    queryKey: ['products', page, category, sort, minPrice, maxPrice, search],
-    queryFn: async () => {
-      const params = new URLSearchParams(queryParams);
+  const {
+    data,
+    isLoading,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['products', category, sort, minPrice, maxPrice, search],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params = new URLSearchParams({
+        ...filterParams,
+        page: pageParam.toString(),
+        limit: '12',
+      });
       const { data } = await axiosInstance.get(`/products?${params.toString()}`);
-      return data.data;
+      return data;
     },
-    placeholderData: (previousData) => previousData,
+    getNextPageParam: (lastPage) => {
+      const { currentPage, totalPages } = lastPage.pagination;
+      return currentPage < totalPages ? currentPage + 1 : undefined;
+    },
+    initialPageParam: 1,
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
@@ -104,10 +116,9 @@ export default function Shop() {
     gcTime: 2 * 60 * 60 * 1000,
   });
 
-  const products = data?.products || [];
-  const pagination = data?.pagination || { totalPages: 1 };
+  const products = data?.pages.flatMap(page => page.data?.products ?? page.products ?? []) ?? [];
+  const totalItems = data?.pages[0]?.pagination?.totalItems ?? 0;
   const showSkeleton = isLoading && products.length === 0;
-  const showContent = !isLoading && products.length > 0;
   const showEmpty = !isLoading && products.length === 0;
 
   return (
@@ -147,7 +158,7 @@ export default function Shop() {
             <span className="text-[10px] font-bold tracking-[0.2em] opacity-40 uppercase">Sort By:</span>
             <select
               value={sort}
-              onChange={(e) => updateParams({ sort: e.target.value, page: '1' })}
+              onChange={(e) => updateParams({ sort: e.target.value })}
               className="bg-transparent border-b border-[#2D2926]/10 text-[10px] font-bold tracking-[0.2em] uppercase py-2 focus:outline-none cursor-pointer hover:border-[#2D2926] transition-colors"
             >
               <option value="newest">Newest Arrivals</option>
@@ -166,7 +177,7 @@ export default function Shop() {
                         {['all', ...(Array.isArray(categoriesData) ? categoriesData.map((c: any) => c.slug) : [])].map((slug) => (
                             <button
                                 key={slug}
-                                onClick={() => updateParams({ category: slug, page: '1' })}
+                                onClick={() => updateParams({ category: slug })}
                                 className={`px-4 py-2 text-[9px] font-bold tracking-widest uppercase transition-all duration-300 ${category === slug ? 'bg-[#2D2926] text-white' : 'bg-[#EBE7E0] hover:bg-[#2D2926]/10 text-[#2D2926]'}`}
                             >
                                 {slug.replace(/-/g, ' ')}
@@ -182,7 +193,7 @@ export default function Shop() {
                             placeholder="MIN"
                             type="number"
                             value={minPrice}
-                            onChange={(e) => updateParams({ minPrice: e.target.value, page: '1' })}
+                            onChange={(e) => updateParams({ minPrice: e.target.value })}
                             className="w-full bg-[#EBE7E0]/50 border-b border-[#2D2926]/10 px-4 py-3 text-[10px] font-bold focus:outline-none focus:border-[#2D2926]"
                         />
                         <span className="opacity-20">—</span>
@@ -190,7 +201,7 @@ export default function Shop() {
                             placeholder="MAX"
                             type="number"
                             value={maxPrice}
-                            onChange={(e) => updateParams({ maxPrice: e.target.value, page: '1' })}
+                            onChange={(e) => updateParams({ maxPrice: e.target.value })}
                             className="w-full bg-[#EBE7E0]/50 border-b border-[#2D2926]/10 px-4 py-3 text-[10px] font-bold focus:outline-none focus:border-[#2D2926]"
                         />
                     </div>
@@ -198,7 +209,7 @@ export default function Shop() {
                         {[50, 100, 500].map(val => (
                             <button
                                 key={val}
-                                onClick={() => updateParams({ maxPrice: val.toString(), page: '1' })}
+                                onClick={() => updateParams({ maxPrice: val.toString() })}
                                 className="text-[9px] font-bold tracking-widest opacity-40 hover:opacity-100 transition-opacity"
                             >
                                 UNDER ${val}
@@ -209,7 +220,7 @@ export default function Shop() {
 
                 <div className="flex flex-col justify-end gap-4">
                     <button
-                        onClick={() => updateParams({ category: 'all', minPrice: '', maxPrice: '', search: '', sort: 'newest', page: '1' })}
+                        onClick={() => updateParams({ category: 'all', minPrice: '', maxPrice: '', search: '', sort: 'newest' })}
                         className="w-full border border-[#2D2926]/20 py-4 text-[10px] font-bold tracking-[0.2em] hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all uppercase"
                     >
                         RESTORE DEFAULTS
@@ -218,7 +229,7 @@ export default function Shop() {
             </div>
         )}
 
-        <div className={`transition-opacity duration-300 ${isPlaceholderData ? 'opacity-50' : 'opacity-100'}`}>
+        <div>
           {showSkeleton ? (
             <div className="space-y-6">
               <div className="flex items-center justify-center gap-2 text-[9px] font-bold tracking-[0.3em] uppercase opacity-30 animate-pulse mb-4">
@@ -237,7 +248,7 @@ export default function Shop() {
                 No products found matching your current filters.
               </p>
               <button
-                onClick={() => updateParams({ category: 'all', minPrice: '', maxPrice: '', search: '', page: '1' })}
+                onClick={() => updateParams({ category: 'all', minPrice: '', maxPrice: '', search: '', sort: 'newest' })}
                 className="bg-[#2D2926] text-white px-12 py-5 text-[10px] font-bold tracking-[0.3em] uppercase hover:opacity-90 transition-all shadow-xl"
               >
                 CLEAR ALL FILTERS
@@ -245,10 +256,10 @@ export default function Shop() {
             </div>
           ) : (
             <>
-              {isFetching && !isPlaceholderData && (
+              {isFetchingNextPage && (
                 <div className="flex items-center justify-center gap-2 text-[9px] font-bold tracking-[0.3em] uppercase opacity-30 animate-pulse mb-4">
                   <Loader2 className="animate-spin" size={12} />
-                  Updating...
+                  Loading more...
                 </div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
@@ -260,46 +271,24 @@ export default function Shop() {
           )}
         </div>
 
-        {!isLoading && pagination.totalPages > 1 && (
+        {!isLoading && products.length > 0 && (
           <div className="mt-16 sm:mt-32 flex flex-col items-center gap-6 border-t border-[#2D2926]/5 pt-12 sm:pt-20">
-            <div className="flex items-center gap-4 sm:gap-10">
-              <button
-                disabled={page === 1}
-                onClick={() => updateParams({ page: (page - 1).toString() })}
-                className="p-4 border border-[#2D2926] hover:bg-[#2D2926] hover:text-white disabled:opacity-10 disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              <div className="flex items-center gap-4">
-                {[...Array(Math.min(pagination.totalPages, 10))].map((_, i) => {
-                  const pageNum = i + 1;
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => updateParams({ page: pageNum.toString() })}
-                      className={`w-10 h-10 text-[10px] font-bold tracking-widest transition-all ${page === pageNum ? 'bg-[#2D2926] text-white shadow-lg' : 'hover:bg-[#2D2926]/5 opacity-40 hover:opacity-100'}`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-                {pagination.totalPages > 10 && (
-                  <span className="text-[10px] font-bold tracking-widest opacity-30">...</span>
-                )}
-              </div>
-
-              <button
-                disabled={page === pagination.totalPages}
-                onClick={() => updateParams({ page: (page + 1).toString() })}
-                className="p-4 border border-[#2D2926] hover:bg-[#2D2926] hover:text-white disabled:opacity-10 disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
             <p className="text-[8px] font-bold tracking-[0.5em] uppercase opacity-30">
-              Showing Page {page} of {pagination.totalPages}
+              Showing {products.length} of {totalItems} products
             </p>
+            {hasNextPage ? (
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="bg-[#2D2926] text-white px-12 py-5 text-[10px] font-bold tracking-[0.3em] uppercase hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                {isFetchingNextPage ? 'LOADING...' : 'SHOW MORE'}
+              </button>
+            ) : products.length >= totalItems ? (
+              <p className="text-[8px] font-bold tracking-[0.5em] uppercase opacity-20">
+                All {totalItems} products loaded
+              </p>
+            ) : null}
           </div>
         )}
       </div>

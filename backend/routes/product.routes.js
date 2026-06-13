@@ -118,7 +118,7 @@ router.get('/search/typeahead', async (req, res, next) => {
  *         description: Not authorized (admin only)
  */
 router.route('/')
-    .get(optionalAuth, apiCache(CACHE_TTL.PRODUCTS_LIST), getProducts)
+    .get(optionalAuth, apiCache(CACHE_TTL.PRODUCTS_LIST, { skipAdmin: true }), getProducts)
     .post(protect, isAdmin, validateCreateProduct, invalidateCacheMiddleware(['GET:/products*', 'GET:/api/v1/products*']), createProduct);
 
 /**

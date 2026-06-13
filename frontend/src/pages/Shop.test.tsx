@@ -4,16 +4,21 @@ import { MemoryRouter } from 'react-router-dom';
 import Shop from './Shop';
 
 vi.mock('@tanstack/react-query', () => ({
+  useInfiniteQuery: vi.fn(() => ({
+    data: {
+      pages: (globalThis as any).__testPages ?? [{ products: (globalThis as any).__testProducts ?? [], pagination: (globalThis as any).__testPagination ?? { totalPages: 1, totalItems: 3, currentPage: 1 } }],
+    },
+    fetchNextPage: vi.fn(),
+    hasNextPage: (globalThis as any).__testHasMore ?? false,
+    isFetchingNextPage: (globalThis as any).__testLoadingMore ?? false,
+    isLoading: (globalThis as any).__testLoading ?? false,
+    isFetching: false,
+  })),
   useQuery: vi.fn(({ queryKey }) => {
-    if ((globalThis as any).__testLoading) return { isLoading: true };
     if (queryKey[0] === 'categories') {
-      return { data: (globalThis as any).__testCategories ?? [], isLoading: false };
+      return { data: (globalThis as any).__testCategories ?? [] };
     }
-    return {
-      data: { products: (globalThis as any).__testProducts ?? [], pagination: (globalThis as any).__testPagination ?? { totalPages: 1 } },
-      isLoading: false,
-      isPlaceholderData: false,
-    };
+    return { data: [], isLoading: false };
   }),
   useQueryClient: vi.fn(() => ({ invalidateQueries: vi.fn() })),
 }));
@@ -47,7 +52,10 @@ const renderShop = (route = '/shop') =>
 describe('Shop', () => {
   beforeEach(() => {
     (globalThis as any).__testProducts = mockProducts;
-    (globalThis as any).__testPagination = { totalPages: 3, currentPage: 1 };
+    (globalThis as any).__testPagination = { totalPages: 3, totalItems: 3, currentPage: 1, hasNext: true, hasPrev: false };
+    (globalThis as any).__testPages = undefined;
+    (globalThis as any).__testHasMore = true;
+    (globalThis as any).__testLoadingMore = false;
     (globalThis as any).__testCategories = mockCategories;
     (globalThis as any).__testLoading = false;
     vi.clearAllMocks();
@@ -55,12 +63,14 @@ describe('Shop', () => {
 
   it('shows loading state', () => {
     (globalThis as any).__testLoading = true;
+    (globalThis as any).__testProducts = [];
     renderShop();
     expect(screen.getByText(/Loading Collection/i)).toBeInTheDocument();
   });
 
   it('shows empty state when no products', () => {
     (globalThis as any).__testProducts = [];
+    (globalThis as any).__testHasMore = false;
     renderShop();
     expect(screen.getByText(/No products found/i)).toBeInTheDocument();
     expect(screen.getByText('CLEAR ALL FILTERS')).toBeInTheDocument();
@@ -78,29 +88,37 @@ describe('Shop', () => {
     expect(container.textContent).toContain('Wool Scarf - $49.99');
   });
 
-  it('shows pagination when totalPages > 1', () => {
+  it('shows product count', () => {
     renderShop();
-    expect(screen.getByText('Showing Page 1 of 3')).toBeInTheDocument();
+    expect(screen.getByText(/Showing 3 of 3 products/i)).toBeInTheDocument();
   });
 
-  it('renders pagination page buttons', () => {
+  it('shows SHOW MORE button when more pages are available', () => {
+    (globalThis as any).__testPagination = { totalPages: 3, totalItems: 9, currentPage: 1, hasNext: true, hasPrev: false };
+    (globalThis as any).__testHasMore = true;
     renderShop();
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('SHOW MORE')).toBeInTheDocument();
   });
 
-  it('disables prev button on page 1', () => {
-    const { container } = renderShop();
-    const prevBtn = container.querySelector('button:has(svg.lucide-chevron-left)');
-    expect(prevBtn).toBeDisabled();
+  it('hides SHOW MORE button when no more pages', () => {
+    (globalThis as any).__testHasMore = false;
+    renderShop();
+    expect(screen.queryByText('SHOW MORE')).not.toBeInTheDocument();
   });
 
-  it('disables next button on last page', () => {
-    const { container } = renderShop('/shop?page=3');
-    (globalThis as any).__testPagination = { totalPages: 3 };
-    const nextBtn = container.querySelector('button:has(svg.lucide-chevron-right)');
-    expect(nextBtn).toBeDisabled();
+  it('shows all loaded message when all products are displayed', () => {
+    (globalThis as any).__testHasMore = false;
+    renderShop();
+    expect(screen.getByText(/All 3 products loaded/i)).toBeInTheDocument();
+  });
+
+  it('disables SHOW MORE button while loading next page', () => {
+    (globalThis as any).__testPagination = { totalPages: 3, totalItems: 9, currentPage: 1, hasNext: true, hasPrev: false };
+    (globalThis as any).__testHasMore = true;
+    (globalThis as any).__testLoadingMore = true;
+    renderShop();
+    const btn = screen.getByText('LOADING...');
+    expect(btn).toBeDisabled();
   });
 
   it('shows sort dropdown with default value', () => {

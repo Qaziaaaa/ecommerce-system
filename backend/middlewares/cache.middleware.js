@@ -32,6 +32,12 @@ const getCacheKey = (req) => {
  */
 export const apiCache = (ttlSeconds, options = {}) => {
   return async (req, res, next) => {
+    // Skip cache for admin users (e.g. admin product listing always needs fresh data)
+    if (options.skipAdmin && req.user?.role === 'admin') {
+      res.set('Cache-Control', 'no-store');
+      return next();
+    }
+
     // Only cache GET requests
     if (req.method !== 'GET' || ttlSeconds === 0) {
       res.set('Cache-Control', 'no-store');
