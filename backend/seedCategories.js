@@ -9,9 +9,11 @@ const seedCategories = async () => {
         console.log('Connected to MongoDB');
 
         const categories = [
-            { name: 'Electronics', slug: 'electronics' },
-            { name: 'Apparel', slug: 'apparel' },
-            { name: 'Accessories', slug: 'accessories' }
+            { name: 'Beauty & Personal Care', slug: 'beauty-personal-care' },
+            { name: 'Electronics & Gadgets', slug: 'electronics-gadgets' },
+            { name: 'Fashion & Apparel', slug: 'fashion-apparel' },
+            { name: 'Home & Kitchen', slug: 'home-kitchen' },
+            { name: 'Health & Fitness', slug: 'health-fitness' }
         ];
 
         for (const cat of categories) {
