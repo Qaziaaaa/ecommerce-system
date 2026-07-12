@@ -132,7 +132,7 @@ export default function Shop() {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-8 mb-12 border-y border-[#2D2926]/10 py-10 lg:py-8 px-4 sm:px-6">
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-8 mb-12 border-y border-[#2D2926]/10 py-10 lg:py-8 px-6 sm:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full lg:w-auto">
             <div className="relative group w-full sm:min-w-[280px] lg:flex-none">
               <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2D2926]/40" />
