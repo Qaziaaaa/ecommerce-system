@@ -132,18 +132,6 @@ export const createPendingOrderService = async (userId, clientItems, couponCode)
     return order;
 };
 
-export const guestCheckoutOrderService = async (email, checkoutData) => {
-  let user = await User.findOne({ email: email.toLowerCase() });
-  if (!user) {
-    user = await User.create({
-      name: email.split('@')[0],
-      email: email.toLowerCase(),
-      isVerified: false,
-    });
-  }
-  return checkoutOrderService(user._id, checkoutData);
-};
-
 export const checkoutOrderService = async (userId, checkoutData) => {
     const { orderItems: clientItems, shippingAddress, paymentMethod, paymentIntentId, couponCode, orderId } = checkoutData;
 

@@ -8,7 +8,7 @@ describe('Cart Routes', () => {
   });
 
   it('should have a use-level middleware (protect)', () => {
-    expect(router.stack.length).toBe(3);
+    expect(router.stack.length).toBe(4);
     const protectLayer = router.stack[0];
     expect(protectLayer.route).toBeUndefined();
   });
@@ -20,6 +20,11 @@ describe('Cart Routes', () => {
 
   it('should have POST / route', () => {
     const route = router.stack.find(l => l.route && l.route.path === '/' && l.route.methods.post);
+    expect(route).toBeDefined();
+  });
+
+  it('should have PUT /sync route', () => {
+    const route = router.stack.find(l => l.route && l.route.path === '/sync' && l.route.methods.put);
     expect(route).toBeDefined();
   });
 

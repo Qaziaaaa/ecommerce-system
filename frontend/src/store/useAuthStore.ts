@@ -25,6 +25,22 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             setAuth: (user) => {
                 set({ user, isAuthenticated: true });
+                try {
+                    const state = useCartStore.getState();
+                    const cartItems = state?.cart;
+                    if (cartItems && cartItems.length > 0) {
+                        import('../api/axios').then(mod => {
+                            mod.default.put('/cart/sync', {
+                                items: cartItems.map((item: any) => ({
+                                    productId: item._id || item.id,
+                                    quantity: item.quantity
+                                }))
+                            }).catch(() => {});
+                        });
+                    }
+                } catch {
+                    // Cart store not available (e.g. in test environment)
+                }
             },
             setUser: (user) => {
                 set({ user });

@@ -75,3 +75,26 @@ export const removeCartItem = async (req, res, next) => {
         next(error);
     }
 };
+
+export const syncCart = async (req, res, next) => {
+    try {
+        const { items } = req.body;
+
+        if (!items || !Array.isArray(items)) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Please provide an items array'
+            });
+        }
+
+        const cart = await cartService.syncCartService(req.user._id, items);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Cart synced',
+            data: { cart }
+        });
+    } catch (error) {
+        next(error);
+    }
+};

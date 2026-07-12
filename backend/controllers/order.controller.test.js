@@ -11,7 +11,6 @@ vi.mock('../utils/AppError.js', () => {
 });
 
 vi.mock('../services/order.service.js', () => ({
-  guestCheckoutOrderService: vi.fn(),
   calculateOrderAmountService: vi.fn(),
   createPendingOrderService: vi.fn(),
   checkoutOrderService: vi.fn(),
@@ -21,8 +20,6 @@ vi.mock('../services/order.service.js', () => ({
   getAllOrdersService: vi.fn(),
   deleteOrderService: vi.fn(),
 }));
-
-vi.mock('../models/User.js', () => ({ default: { findOne: vi.fn() } }));
 
 vi.mock('../services/audit.service.js', () => ({ logAuditAction: vi.fn() }));
 
@@ -58,23 +55,6 @@ function mockReqRes() {
   };
 }
 
-describe('guestCheckoutOrder', () => {
-  it('creates order for guest', async () => {
-    const { req, res, next } = mockReqRes();
-    req.body = { email: 'guest@test.com', shippingAddress: {}, paymentMethod: 'cod', orderItems: [{}] };
-    orderService.guestCheckoutOrderService.mockResolvedValue({ _id: 'o1' });
-    await controller.guestCheckoutOrder(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  it('returns 400 for missing fields', async () => {
-    const { req, res, next } = mockReqRes();
-    req.body = {};
-    await controller.guestCheckoutOrder(req, res, next);
-    expect(next).toHaveBeenCalled();
-  });
-});
-
 describe('checkoutOrder', () => {
   it('creates order for logged-in user', async () => {
     const { req, res, next } = mockReqRes();
@@ -89,31 +69,6 @@ describe('checkoutOrder', () => {
     req.body = {};
     await controller.checkoutOrder(req, res, next);
     expect(next).toHaveBeenCalled();
-  });
-});
-
-describe('guestCreatePaymentIntent', () => {
-  it('creates payment intent', async () => {
-    const { req, res, next } = mockReqRes();
-    req.body = { orderItems: [{ product: 'p1', quantity: 1 }], couponCode: null };
-    orderService.calculateOrderAmountService.mockResolvedValue(50);
-    orderService.createPendingOrderService.mockResolvedValue({ _id: 'po1', stripePaymentIntentId: null, save: vi.fn().mockResolvedValue(true) });
-    mockStripe.paymentIntents.create.mockResolvedValue({ client_secret: 'cs_123', id: 'pi_123' });
-    await controller.guestCreatePaymentIntent(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ clientSecret: 'cs_123' }));
-  });
-
-  it('handles CircuitOpenError', async () => {
-    const { req, res, next } = mockReqRes();
-    req.body = { orderItems: [{ product: 'p1', quantity: 1 }] };
-    orderService.calculateOrderAmountService.mockResolvedValue(50);
-    orderService.createPendingOrderService.mockResolvedValue({ _id: 'po1', stripePaymentIntentId: null, save: vi.fn().mockResolvedValue(true) });
-    mockStripe.paymentIntents.create.mockImplementation(() => { throw new CircuitOpenError('open'); });
-    await controller.guestCreatePaymentIntent(req, res, next);
-    expect(next).toHaveBeenCalled();
-    const err = next.mock.calls[0][0];
-    expect(err.statusCode).toBe(503);
   });
 });
 

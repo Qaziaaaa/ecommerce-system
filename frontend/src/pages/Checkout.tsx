@@ -17,7 +17,6 @@ function StripePaymentSection({
   cart,
   finalTotal,
   appliedCoupon,
-  isGuest,
   orderId,
   onSuccess
 }: any) {
@@ -82,11 +81,7 @@ function StripePaymentSection({
           orderId: orderId,
         };
 
-        const endpoint = isGuest ? '/orders/guest-checkout' : '/orders/checkout';
-        if (isGuest) {
-          orderData.email = addressData.email;
-        }
-        await axiosInstance.post(endpoint, orderData);
+        await axiosInstance.post('/orders/checkout', orderData);
         clearCart();
         onSuccess();
       } else {
@@ -214,19 +209,14 @@ export default function Checkout() {
             } catch { /* best-effort */ }
           }
           setStripeError('');
-          const endpoint = isAuthenticated ? '/orders/create-payment-intent' : '/orders/guest-create-payment-intent';
-          const body: Record<string, any> = {
+          const { data } = await axiosInstance.post('/orders/create-payment-intent', {
             orderItems: cart.map((item: any) => ({
               product: item._id || item.id,
               quantity: item.quantity,
               price: item.price
             })),
             couponCode: appliedCoupon?.code
-          };
-          if (!isAuthenticated) {
-            body.email = email;
-          }
-          const { data } = await axiosInstance.post(endpoint, body);
+          });
           paymentIntentIdRef.current = data.paymentIntentId;
           orderIdRef.current = data.orderId;
           setClientSecret(data.clientSecret);
@@ -292,11 +282,7 @@ export default function Checkout() {
         totalAmount: finalTotal
       };
 
-      const endpoint = isAuthenticated ? '/orders/checkout' : '/orders/guest-checkout';
-      if (!isAuthenticated) {
-        (orderData as any).email = email;
-      }
-      await axiosInstance.post(endpoint, orderData);
+      await axiosInstance.post('/orders/checkout', orderData);
       clearCart();
       // Invalidate all order and product caches so stock updates immediately
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
@@ -522,7 +508,6 @@ export default function Checkout() {
                             cart={cart}
                             finalTotal={finalTotal}
                             appliedCoupon={appliedCoupon}
-                            isGuest={!isAuthenticated}
                             orderId={orderIdRef.current}
                             onSuccess={() => {
                               queryClient.invalidateQueries({ queryKey: ['admin-orders'] });

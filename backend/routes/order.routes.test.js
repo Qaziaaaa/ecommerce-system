@@ -7,13 +7,6 @@ describe('Order Routes', () => {
     expect(router.stack).toBeDefined();
   });
 
-  it('should have guest checkout routes without protect middleware', () => {
-    const guestLayers = router.stack.filter(l => l.route && !l.route.path.startsWith('/:'));
-    const guestPaths = guestLayers.map(l => l.route.path);
-    expect(guestPaths).toContain('/guest-checkout');
-    expect(guestPaths).toContain('/guest-create-payment-intent');
-  });
-
   it('should have a use-level protect middleware', () => {
     const protectLayer = router.stack.find(l => !l.route);
     expect(protectLayer).toBeDefined();

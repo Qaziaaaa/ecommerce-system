@@ -168,18 +168,4 @@ describe('deleteOrderService', () => {
   });
 });
 
-describe('guestCheckoutOrderService', () => {
-  it('creates guest user and calls checkoutOrderService', async () => {
-    User.findOne.mockResolvedValue(null);
-    User.create.mockResolvedValue({ _id: 'guest1', name: 'guest', email: 'guest@test.com' });
-    Product.find.mockResolvedValue([{ _id: 'p1', isActive: true, stock: 5, price: 50, name: 'P1' }]);
-    Product.bulkWrite.mockResolvedValue({ modifiedCount: 1 });
 
-    const result = await orderService.guestCheckoutOrderService('guest@test.com', {
-      orderItems: [{ product: 'p1', quantity: 1 }],
-      shippingAddress: { street: '123' },
-      paymentMethod: 'card',
-    });
-    expect(result.totalAmount).toBe(50);
-  });
-});

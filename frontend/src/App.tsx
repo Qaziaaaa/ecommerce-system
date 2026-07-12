@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
 import { useAuthStore } from './store/useAuthStore';
 import { usePerformanceMonitoring, useNavigationPerformance } from './hooks/usePerformanceMonitoring';
 import axiosInstance from './api/axios';
@@ -150,9 +151,11 @@ export default function App() {
                         </Suspense>
                     } />
                     <Route path="checkout" element={
-                        <Suspense fallback={<LoadingSpinner message="Loading checkout..." />}>
-                            <Checkout />
-                        </Suspense>
+                        <ProtectedRoute>
+                            <Suspense fallback={<LoadingSpinner message="Loading checkout..." />}>
+                                <Checkout />
+                            </Suspense>
+                        </ProtectedRoute>
                     } />
                     <Route path="about" element={
                         <Suspense fallback={<LoadingSpinner message="Loading about page..." />}>
@@ -185,19 +188,25 @@ export default function App() {
                         </Suspense>
                     } />
                     <Route path="orders" element={
-                        <Suspense fallback={<LoadingSpinner message="Loading orders..." />}>
-                            <UserOrders />
-                        </Suspense>
+                        <ProtectedRoute>
+                            <Suspense fallback={<LoadingSpinner message="Loading orders..." />}>
+                                <UserOrders />
+                            </Suspense>
+                        </ProtectedRoute>
                     } />
                     <Route path="profile" element={
-                        <Suspense fallback={<LoadingSpinner message="Loading profile..." />}>
-                            <Profile />
-                        </Suspense>
+                        <ProtectedRoute>
+                            <Suspense fallback={<LoadingSpinner message="Loading profile..." />}>
+                                <Profile />
+                            </Suspense>
+                        </ProtectedRoute>
                     } />
                     <Route path="wishlist" element={
-                        <Suspense fallback={<LoadingSpinner message="Loading wishlist..." />}>
-                            <Wishlist />
-                        </Suspense>
+                        <ProtectedRoute>
+                            <Suspense fallback={<LoadingSpinner message="Loading wishlist..." />}>
+                                <Wishlist />
+                            </Suspense>
+                        </ProtectedRoute>
                     } />
                 </Route>
 

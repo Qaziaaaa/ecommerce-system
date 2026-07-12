@@ -4,90 +4,18 @@ import { isAdmin } from '../middlewares/role.middleware.js';
 import { orderLimiter, userApiLimiter } from '../middlewares/rateLimiter.js';
 import {
     checkoutOrder,
-    guestCheckoutOrder,
     getMyOrders,
     getSingleOrder,
     updateOrderStatus,
     getAllOrders,
     createPaymentIntent,
-    guestCreatePaymentIntent,
     cancelPaymentIntent,
     deleteOrder
 } from '../controllers/order.controller.js';
 
 const router = express.Router();
 
-// Guest checkout routes (no authentication required)
-/**
- * @openapi
- * /orders/guest-checkout:
- *   post:
- *     tags: [Orders]
- *     summary: Guest checkout — auto-creates account by email
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email, shippingAddress, paymentMethod, orderItems]
- *             properties:
- *               email: { type: string, format: email }
- *               shippingAddress: { $ref: '#/components/schemas/Address' }
- *               paymentMethod: { type: string, enum: [cod, card] }
- *               orderItems: { type: array, items: { type: object, properties: { product: { type: string }, quantity: { type: integer }, price: { type: number } } } }
- *               couponCode: { type: string }
- *     responses:
- *       201:
- *         description: Order created
- *       400:
- *         description: Invalid request
- */
-router.post('/guest-checkout', orderLimiter, guestCheckoutOrder);
-
-/**
- * @openapi
- * /orders/guest-create-payment-intent:
- *   post:
- *     tags: [Orders]
- *     summary: Create Stripe payment intent (guest)
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               orderItems: { type: array }
- *               couponCode: { type: string }
- *     responses:
- *       200:
- *         description: Payment intent created
- */
-router.post('/guest-create-payment-intent', userApiLimiter, guestCreatePaymentIntent);
-
-/**
- * @openapi
- * /orders/cancel-payment-intent:
- *   post:
- *     tags: [Orders]
- *     summary: Cancel a Stripe payment intent (guest + authenticated)
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [paymentIntentId]
- *             properties:
- *               paymentIntentId: { type: string }
- *     responses:
- *       200:
- *         description: Payment intent cancelled
- */
-router.post('/cancel-payment-intent', userApiLimiter, cancelPaymentIntent);
-
-// Protect all remaining order routes
+// Protect all order routes
 router.use(protect);
 
 /**
@@ -174,6 +102,30 @@ router.post('/checkout', orderLimiter, checkoutOrder);
  *         description: Not authenticated
  */
 router.post('/create-payment-intent', userApiLimiter, createPaymentIntent);
+
+/**
+ * @openapi
+ * /orders/cancel-payment-intent:
+ *   post:
+ *     tags: [Orders]
+ *     summary: Cancel a Stripe payment intent
+ *     security: [{ BearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [paymentIntentId]
+ *             properties:
+ *               paymentIntentId: { type: string }
+ *     responses:
+ *       200:
+ *         description: Payment intent cancelled
+ *       401:
+ *         description: Not authenticated
+ */
+router.post('/cancel-payment-intent', userApiLimiter, cancelPaymentIntent);
 
 /**
  * @openapi

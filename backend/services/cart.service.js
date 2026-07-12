@@ -120,3 +120,22 @@ export const removeCartItemService = async (userId, productId) => {
     await user.save();
     return user.cart;
 };
+
+/**
+ * Replace the entire cart with items synced from localStorage on login.
+ */
+export const syncCartService = async (userId, items) => {
+    const user = await User.findById(userId);
+    if (!user) throw new Error('User not found');
+
+    const productIds = items.map(item => item.productId);
+    const products = await Product.find({ _id: { $in: productIds }, isActive: true });
+    const validProductIds = new Set(products.map(p => p._id.toString()));
+
+    user.cart = items
+        .filter(item => validProductIds.has(item.productId))
+        .map(item => ({ product: item.productId, quantity: Math.min(item.quantity, 99) }));
+
+    await user.save();
+    return user.cart;
+};

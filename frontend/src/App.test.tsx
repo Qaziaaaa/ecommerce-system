@@ -112,7 +112,8 @@ describe('App', () => {
     });
   });
 
-  it('navigates to orders page', async () => {
+  it('navigates to orders page when authenticated', async () => {
+    useAuthStore.setState({ user: { _id: 'u1', name: 'User', email: 'u@b.com', role: 'user' }, isAuthenticated: true });
     render(<App />);
     window.history.pushState({}, '', '/orders');
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -121,7 +122,8 @@ describe('App', () => {
     });
   });
 
-  it('navigates to profile page', async () => {
+  it('navigates to profile page when authenticated', async () => {
+    useAuthStore.setState({ user: { _id: 'u1', name: 'User', email: 'u@b.com', role: 'user' }, isAuthenticated: true });
     render(<App />);
     window.history.pushState({}, '', '/profile');
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -130,7 +132,8 @@ describe('App', () => {
     });
   });
 
-  it('navigates to wishlist page', async () => {
+  it('navigates to wishlist page when authenticated', async () => {
+    useAuthStore.setState({ user: { _id: 'u1', name: 'User', email: 'u@b.com', role: 'user' }, isAuthenticated: true });
     render(<App />);
     window.history.pushState({}, '', '/wishlist');
     window.dispatchEvent(new PopStateEvent('popstate'));

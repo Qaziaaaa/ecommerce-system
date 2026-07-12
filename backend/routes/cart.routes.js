@@ -4,7 +4,8 @@ import {
     addToCart,
     getCart,
     updateCartItem,
-    removeCartItem
+    removeCartItem,
+    syncCart
 } from '../controllers/cart.controller.js';
 
 const router = express.Router();
@@ -56,6 +57,9 @@ router.use(protect);
 router.route('/')
     .get(getCart)
     .post(addToCart);
+
+// Sync localStorage cart to server (called on login)
+router.put('/sync', syncCart);
 
 /**
  * @openapi
