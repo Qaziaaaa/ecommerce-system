@@ -244,38 +244,34 @@ export default function Layout() {
 
           {/* Search */}
           <div ref={searchRef} className="relative hidden lg:block">
-            <div className="flex items-center border-b border-[#2D2926]/20 focus-within:border-[#2D2926] transition-colors group">
-              <Search size={14} className="ml-1 mr-2 text-[#2D2926]/30 group-focus-within:text-[#2D2926]/60 transition-colors" />
+            <div className="flex items-center border border-[#2D2926]/20 bg-white/80 focus-within:border-[#2D2926] transition-colors">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => { if (searchResults.length > 0) setIsSearchOpen(true); }}
-                placeholder="SEARCH"
-                className="w-28 xl:w-40 bg-transparent py-2 text-[10px] font-bold tracking-[0.2em] uppercase outline-none placeholder:text-[#2D2926]/20"
+                placeholder="Search..."
+                className="w-32 xl:w-44 bg-transparent px-3 py-2 text-[11px] font-medium outline-none"
                 aria-label="Search products"
               />
+              <Search size={14} className="mr-2 opacity-40" />
             </div>
             {isSearchOpen && searchResults.length > 0 && (
-              <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-[#2D2926]/10 shadow-2xl z-50 max-h-96 overflow-y-auto">
-                <div className="px-5 py-3 border-b border-[#2D2926]/5">
-                  <p className="text-[9px] font-bold tracking-[0.2em] uppercase opacity-30">Suggestions</p>
-                </div>
+              <div className="absolute top-full right-0 mt-1 w-72 bg-white border border-[#2D2926]/20 shadow-2xl z-50 max-h-96 overflow-y-auto">
                 {searchResults.map((p: any) => (
                   <Link
                     key={p._id}
                     to={`/product/${p._id}`}
                     onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
-                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-[#EBE7E0]/50 transition-colors border-b border-[#2D2926]/5 last:border-0 group/item"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#EBE7E0] transition-colors border-b border-[#2D2926]/5 last:border-0"
                   >
-                    <div className="w-12 h-12 bg-white border border-[#2D2926]/5 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 bg-white border border-[#2D2926]/10 flex items-center justify-center">
                       <img src={p.image || '/placeholder.png'} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold truncate group-hover/item:opacity-70 transition-opacity">{p.name}</p>
-                      <p className="text-[10px] opacity-50 mt-0.5 tracking-wide">${p.price?.toFixed(2)}</p>
+                      <p className="text-xs font-bold truncate">{p.name}</p>
+                      <p className="text-[10px] opacity-60">${p.price?.toFixed(2)}</p>
                     </div>
-                    <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover/item:opacity-40 group-hover/item:translate-x-0 transition-all" />
                   </Link>
                 ))}
               </div>
@@ -284,9 +280,9 @@ export default function Layout() {
 
           {/* Mobile Search Toggle */}
           <button
-            onClick={() => setIsMobileSearchOpen(true)}
+            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
             className="lg:hidden text-[#2D2926] hover:opacity-70 transition-opacity"
-            aria-label="Open search"
+            aria-label="Toggle search"
           >
             <Search size={18} />
           </button>
@@ -347,66 +343,44 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Mobile Search Overlay */}
+      {/* Mobile Search Bar */}
       {isMobileSearchOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-[#EBE7E0]" onClick={() => { setIsMobileSearchOpen(false); setSearchQuery(''); setSearchResults([]); }} />
-          <div className="relative z-10 flex flex-col h-full">
-            <div className="flex items-center justify-between px-6 py-6 border-b border-[#2D2926]/10">
-              <span className="font-display text-xl tracking-[0.15em]">NOVA</span>
-              <button
-                onClick={() => { setIsMobileSearchOpen(false); setSearchQuery(''); setSearchResults([]); }}
-                className="text-[#2D2926] hover:opacity-70 transition-opacity"
-                aria-label="Close search"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <div className="px-6 pt-12 pb-4">
-                <div className="flex items-center border-b border-[#2D2926]/20 focus-within:border-[#2D2926] transition-colors pb-3">
-                  <Search size={18} className="mr-3 text-[#2D2926]/30" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    placeholder="SEARCH"
-                    className="flex-1 bg-transparent text-lg font-medium outline-none placeholder:text-[#2D2926]/20"
-                    aria-label="Search products"
-                    autoFocus
-                  />
-                </div>
-              </div>
-              {isSearchOpen && searchResults.length > 0 && (
-                <div className="px-6 pb-8">
-                  <p className="text-[9px] font-bold tracking-[0.2em] uppercase opacity-30 mb-4">Suggestions</p>
-                  <div className="space-y-1">
-                    {searchResults.map((p: any) => (
-                      <Link
-                        key={p._id}
-                        to={`/product/${p._id}`}
-                        onClick={() => { setIsSearchOpen(false); setSearchQuery(''); setIsMobileSearchOpen(false); }}
-                        className="flex items-center gap-4 px-4 py-3.5 hover:bg-[#2D2926]/5 transition-colors -mx-4 rounded-sm"
-                      >
-                        <div className="w-14 h-14 bg-white border border-[#2D2926]/5 flex items-center justify-center shrink-0">
-                          <img src={p.image || '/placeholder.png'} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate">{p.name}</p>
-                          <p className="text-xs opacity-50 mt-0.5">${p.price?.toFixed(2)}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {searchQuery && !isSearchOpen && (
-                <div className="px-6">
-                  <p className="text-sm opacity-40">No results found for "{searchQuery}"</p>
-                </div>
-              )}
-            </div>
+        <div className="lg:hidden px-6 py-4 bg-[#EBE7E0] border-b border-[#2D2926]/10">
+          <div className="flex items-center border border-[#2D2926]/20 bg-white/80 focus-within:border-[#2D2926] transition-colors">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => { if (searchResults.length > 0) setIsSearchOpen(true); }}
+              placeholder="Search products..."
+              className="flex-1 bg-transparent px-4 py-3 text-sm font-medium outline-none"
+              aria-label="Search products"
+              autoFocus
+            />
+            <button onClick={() => { setIsMobileSearchOpen(false); setSearchQuery(''); setSearchResults([]); }} className="pr-3">
+              <X size={16} className="opacity-40" />
+            </button>
           </div>
+          {isSearchOpen && searchResults.length > 0 && (
+            <div className="mt-2 bg-white border border-[#2D2926]/20 shadow-2xl max-h-96 overflow-y-auto">
+              {searchResults.map((p: any) => (
+                <Link
+                  key={p._id}
+                  to={`/product/${p._id}`}
+                  onClick={() => { setIsSearchOpen(false); setSearchQuery(''); setIsMobileSearchOpen(false); }}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-[#EBE7E0] transition-colors border-b border-[#2D2926]/5 last:border-0"
+                >
+                  <div className="w-10 h-10 bg-white border border-[#2D2926]/10 flex items-center justify-center">
+                    <img src={p.image || '/placeholder.png'} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold truncate">{p.name}</p>
+                    <p className="text-[10px] opacity-60">${p.price?.toFixed(2)}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

@@ -51,7 +51,7 @@ describe('Layout', () => {
 
         it('renders search input with placeholder and aria-label', () => {
             renderLayout();
-            expect(screen.getByPlaceholderText('SEARCH')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
             expect(screen.getByLabelText('Search products')).toBeInTheDocument();
         });
 
