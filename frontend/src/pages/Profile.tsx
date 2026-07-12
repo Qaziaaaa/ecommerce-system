@@ -183,18 +183,29 @@ export default function Profile() {
                                     </div>
                                 </div>
 
-                                <button 
-                                    type="submit" 
-                                    disabled={isUpdating || name === user?.name || !name.trim()}
-                                    className={`w-full py-5 text-[10px] font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
-                                        isUpdating || name === user?.name || !name.trim()
-                                            ? 'bg-[#2D2926]/20 text-[#2D2926]/50 cursor-not-allowed shadow-none'
-                                            : 'bg-[#2D2926] text-[#EBE7E0] hover:bg-[#2D2926]/90 hover:shadow-xl'
-                                    }`}
-                                >
-                                    {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                                    {isUpdating ? 'Saving Changes...' : 'Save Profile Details'}
-                                </button>
+                                <div className="flex gap-4">
+                                    <button 
+                                        type="submit" 
+                                        disabled={isUpdating || name === user?.name || !name.trim()}
+                                        className={`flex-1 py-5 text-[10px] font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+                                            isUpdating || name === user?.name || !name.trim()
+                                                ? 'bg-[#2D2926]/20 text-[#2D2926]/50 cursor-not-allowed shadow-none'
+                                                : 'bg-[#2D2926] text-[#EBE7E0] hover:bg-[#2D2926]/90 hover:shadow-xl'
+                                        }`}
+                                    >
+                                        {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                        {isUpdating ? 'Saving Changes...' : 'Save Profile Details'}
+                                    </button>
+                                    {name !== user?.name && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => setName(user?.name || '')}
+                                            className="px-6 py-5 text-[10px] font-bold tracking-[0.2em] uppercase border border-[#2D2926]/20 hover:bg-[#2D2926]/5 transition-all duration-300"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
                             </form>
                         </div>
                     )}

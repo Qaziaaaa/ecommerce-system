@@ -89,14 +89,14 @@ export default function Login() {
                 <div className="flex border-b border-[#2D2926]/10 mb-8">
                     <button
                         type="button"
-                        onClick={() => { setMode('otp'); setStep(1); }}
+                        onClick={() => { setMode('otp'); setStep(1); setEmail(''); setPassword(''); setOtp(''); }}
                         className={`flex-1 pb-3 text-[9px] font-bold tracking-[0.2em] uppercase transition-all ${mode === 'otp' ? 'border-b-2 border-[#2D2926] opacity-100' : 'opacity-30 hover:opacity-60'}`}
                     >
                         OTP Login
                     </button>
                     <button
                         type="button"
-                        onClick={() => setMode('admin')}
+                        onClick={() => { setMode('admin'); setStep(1); setEmail(''); setPassword(''); setOtp(''); }}
                         className={`flex-1 pb-3 text-[9px] font-bold tracking-[0.2em] uppercase transition-all flex items-center justify-center gap-2 ${mode === 'admin' ? 'border-b-2 border-[#2D2926] opacity-100' : 'opacity-30 hover:opacity-60'}`}
                     >
                         <Shield size={12} /> Admin Login

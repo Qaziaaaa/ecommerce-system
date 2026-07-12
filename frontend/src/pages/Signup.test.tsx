@@ -54,7 +54,7 @@ describe('Signup', () => {
     renderSignup();
     expect(screen.getByPlaceholderText('Enter your name')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Enter your email')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter phone number')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('+1 (555) 123-4567')).toBeInTheDocument();
   });
 
   it('sends OTP and advances to step 2', async () => {

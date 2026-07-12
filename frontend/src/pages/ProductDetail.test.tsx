@@ -126,15 +126,15 @@ describe('ProductDetail', () => {
     renderDetail();
     await screen.findByRole('heading', { name: /Test Leather Jacket/i });
 
-    const qtySpan = screen.getByText('1');
-    const plusBtn = qtySpan.nextElementSibling!;
+    const qtyInput = screen.getByDisplayValue('1') as HTMLInputElement;
 
+    const plusBtn = qtyInput.nextElementSibling!;
     fireEvent.click(plusBtn);
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect((screen.getByDisplayValue('2') as HTMLInputElement).value).toBe('2');
 
-    const minusBtn = qtySpan.previousElementSibling!;
+    const minusBtn = qtyInput.previousElementSibling!;
     fireEvent.click(minusBtn);
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect((screen.getByDisplayValue('1') as HTMLInputElement).value).toBe('1');
   });
 
   it('toggles wishlist', async () => {

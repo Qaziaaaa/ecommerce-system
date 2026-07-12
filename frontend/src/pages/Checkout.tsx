@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { CheckCircle, Loader2, Tag, X, Lock, ShieldCheck, CreditCard, Banknote } from 'lucide-react';
@@ -142,6 +142,7 @@ function StripePaymentSection({
 }
 
 export default function Checkout() {
+  const navigate = useNavigate();
   const { cart, cartTotal, clearCart } = useCart();
   const queryClient = useQueryClient();
   const [isSuccess, setIsSuccess] = useState(false);
@@ -342,6 +343,11 @@ export default function Checkout() {
     <div className="py-10 sm:py-16 lg:py-20 px-4 sm:px-8 lg:px-12 bg-[#EBE7E0] min-h-screen">
       <SEOMeta title="Checkout" />
       <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <button onClick={() => navigate('/shop')} className="text-[10px] font-bold tracking-[0.2em] uppercase hover:opacity-70 transition-opacity flex items-center gap-2 opacity-50">
+            ← Continue Shopping
+          </button>
+        </div>
         <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-wide mb-10 sm:mb-16 text-center">SECURE CHECKOUT</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
@@ -553,14 +559,15 @@ export default function Checkout() {
                 <Tag size={16} /> Promo Code
               </h2>
               {!appliedCoupon ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="Enter code here"
-                    className="flex-1 bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors focus:bg-white"
-                  />
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Enter code here"
+                      className="flex-1 bg-[#EBE7E0]/30 border border-[#2D2926]/20 p-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors focus:bg-white"
+                    />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
@@ -570,6 +577,8 @@ export default function Checkout() {
                     {isApplyingCoupon ? <Loader2 size={14} className="animate-spin" /> : 'Apply'}
                   </button>
                 </div>
+                <p className="text-[9px] opacity-40 tracking-wider mt-1">Coupon codes are case-insensitive</p>
+              </div>
               ) : (
                 <div className="flex justify-between items-center bg-green-50 text-green-800 p-4 border border-green-200 shadow-inner">
                   <div className="flex items-center gap-2 text-sm font-bold">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, Facebook, Twitter, Instagram, Linkedin, ChevronDown, Menu, User, Heart, Search } from 'lucide-react';
 import { useCart } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -12,12 +12,15 @@ export default function Layout() {
   const { isAuthenticated, user, logout } = useAuthStore();
   const { items: wishlistItems } = useWishlistStore();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -175,9 +178,9 @@ export default function Layout() {
         <div className="flex-1 overflow-y-auto px-10 py-12 flex flex-col gap-10">
           <div className="flex flex-col gap-6">
             <p className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-30 mb-2">Navigation</p>
-            <Link to="/" onClick={() => setIsMenuOpen(false)} className="font-display text-4xl tracking-tight">HOME</Link>
-            <Link to="/shop" onClick={() => setIsMenuOpen(false)} className="font-display text-4xl tracking-tight">SHOP COLLECTION</Link>
-            <Link to="/about" onClick={() => setIsMenuOpen(false)} className="font-display text-4xl tracking-tight">OUR STORY</Link>
+            <Link to="/" onClick={() => setIsMenuOpen(false)} className={`font-display text-4xl tracking-tight ${location.pathname === '/' ? 'opacity-100 underline underline-offset-8' : 'opacity-60 hover:opacity-100'}`}>HOME</Link>
+            <Link to="/shop" onClick={() => setIsMenuOpen(false)} className={`font-display text-4xl tracking-tight ${location.pathname.startsWith('/shop') ? 'opacity-100 underline underline-offset-8' : 'opacity-60 hover:opacity-100'}`}>SHOP COLLECTION</Link>
+            <Link to="/about" onClick={() => setIsMenuOpen(false)} className={`font-display text-4xl tracking-tight ${location.pathname === '/about' ? 'opacity-100 underline underline-offset-8' : 'opacity-60 hover:opacity-100'}`}>OUR STORY</Link>
           </div>
 
           <div className="flex flex-col gap-6">
@@ -275,6 +278,15 @@ export default function Layout() {
             )}
           </div>
 
+          {/* Mobile Search Toggle */}
+          <button
+            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+            className="lg:hidden text-[#2D2926] hover:opacity-70 transition-opacity"
+            aria-label="Toggle search"
+          >
+            <Search size={18} />
+          </button>
+
           {/* Wishlist */}
           <Link
             to="/wishlist"
@@ -296,8 +308,8 @@ export default function Layout() {
             <ShoppingCart size={18} className="lg:w-[20px]" />
             <span className="text-[10px] font-bold tracking-[0.2em] uppercase hidden xl:block">Cart ({cartCount})</span>
             {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#2D2926] text-[#EBE7E0] text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full lg:static lg:rounded-none lg:bg-transparent lg:text-[#2D2926] lg:w-auto lg:h-auto">
-                {cartCount > 0 && <span className="lg:hidden">{cartCount}</span>}
+              <span className="absolute -top-1.5 -right-1.5 bg-[#2D2926] text-[#EBE7E0] text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full lg:hidden">
+                {cartCount}
               </span>
             )}
           </button>
@@ -331,6 +343,47 @@ export default function Layout() {
         </div>
       </header>
 
+      {/* Mobile Search Bar */}
+      {isMobileSearchOpen && (
+        <div className="lg:hidden px-6 py-4 bg-[#EBE7E0] border-b border-[#2D2926]/10">
+          <div className="flex items-center border border-[#2D2926]/20 bg-white/80 focus-within:border-[#2D2926] transition-colors">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => { if (searchResults.length > 0) setIsSearchOpen(true); }}
+              placeholder="Search products..."
+              className="flex-1 bg-transparent px-4 py-3 text-sm font-medium outline-none"
+              aria-label="Search products"
+              autoFocus
+            />
+            <button onClick={() => { setIsMobileSearchOpen(false); setSearchQuery(''); setSearchResults([]); }} className="pr-3">
+              <X size={16} className="opacity-40" />
+            </button>
+          </div>
+          {isSearchOpen && searchResults.length > 0 && (
+            <div className="mt-2 bg-white border border-[#2D2926]/20 shadow-2xl max-h-96 overflow-y-auto">
+              {searchResults.map((p: any) => (
+                <Link
+                  key={p._id}
+                  to={`/product/${p._id}`}
+                  onClick={() => { setIsSearchOpen(false); setSearchQuery(''); setIsMobileSearchOpen(false); }}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-[#EBE7E0] transition-colors border-b border-[#2D2926]/5 last:border-0"
+                >
+                  <div className="w-10 h-10 bg-white border border-[#2D2926]/10 flex items-center justify-center">
+                    <img src={p.image || '/placeholder.png'} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold truncate">{p.name}</p>
+                    <p className="text-[10px] opacity-60">${p.price?.toFixed(2)}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Main Content */}
       <main id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
         <Outlet />
@@ -341,11 +394,11 @@ export default function Layout() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 mb-20 lg:mb-32 max-w-7xl mx-auto">
           <div className="col-span-1 lg:col-span-4">
             <div className="font-display text-3xl font-bold tracking-[0.15em] mb-8 lg:mb-10">NOVA</div>
-            <div className="flex flex-col sm:flex-row mb-10 gap-4 sm:gap-0">
+            <form onSubmit={(e) => { e.preventDefault(); const input = (e.target as HTMLFormElement).querySelector('input'); if (input?.value) { setNewsletterSubscribed(true); input.value = ''; setTimeout(() => setNewsletterSubscribed(false), 3000); } }} className="flex flex-col sm:flex-row mb-10 gap-4 sm:gap-0">
               <label htmlFor="newsletter-email" className="sr-only">Email address for newsletter</label>
               <input id="newsletter-email" type="email" placeholder="email address" className="bg-transparent border border-[#EBE7E0]/30 px-5 py-4 text-[10px] sm:text-xs w-full sm:w-72 focus:outline-none focus:border-[#EBE7E0] transition-colors duration-300" />
-              <button aria-label="Join newsletter" className="bg-[#EBE7E0] text-[#2D2926] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#EBE7E0]/80 transition-colors">Join</button>
-            </div>
+              <button type="submit" aria-label="Join newsletter" className="bg-[#EBE7E0] text-[#2D2926] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#EBE7E0]/80 transition-colors">{newsletterSubscribed ? 'SUBSCRIBED!' : 'Join'}</button>
+            </form>
             <div className="flex gap-4" aria-label="Social media links">
               {[
                 { Icon: Facebook, url: 'https://facebook.com', label: 'Facebook' },

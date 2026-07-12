@@ -121,29 +121,28 @@ describe('UserOrders', () => {
     (globalThis as any).__testOrders = [
       { ...mockOrder, orderStatus: 'pending' },
     ];
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const toast = (await import('react-hot-toast')).default;
     renderOrders();
     fireEvent.click(screen.getByText('Cancel Order'));
+    fireEvent.click(screen.getAllByText('Cancel Order')[1]);
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Order cancelled. Stock has been restored.');
     });
   });
 
-  it('does not cancel order when confirm is refused', () => {
+  it('does not cancel order when cancel is dismissed', () => {
     (globalThis as any).__testOrders = [
       { ...mockOrder, orderStatus: 'pending' },
     ];
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
     renderOrders();
     fireEvent.click(screen.getByText('Cancel Order'));
+    fireEvent.click(screen.getByText('Keep'));
   });
 
   it('shows error toast on cancel failure', async () => {
     (globalThis as any).__testOrders = [
       { ...mockOrder, orderStatus: 'pending' },
     ];
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const toast = (await import('react-hot-toast')).default;
     vi.mocked(vi.fn()).mockRejectedValueOnce;
 
@@ -153,6 +152,7 @@ describe('UserOrders', () => {
     });
     renderOrders();
     fireEvent.click(screen.getByText('Cancel Order'));
+    fireEvent.click(screen.getAllByText('Cancel Order')[1]);
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Cancel failed');
     });

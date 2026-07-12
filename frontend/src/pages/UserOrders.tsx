@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../api/axios';
 import toast from 'react-hot-toast';
@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import SEOMeta from '../components/SEOMeta';
 
 export default function UserOrders({ isEmbedded = false }: { isEmbedded?: boolean }) {
+    const [cancelTarget, setCancelTarget] = useState<string | null>(null);
     const queryClient = useQueryClient();
 
     const { data: orders = [], isLoading } = useQuery({
@@ -193,11 +194,7 @@ export default function UserOrders({ isEmbedded = false }: { isEmbedded?: boolea
                             {/* Cancel button */}
                             {['pending', 'processing'].includes(order.orderStatus) && (
                                 <button
-                                    onClick={() => {
-                                        if (window.confirm('Cancel this order? Stock will be restored.')) {
-                                            cancelOrderMutation.mutate(order._id);
-                                        }
-                                    }}
+                                    onClick={() => setCancelTarget(order._id)}
                                     disabled={cancelOrderMutation.isPending}
                                     className="w-full text-[10px] font-bold tracking-[0.2em] uppercase border border-red-400 text-red-500 py-2.5 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
                                 >
@@ -211,12 +208,25 @@ export default function UserOrders({ isEmbedded = false }: { isEmbedded?: boolea
         </div>
     );
 
-    if (isEmbedded) return content;
+    const modal = cancelTarget ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setCancelTarget(null)}>
+            <div className="bg-[#EBE7E0] p-8 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+                <p className="text-sm mb-6">Cancel this order? Stock will be restored.</p>
+                <div className="flex gap-4 justify-end">
+                    <button onClick={() => setCancelTarget(null)} className="text-[10px] font-bold tracking-[0.2em] uppercase px-6 py-2.5 border border-[#2D2926]/20 hover:bg-[#2D2926]/5 transition-colors">Keep</button>
+                    <button onClick={() => { cancelOrderMutation.mutate(cancelTarget); setCancelTarget(null); }} className="text-[10px] font-bold tracking-[0.2em] uppercase px-6 py-2.5 bg-red-500 text-white hover:bg-red-600 transition-colors">Cancel Order</button>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
+    if (isEmbedded) return <>{content}{modal}</>;
 
     return (
         <div className="min-h-screen bg-[#EBE7E0] py-12 px-4 sm:px-8 lg:px-12">
             <SEOMeta title="My Orders" />
             <div className="max-w-3xl mx-auto">{content}</div>
+            {modal}
         </div>
     );
 }

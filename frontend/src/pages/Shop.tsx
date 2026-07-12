@@ -132,7 +132,7 @@ export default function Shop() {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-8 mb-12 border-y border-[#2D2926]/10 py-10 lg:py-8 px-2">
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-8 mb-12 border-y border-[#2D2926]/10 py-10 lg:py-8 px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full lg:w-auto">
             <div className="relative group w-full sm:min-w-[280px] lg:flex-none">
               <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2D2926]/40" />
@@ -170,7 +170,9 @@ export default function Shop() {
         </div>
 
         {isFilterOpen && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 p-5 sm:p-8 bg-white shadow-2xl border border-[#2D2926]/5 animate-in fade-in slide-in-from-top-4 duration-500">
+            <>
+            <div className="fixed inset-0 z-10 bg-[#2D2926]/20 backdrop-blur-sm" onClick={() => setIsFilterOpen(false)} />
+            <div className="relative z-20 grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 p-5 sm:p-8 bg-white shadow-2xl border border-[#2D2926]/5 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div className="space-y-6">
                     <h3 className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-40 pb-4 border-b border-[#2D2926]/5">CATEGORIES</h3>
                     <div className="flex flex-wrap gap-2">
@@ -227,6 +229,7 @@ export default function Shop() {
                     </button>
                 </div>
             </div>
+            </>
         )}
 
         <div>

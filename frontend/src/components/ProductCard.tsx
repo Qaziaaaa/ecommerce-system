@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, AlertCircle, Heart } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Product } from '../data/products';
 import { useCart } from '../store/useCartStore';
 import { useWishlistStore } from '../store/useWishlistStore';
@@ -40,7 +41,7 @@ export const ProductCard: React.FC<{ product: any; searchQuery?: string }> = Rea
         <span className="text-[10px] font-bold tracking-[0.2em] uppercase max-w-[60%] leading-relaxed">{product.isFeatured ? 'BEST SELLER' : 'ESSENTIAL'}</span>
         <div className="flex items-center gap-2">
           <button
-            onClick={(e) => { e.preventDefault(); toggleItem(product._id); }}
+            onClick={(e) => { e.preventDefault(); toggleItem(product._id); toast(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist', { icon: isWishlisted ? '💔' : '❤️', duration: 1500 }); }}
             className="w-7 h-7 rounded-full border border-[#EBE7E0] flex items-center justify-center hover:bg-red-100 hover:text-red-600 hover:border-red-300 transition-colors duration-300 ease-out"
             aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
           >

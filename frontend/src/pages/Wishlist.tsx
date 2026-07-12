@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
+import { Heart, ShoppingBag, Trash2, ArrowRight, Loader2 } from 'lucide-react';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useCart } from '../store/useCartStore';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ export default function Wishlist() {
   const { items, toggleItem } = useWishlistStore();
   const { addToCart } = useCart();
 
-  const { data: products = [] } = useQuery({
+  const { data: products = [], isLoading } = useQuery({
     queryKey: ['wishlist-products', items],
     queryFn: async () => {
       if (items.length === 0) return [];
@@ -37,8 +37,12 @@ export default function Wishlist() {
               Browse Products
             </Link>
           </div>
+        ) : isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 size={24} className="animate-spin text-[#2D2926]" />
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
             {(Array.isArray(products) ? products : []).map((product: any) => (
               <div key={product._id} className="border border-[#2D2926] bg-white group relative flex flex-col">
                 <button

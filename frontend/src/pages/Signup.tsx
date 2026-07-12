@@ -122,11 +122,15 @@ export default function Signup() {
                                 <input 
                                     type="tel" 
                                     className="w-full bg-[#EBE7E0]/50 border border-[#2D2926]/10 px-12 py-4 text-sm focus:outline-none focus:border-[#2D2926] transition-colors"
-                                    placeholder="Enter phone number"
+                                    placeholder="+1 (555) 123-4567"
                                     value={formData.phone}
-                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    onChange={(e) => {
+                                        const cleaned = e.target.value.replace(/[^\d+]/g, '');
+                                        if (cleaned.length <= 16) setFormData({...formData, phone: cleaned});
+                                    }}
                                 />
                             </div>
+                            <p className="text-[9px] opacity-40 tracking-wider">{formData.phone.length > 0 ? `${formData.phone.length} digits` : 'Optional'}</p>
                         </div>
 
                         <button 

@@ -1,8 +1,19 @@
-import React from 'react';
-import { Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, MapPin, ArrowRight, CheckCircle } from 'lucide-react';
 import SEOMeta from '../components/SEOMeta';
+import toast from 'react-hot-toast';
 
 export default function Contact() {
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSent(true);
+    toast.success('Message sent! (demo mode)');
+    (e.target as HTMLFormElement).reset();
+    setTimeout(() => setSent(false), 5000);
+  };
+
   return (
     <div className="bg-[#EBE7E0] min-h-screen text-[#2D2926] selection:bg-[#2D2926] selection:text-[#EBE7E0]">
       <SEOMeta title="Contact" />
@@ -28,7 +39,7 @@ export default function Contact() {
           {/* Contact Form */}
           <div>
             <h2 className="font-display text-3xl tracking-wide mb-12">SEND A MESSAGE</h2>
-            <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-8" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="firstName" className="text-[10px] font-bold tracking-[0.2em] uppercase">First Name</label>
@@ -82,9 +93,10 @@ export default function Contact() {
 
               <button 
                 type="submit" 
-                className="mt-8 bg-[#2D2926] text-[#EBE7E0] px-12 py-5 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-colors duration-300 ease-out flex items-center gap-3 w-full md:w-auto justify-center"
+                disabled={sent}
+                className="mt-8 bg-[#2D2926] text-[#EBE7E0] px-12 py-5 text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-[#2D2926]/90 transition-colors duration-300 ease-out flex items-center gap-3 w-full md:w-auto justify-center disabled:opacity-50"
               >
-                Send Message <ArrowRight size={14} />
+                {sent ? <>Sent! <CheckCircle size={14} /></> : <>Send Message <ArrowRight size={14} /></>}
               </button>
             </form>
           </div>

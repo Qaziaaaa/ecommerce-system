@@ -237,7 +237,17 @@ export default function ProductDetail() {
                 >
                   <Minus size={14} />
                 </button>
-                <span className="w-12 text-center text-sm font-bold">{quantity}</span>
+                <input
+                  type="number"
+                  value={quantity}
+                  min={1}
+                  max={product.stock}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    if (!isNaN(val) && val >= 1 && val <= product.stock) setQuantity(val);
+                  }}
+                  className="w-12 text-center text-sm font-bold bg-transparent border-none focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
                 <button 
                   onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
                   disabled={quantity >= product.stock}
@@ -301,10 +311,12 @@ export default function ProductDetail() {
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
                                     rows={4}
+                                    maxLength={2000}
                                     className="w-full p-4 bg-[#EBE7E0]/30 border border-[#2D2926]/20 focus:outline-none focus:border-[#2D2926] text-sm resize-none"
                                     placeholder="What did you think about this product?"
                                     required
                                 />
+                                <p className="text-[9px] opacity-40 text-right">{comment.length}/2000</p>
                             </div>
                             <button 
                                 type="submit" 
