@@ -26,7 +26,7 @@ describe('csrfProtection', () => {
 
   it('returns 403 when no token provided', () => {
     const req = { method: 'POST', headers: {}, cookies: {} };
-    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn(), cookie: vi.fn() };
     const next = vi.fn();
 
     csrf.csrfProtection(req, res, next);
@@ -34,8 +34,9 @@ describe('csrfProtection', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ csrfRetry: true }));
   });
 
-  it('calls next when valid x-xsrf-token header provided', () => {
-    const req = { method: 'POST', headers: { 'x-xsrf-token': 'a'.repeat(64) }, cookies: {} };
+  it('calls next when cookie and header match', () => {
+    const token = 'a'.repeat(64);
+    const req = { method: 'POST', headers: { 'x-xsrf-token': token }, cookies: { 'XSRF-TOKEN': token } };
     const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
     const next = vi.fn();
 
@@ -43,37 +44,41 @@ describe('csrfProtection', () => {
     expect(next).toHaveBeenCalled();
   });
 
-  it('returns 403 for invalid token format', () => {
-    const req = { method: 'POST', headers: { 'x-xsrf-token': 'not-hex' }, cookies: {} };
+  it('returns 403 when cookie and header mismatch', () => {
+    const req = { method: 'POST', headers: { 'x-xsrf-token': 'a'.repeat(64) }, cookies: { 'XSRF-TOKEN': 'b'.repeat(64) } };
     const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
     const next = vi.fn();
 
     csrf.csrfProtection(req, res, next);
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid CSRF token.' }));
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'CSRF token mismatch.' }));
   });
 
-  it('accepts token from cookie when no header', () => {
+  it('returns 403 for invalid token format', () => {
+    const token = 'not-hex';
+    const req = { method: 'POST', headers: { 'x-xsrf-token': token }, cookies: { 'XSRF-TOKEN': token } };
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+    const next = vi.fn();
+
+    csrf.csrfProtection(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid CSRF token format.' }));
+  });
+
+  it('returns 403 when cookie present but header missing', () => {
     const req = { method: 'POST', headers: {}, cookies: { 'XSRF-TOKEN': 'a'.repeat(64) } };
-    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn(), cookie: vi.fn() };
     const next = vi.fn();
 
     csrf.csrfProtection(req, res, next);
-    expect(next).toHaveBeenCalled();
-  });
-
-  it('accepts token from Bearer auth header', () => {
-    const req = { method: 'POST', headers: { authorization: `Bearer ${'b'.repeat(64)}` }, cookies: {} };
-    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
-    const next = vi.fn();
-
-    csrf.csrfProtection(req, res, next);
-    expect(next).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ csrfRetry: true }));
   });
 
   it('handles PUT and DELETE methods', () => {
+    const token = 'a'.repeat(64);
     for (const method of ['PUT', 'DELETE', 'PATCH']) {
-      const req = { method, headers: { 'x-xsrf-token': 'a'.repeat(64) }, cookies: {} };
+      const req = { method, headers: { 'x-xsrf-token': token }, cookies: { 'XSRF-TOKEN': token } };
       const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
       const next = vi.fn();
       csrf.csrfProtection(req, res, next);

@@ -137,62 +137,6 @@ export const adminLogin = async (req, res, next) => {
         email = email.toLowerCase().trim();
         password = password.trim();
 
-        // Auto-seed admin on first login if email matches ADMIN_EMAIL
-        const adminEmails = (process.env.ADMIN_EMAIL || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-        if (adminEmails.includes(email)) {
-            const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
-
-            // Always upsert: overwrite existing admin user with fresh password hash
-            // This handles the case where a previous broken pre-save hook left the
-            // user without a password or with a corrupt hash.
-            const existing = await User.findOne({ email }).select('+password');
-            if (!existing) {
-                await User.create({
-                    name: 'Admin',
-                    email,
-                    password: adminPassword,
-                    role: 'admin',
-                    isVerified: true,
-                });
-            } else {
-                existing.password = adminPassword;
-                existing.role = 'admin';
-                existing.isVerified = true;
-                await existing.save();
-            }
-
-            // Re-fetch to get fresh doc with password from pre-save hook
-            const freshUser = await User.findOne({ email }).select('+password');
-            if (!freshUser || !freshUser.password) {
-                return next(new AppError('Invalid email or password', 401));
-            }
-
-            const isMatch = await bcrypt.compare(password, freshUser.password);
-            if (!isMatch) {
-                return next(new AppError('Invalid email or password', 401));
-            }
-
-            const accessToken = generateAccessToken(freshUser._id, freshUser.role);
-            const refreshToken = generateRefreshToken(freshUser._id);
-
-            const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-            await User.findByIdAndUpdate(freshUser._id, { $set: { refreshToken: hashedRefreshToken } });
-
-            res.cookie('accessToken', accessToken, { ...getCookieOptions(), maxAge: 15 * 60 * 1000 });
-            res.cookie('refreshToken', refreshToken, getCookieOptions());
-
-            return res.status(200).json({
-                status: 'success',
-                user: {
-                    _id: freshUser._id,
-                    name: freshUser.name,
-                    email: freshUser.email,
-                    role: freshUser.role
-                }
-            });
-        }
-
-        // For non-admin emails, try normal password lookup
         const user = await User.findOne({ email }).select('+password');
         if (!user || !user.password) {
             return next(new AppError('Invalid email or password', 401));
@@ -270,7 +214,10 @@ export const updateProfile = async (req, res, next) => {
         const { name } = req.body;
         
         if (name) {
-            req.user.name = name;
+            if (typeof name !== 'string' || name.length < 2 || name.length > 100) {
+                return next(new AppError('Name must be between 2 and 100 characters', 400));
+            }
+            req.user.name = name.trim();
         }
         
         await req.user.save();

@@ -4,10 +4,10 @@ export const addToCart = async (req, res, next) => {
     try {
         const { productId, quantity } = req.body;
 
-        if (!productId || !quantity || quantity < 1) {
+        if (!productId || !quantity || quantity < 1 || quantity > 99) {
             return res.status(400).json({
                 status: 'fail',
-                message: 'Please provide a valid productId and quantity (> 0)'
+                message: 'Please provide a valid productId and quantity (1-99)'
             });
         }
 
@@ -41,10 +41,10 @@ export const updateCartItem = async (req, res, next) => {
         const { productId } = req.params;
         const { quantity } = req.body;
 
-        if (!quantity || quantity < 1) {
+        if (!quantity || quantity < 1 || quantity > 99) {
             return res.status(400).json({
                 status: 'fail',
-                message: 'Please provide a valid quantity (> 0)'
+                message: 'Please provide a valid quantity (1-99)'
             });
         }
 

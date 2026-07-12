@@ -74,8 +74,7 @@ function StripePaymentSection({
           paymentIntentId: paymentIntent.id,
           orderItems: cart.map((item: any) => ({
             product: item._id || item.id,
-            quantity: item.quantity,
-            price: item.price
+            quantity: item.quantity
           })),
           couponCode: appliedCoupon ? appliedCoupon.code : undefined,
           orderId: orderId,
@@ -212,8 +211,7 @@ export default function Checkout() {
           const { data } = await axiosInstance.post('/orders/create-payment-intent', {
             orderItems: cart.map((item: any) => ({
               product: item._id || item.id,
-              quantity: item.quantity,
-              price: item.price
+              quantity: item.quantity
             })),
             couponCode: appliedCoupon?.code
           });
@@ -275,11 +273,9 @@ export default function Checkout() {
         paymentMethod: 'COD',
         orderItems: cart.map((item: any) => ({
           product: item._id || item.id,
-          quantity: item.quantity,
-          price: item.price
+          quantity: item.quantity
         })),
         couponCode: appliedCoupon ? appliedCoupon.code : undefined,
-        totalAmount: finalTotal
       };
 
       await axiosInstance.post('/orders/checkout', orderData);

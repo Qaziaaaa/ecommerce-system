@@ -6,6 +6,20 @@ vi.mock('react-dom/client', () => ({
 
 vi.mock('./App', () => ({ default: () => null }));
 
+vi.mock('@sentry/react', () => ({
+  default: { init: vi.fn() },
+  reactRouterV6BrowserTracingIntegration: vi.fn(() => ({})),
+}));
+
+vi.mock('./api/axios', () => ({
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+    interceptors: { request: { use: vi.fn() }, response: { use: vi.fn() } },
+    defaults: {},
+  },
+}));
+
 describe('main entry point', () => {
   beforeEach(() => {
     while (document.body.firstChild) document.body.removeChild(document.body.firstChild);
@@ -18,5 +32,5 @@ describe('main entry point', () => {
     const { createRoot } = await import('react-dom/client');
     await import('./main');
     expect(createRoot).toHaveBeenCalledWith(rootEl);
-  });
+  }, 10000);
 });

@@ -7,7 +7,9 @@ import logger from '../utils/logger.js';
 const handleCastError = (err) => ({
   statusCode: 400,
   status: 'fail',
-  message: `Invalid ${err.path}: ${err.value}`,
+  message: process.env.NODE_ENV === 'production'
+    ? 'Invalid resource identifier'
+    : `Invalid ${err.path}: ${err.value}`,
   code: 'INVALID_ID',
 });
 
@@ -17,7 +19,9 @@ const handleDuplicateFields = (err) => {
   return {
     statusCode: 409,
     status: 'fail',
-    message: `Duplicate value for ${field}: "${value}". Please use a different value.`,
+    message: process.env.NODE_ENV === 'production'
+      ? 'A resource with that value already exists'
+      : `Duplicate value for ${field}: "${value}". Please use a different value.`,
     code: 'DUPLICATE_FIELD',
   };
 };

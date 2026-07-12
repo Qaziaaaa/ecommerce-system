@@ -27,7 +27,6 @@ const setTokenCookie = (res) => {
     // The browser will automatically set the cookie for the current domain
     
     res.cookie('XSRF-TOKEN', token, cookieOptions);
-    console.log(`🔒 CSRF token set: ${token.substring(0, 8)}... (${isProd() ? 'PROD' : 'DEV'})`);
     return token;
 };
 
@@ -37,21 +36,11 @@ export const csrfProtection = (req, res, next) => {
         return next();
     }
 
-    const authHeader = req.headers.authorization;
     const headerToken = req.headers['x-xsrf-token'];
     const cookieToken = req.cookies['XSRF-TOKEN'];
 
-    let token = null;
-
-    if (headerToken) {
-        token = headerToken;
-    } else if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-    } else if (cookieToken) {
-        token = cookieToken;
-    }
-
-    if (!token) {
+    if (!cookieToken || !headerToken) {
+        setTokenCookie(res);
         return res.status(403).json({ 
             status: 'fail', 
             message: 'CSRF token missing. Please refresh the page and try again.',
@@ -59,8 +48,12 @@ export const csrfProtection = (req, res, next) => {
         });
     }
 
-    if (!/^[a-f0-9]{64}$/i.test(token)) {
-        return res.status(403).json({ status: 'fail', message: 'Invalid CSRF token.' });
+    if (cookieToken !== headerToken) {
+        return res.status(403).json({ status: 'fail', message: 'CSRF token mismatch.' });
+    }
+
+    if (!/^[a-f0-9]{64}$/i.test(cookieToken)) {
+        return res.status(403).json({ status: 'fail', message: 'Invalid CSRF token format.' });
     }
 
     next();

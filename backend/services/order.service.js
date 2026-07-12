@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Product from '../models/Product.js';
 import Coupon from '../models/Coupon.js';
 import logger from '../utils/logger.js';
+import { parsePaginationParams } from './pagination.service.js';
 
 async function withTransaction(fn) {
   let session;
@@ -289,8 +290,8 @@ export const updateOrderStatusService = async (orderId, newStatus) => {
     return order;
 };
 
-export const getAllOrdersService = async ({ page = 1, limit = 20 } = {}) => {
-    const skip = (page - 1) * limit;
+export const getAllOrdersService = async (query = {}) => {
+    const { page, limit, skip } = parsePaginationParams(query);
     const [orders, total] = await Promise.all([
         Order.find().populate('user', 'name email').sort('-createdAt').skip(skip).limit(limit),
         Order.countDocuments()

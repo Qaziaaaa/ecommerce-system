@@ -48,8 +48,7 @@ router.post('/', protect, isAdmin, (req, res) => {
             logger.error('MULTER/CLOUDINARY UPLOAD ERROR:', err);
             return res.status(400).json({
                 status: 'error',
-                message: 'Image upload failed',
-                details: err.message
+                message: 'Image upload failed'
             });
         }
 
@@ -70,8 +69,7 @@ router.post('/', protect, isAdmin, (req, res) => {
             logger.error('POST-UPLOAD ERROR:', error);
             res.status(500).json({
                 status: 'error',
-                message: 'Internal error after upload',
-                details: error.message
+                message: 'Internal error after upload'
             });
         }
     });

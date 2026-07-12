@@ -47,7 +47,7 @@ const { mockWebhookRouter, mockMainRouter } = vi.hoisted(() => {
 });
 vi.mock('./routes/index.js', () => ({ default: mockMainRouter }));
 vi.mock('./routes/webhook.routes.js', () => ({ default: mockWebhookRouter }));
-vi.mock('./middlewares/csrf.middleware.js', () => ({ csrfProtection: (req, res, next) => next(), setTokenCookie: vi.fn() }));
+vi.mock('./middlewares/csrf.middleware.js', () => ({ csrfProtection: (req, res, next) => next(), setTokenCookie: vi.fn(() => 'mock-csrf-token') }));
 
 describe('App', () => {
   let app;

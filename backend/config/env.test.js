@@ -29,6 +29,7 @@ describe('validateEnv', () => {
     process.env.EMAILJS_PUBLIC_KEY = 'pk';
     process.env.EMAILJS_PRIVATE_KEY = 'pv';
     process.env.CORS_ORIGIN = '*';
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
     expect(() => validateEnv()).not.toThrow();
   });
 

@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import OTP from '../models/OTP.js';
 import { generateOTP, hashOTP } from '../utils/otp.util.js';
 
@@ -43,8 +44,10 @@ export const verifyOTP = async (email, providedOtp) => {
 
     const hashedOtp = hashOTP(providedOtp);
 
-    // Check if hashes match
-    if (otpRecord.otp !== hashedOtp) {
+    // Check if hashes match (constant-time comparison to prevent timing attacks)
+    const a = Buffer.from(otpRecord.otp);
+    const b = Buffer.from(hashedOtp);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
         // Increment attempts
         otpRecord.attempts += 1;
         await otpRecord.save();

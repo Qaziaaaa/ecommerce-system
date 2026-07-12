@@ -34,7 +34,7 @@ describe('applyCoupon', () => {
 
   it('returns 404 if coupon not found', async () => {
     const { req, res, next } = mockReqRes();
-    req.body = { code: 'INVALID' };
+    req.body = { code: 'INVALID', cartTotal: 100 };
     Coupon.findOne.mockResolvedValue(null);
     await controller.applyCoupon(req, res, next);
     expect(res.status).toHaveBeenCalledWith(404);

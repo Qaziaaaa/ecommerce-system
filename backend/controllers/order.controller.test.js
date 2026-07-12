@@ -25,10 +25,17 @@ vi.mock('../services/audit.service.js', () => ({ logAuditAction: vi.fn() }));
 
 vi.mock('stripe', () => ({ default: vi.fn() }));
 
+vi.mock('../models/Order.js', () => ({
+  default: {
+    findOne: vi.fn(),
+    findById: vi.fn(),
+  },
+}));
+
 const mockLogger = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
 vi.mock('../utils/logger.js', () => ({ default: mockLogger }));
 
-let orderService, controller, mockStripe, CircuitOpenError;
+let orderService, controller, mockStripe, CircuitOpenError, mockOrderModel;
 
 beforeEach(async () => {
   vi.clearAllMocks();
@@ -88,6 +95,8 @@ describe('cancelPaymentIntent', () => {
   it('cancels a payment intent', async () => {
     const { req, res, next } = mockReqRes();
     req.body = { paymentIntentId: 'pi_1' };
+    const Order = (await import('../models/Order.js')).default;
+    Order.findOne.mockResolvedValue({ _id: 'o1', stripePaymentIntentId: 'pi_1', user: 'u1' });
     mockStripe.paymentIntents.cancel.mockResolvedValue({});
     await controller.cancelPaymentIntent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);

@@ -4,8 +4,12 @@ export const applyCoupon = async (req, res, next) => {
     try {
         const { code, cartTotal } = req.body;
 
-        if (!code) {
-            return res.status(400).json({ status: 'error', message: 'Please provide a coupon code' });
+        if (!code || typeof code !== 'string' || code.length > 50) {
+            return res.status(400).json({ status: 'error', message: 'Please provide a valid coupon code' });
+        }
+
+        if (cartTotal == null || typeof cartTotal !== 'number' || cartTotal < 0 || !Number.isFinite(cartTotal)) {
+            return res.status(400).json({ status: 'error', message: 'cartTotal must be a valid positive number' });
         }
 
         const coupon = await Coupon.findOne({
@@ -46,10 +50,10 @@ export const applyCoupon = async (req, res, next) => {
             status: 'success',
             message: 'Coupon applied successfully',
             data: {
-                coupon: {
-                    ...coupon.toObject(),
-                    calculatedDiscount: discountAmount
-                }
+                discountAmount,
+                discountType: coupon.discountType,
+                discountValue: coupon.discountValue,
+                code: coupon.code
             }
         });
     } catch (error) {

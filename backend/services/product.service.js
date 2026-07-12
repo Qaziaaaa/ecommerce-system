@@ -33,10 +33,20 @@ export const searchProductsTypeahead = async (searchTerm, limit = 8) => {
   }));
 };
 
+const ALLOWED_PRODUCT_FIELDS = ['name', 'slug', 'description', 'price', 'discountPrice', 'category', 'brand', 'images', 'stock', 'isFeatured', 'isActive'];
+
+const pick = (obj, keys) => {
+    const result = {};
+    for (const key of keys) {
+        if (obj[key] !== undefined) result[key] = obj[key];
+    }
+    return result;
+};
+
 export const createProductService = async (productData) => {
-    // Basic slug generation if not provided (though good practice is to handle it in a pre-save hook, we do it here for simplicity or assume front-end sends it)
-    if (!productData.slug && productData.name) {
-        productData.slug = productData.name
+    const data = pick(productData, ALLOWED_PRODUCT_FIELDS);
+    if (!data.slug && data.name) {
+        data.slug = data.name
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .toLowerCase()
@@ -45,7 +55,7 @@ export const createProductService = async (productData) => {
             .replace(/[\s-]+/g, '-')
             .replace(/^-+|-+$/g, '');
     }
-    const product = await Product.create(productData);
+    const product = await Product.create(data);
     return product;
 };
 
@@ -109,17 +119,16 @@ export const getAllProductsService = async (queryParams, user) => {
     }
 
     // 3. Advanced Sorting
-    if (queryParams.sort) {
-        const sortMap = {
-            'price-asc': 'price',
-            'price-desc': '-price',
-            'newest': '-createdAt',
-            'oldest': 'createdAt',
-            'name-asc': 'name',
-            'name-desc': '-name'
-        };
-        const sortBy = sortMap[queryParams.sort] || queryParams.sort.split(',').join(' ');
-        query = query.sort(sortBy);
+    const sortMap = {
+        'price-asc': 'price',
+        'price-desc': '-price',
+        'newest': '-createdAt',
+        'oldest': 'createdAt',
+        'name-asc': 'name',
+        'name-desc': '-name'
+    };
+    if (queryParams.sort && sortMap[queryParams.sort]) {
+        query = query.sort(sortMap[queryParams.sort]);
     } else {
         query = query.sort('-createdAt');
     }
@@ -170,14 +179,18 @@ export const getProductByIdService = async (id, user) => {
  * @returns {Promise<Object>}
  */
 export const updateProductService = async (id, updateData) => {
+    let data = { ...updateData };
+
     // If the frontend sends 'image' instead of 'images', handle it
-    if (updateData.image && !updateData.images) {
-        updateData.images = [updateData.image];
-        delete updateData.image;
+    if (data.image && !data.images) {
+        data.images = [data.image];
+        delete data.image;
     }
 
-    if (updateData.name && !updateData.slug) {
-        updateData.slug = updateData.name
+    data = pick(data, ALLOWED_PRODUCT_FIELDS);
+
+    if (data.name && !data.slug) {
+        data.slug = data.name
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .toLowerCase()
@@ -187,7 +200,7 @@ export const updateProductService = async (id, updateData) => {
             .replace(/^-+|-+$/g, '');
     }
 
-    const product = await Product.findByIdAndUpdate(id, updateData, {
+    const product = await Product.findByIdAndUpdate(id, data, {
         new: true,
         runValidators: true,
         context: 'query'

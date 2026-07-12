@@ -1,5 +1,6 @@
 import express from 'express';
 import { protect } from '../middlewares/auth.middleware.js';
+import { noCacheMiddleware } from '../middlewares/cache.middleware.js';
 import {
     addToCart,
     getCart,
@@ -55,7 +56,7 @@ router.use(protect);
  *         description: Not authenticated
  */
 router.route('/')
-    .get(getCart)
+    .get(noCacheMiddleware, getCart)
     .post(addToCart);
 
 // Sync localStorage cart to server (called on login)

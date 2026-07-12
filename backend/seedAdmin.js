@@ -21,7 +21,7 @@ async function seedAdmin() {
             existing.role = 'admin';
             existing.isVerified = true;
             await existing.save();
-            console.log(`Admin updated: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+            console.log(`Admin updated: ${ADMIN_EMAIL}`);
         } else {
             await User.create({
                 name: 'Admin',
@@ -30,7 +30,7 @@ async function seedAdmin() {
                 role: 'admin',
                 isVerified: true,
             });
-            console.log(`Admin created: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+            console.log(`Admin created: ${ADMIN_EMAIL}`);
         }
 
         process.exit(0);

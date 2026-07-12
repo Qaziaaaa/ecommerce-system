@@ -69,13 +69,34 @@ const PerformanceTracker = () => {
   return null;
 };
 
-// Protected Route for Admin
+// Protected Route for Admin — verifies role server-side
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-    const { user, isAuthenticated } = useAuthStore();
+    const { isAuthenticated } = useAuthStore();
     const location = useLocation();
-    if (!isAuthenticated || user?.role !== 'admin') {
+    const [serverRole, setServerRole] = React.useState<'loading' | string | null>('loading');
+
+    useEffect(() => {
+        let cancelled = false;
+        axiosInstance.get('/auth/profile').then(res => {
+            if (!cancelled) setServerRole(res.data.user?.role || null);
+        }).catch(() => {
+            if (!cancelled) setServerRole(null);
+        });
+        return () => { cancelled = true; };
+    }, []);
+
+    if (!isAuthenticated) {
         return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
     }
+
+    if (serverRole === 'loading') {
+        return <div className="min-h-screen flex items-center justify-center bg-[#EBE7E0]"><div className="w-10 h-10 border-2 border-[#2D2926]/10 border-t-[#2D2926] rounded-full animate-spin" /></div>;
+    }
+
+    if (serverRole !== 'admin') {
+        return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+    }
+
     return <>{children}</>;
 };
 

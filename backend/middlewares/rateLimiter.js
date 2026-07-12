@@ -99,6 +99,8 @@ export const authLimiter = rateLimit({
             retryAfter: Math.ceil(options.windowMs / 1000),
         });
     },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 
 // High-security limiter for OTP generation
@@ -110,7 +112,9 @@ export const otpSendLimiter = rateLimit({
         status: 'fail',
         message: 'Too many OTP requests. Please wait a minute before trying again.',
         code: 'OTP_RATE_LIMIT_EXCEEDED',
-    }
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 
 // Critical limiter for OTP verification
@@ -122,5 +126,7 @@ export const otpVerifyLimiter = rateLimit({
         status: 'fail',
         message: 'Too many failed attempts. Please wait a minute.',
         code: 'OTP_VERIFY_RATE_LIMIT_EXCEEDED',
-    }
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
 });

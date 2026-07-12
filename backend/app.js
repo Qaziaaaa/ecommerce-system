@@ -104,14 +104,16 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // Request ID Middleware (must be before all route handlers)
 app.use(requestIdMiddleware);
 
-// API Documentation
-app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customSiteTitle: 'Nova E-Commerce API Docs',
-  customfavIcon: '',
-}));
+// API Documentation (disabled in production — prevents schema leakage)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: 'Nova E-Commerce API Docs',
+    customfavIcon: '',
+  }));
 
-// Redirect /api-docs to /api/v1/docs
-app.get('/api-docs', (req, res) => res.redirect('/api/v1/docs'));
+  // Redirect /api-docs to /api/v1/docs
+  app.get('/api-docs', (req, res) => res.redirect('/api/v1/docs'));
+}
 
 // Performance Monitoring Middleware
 app.use(performanceMiddleware);
@@ -122,10 +124,10 @@ app.use(errorRateMiddleware);
 
 // 1. CSRF Bootstrap (MUST be before protection middleware)
 app.get('/api/v1/csrf-token', (req, res) => {
-    const token = crypto.randomBytes(32).toString('hex');
+    const token = setTokenCookie(res);
     res.json({ 
         status: 'success', 
-        token: token,
+        token,
         message: 'CSRF token generated'
     });
 });

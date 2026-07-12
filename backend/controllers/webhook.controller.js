@@ -56,7 +56,7 @@ export const handleStripeWebhook = async (req, res) => {
         );
     } catch (err) {
         logger.error(`Webhook Signature Verification Failed: ${err.message}`);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
+        return res.status(400).send('Webhook Error: Invalid signature');
     }
 
     const intent = event.data.object;

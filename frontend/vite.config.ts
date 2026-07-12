@@ -22,9 +22,6 @@ export default defineConfig(({mode}) => {
         template: 'treemap', // 'treemap', 'sunburst', 'network'
       })
     ].filter(Boolean),
-    define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

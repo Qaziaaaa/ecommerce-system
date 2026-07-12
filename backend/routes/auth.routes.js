@@ -13,6 +13,7 @@ import {
     adminLogin
 } from '../controllers/auth.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
+import { noCacheMiddleware } from '../middlewares/cache.middleware.js';
 import { signupSchema, loginSchema, verifyOtpSchema, validate } from '../middlewares/validation.middleware.js';
 import { otpSendLimiter, otpVerifyLimiter, authLimiter } from '../middlewares/rateLimiter.js';
 
@@ -203,7 +204,7 @@ router.post('/refresh', authLimiter, refreshToken);
  *       401:
  *         description: Not authenticated
  */
-router.get('/profile', protect, getProfile);
+router.get('/profile', protect, noCacheMiddleware, getProfile);
 
 /**
  * @openapi
@@ -227,7 +228,7 @@ router.get('/profile', protect, getProfile);
  *       401:
  *         description: Not authenticated
  */
-router.put('/profile', protect, updateProfile);
+router.put('/profile', protect, noCacheMiddleware, updateProfile);
 
 /**
  * @openapi

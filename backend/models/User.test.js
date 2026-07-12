@@ -30,12 +30,12 @@ describe('User Model', () => {
       expect(path.options.lowercase).toBe(true);
     });
 
-    it('should have password field with select false and minlength', () => {
+    it('should have password field with select false and complexity validation', () => {
       const path = User.schema.paths.password;
       expect(path).toBeDefined();
       expect(path.instance).toBe('String');
       expect(path.options.select).toBe(false);
-      expect(path.options.minlength[0]).toBe(6);
+      expect(path.options.validate).toBeDefined();
     });
 
     it('should have role field with default user and enum', () => {
@@ -99,8 +99,8 @@ describe('User Model', () => {
       expect(err.errors.email).toBeDefined();
     });
 
-    it('should fail if password is less than 6 characters', () => {
-      const user = new User({ name: 'Test', email: 'test@test.com', password: '12345' });
+    it('should fail if password is less than 8 characters', () => {
+      const user = new User({ name: 'Test', email: 'test@test.com', password: 'Short1' });
       const err = user.validateSync();
       expect(err.errors.password).toBeDefined();
     });
@@ -128,7 +128,7 @@ describe('User Model', () => {
     it('should hash password when password is modified', async () => {
       mockHash.mockResolvedValue('hashed_pass');
 
-      const user = new User({ name: 'Test', email: 'test@test.com', password: '123456' });
+      const user = new User({ name: 'Test', email: 'test@test.com', password: 'Password1' });
       user.isModified = vi.fn().mockReturnValue(true);
 
       const saveHooks = User.schema.s.hooks._pres.get('save') || [];
@@ -137,12 +137,12 @@ describe('User Model', () => {
       }
 
       expect(saveHooks.length).toBeGreaterThan(0);
-      expect(mockHash).toHaveBeenCalledWith('123456', 12);
+      expect(mockHash).toHaveBeenCalledWith('Password1', 12);
       expect(user.password).toBe('hashed_pass');
     });
 
     it('should not hash password if it is not modified', async () => {
-      const user = new User({ name: 'Test', email: 'test@test.com', password: '123456' });
+      const user = new User({ name: 'Test', email: 'test@test.com', password: 'Password1' });
       user.isModified = vi.fn().mockReturnValue(false);
 
       const saveHooks = User.schema.s.hooks._pres.get('save') || [];

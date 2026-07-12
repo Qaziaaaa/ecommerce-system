@@ -91,37 +91,28 @@ describe('request interceptor', () => {
     expect(result.headers['X-XSRF-TOKEN']).toBeUndefined();
   });
 
-  it('adds CSRF token for non-GET requests when token is in localStorage', async () => {
-    localStorage.setItem('csrf-token', 'test-csrf-token');
+  it('adds CSRF token for non-GET requests when token is in cookie', async () => {
+    document.cookie = 'XSRF-TOKEN=test-csrf-token';
     const config: any = { method: 'post', url: '/orders', headers: {} };
     const result = await reqFulfilled(config);
     expect(result.headers['X-XSRF-TOKEN']).toBe('test-csrf-token');
-    localStorage.removeItem('csrf-token');
+    document.cookie = 'XSRF-TOKEN=; max-age=0';
   });
 
-  it('fetches CSRF token from server when not in localStorage', async () => {
-    mockAxiosGet.mockResolvedValueOnce({ data: { token: 'server-csrf-token' } });
-
+  it('skips CSRF token when not in cookie', async () => {
     const config: any = { method: 'post', url: '/orders', headers: {} };
     const result = await reqFulfilled(config);
-
-    expect(mockAxiosGet).toHaveBeenCalledWith(
-      'http://localhost:5001/api/v1/csrf-token',
-      { withCredentials: true }
-    );
-    expect(result.headers['X-XSRF-TOKEN']).toBe('server-csrf-token');
-    expect(localStorage.getItem('csrf-token')).toBe('server-csrf-token');
-    localStorage.removeItem('csrf-token');
+    expect(result.headers['X-XSRF-TOKEN']).toBeUndefined();
   });
 
   it('removes Content-Type header for FormData requests with CSRF token', async () => {
-    localStorage.setItem('csrf-token', 'form-csrf');
+    document.cookie = 'XSRF-TOKEN=form-csrf';
     const formData = new FormData();
     const config: any = { method: 'post', url: '/upload', headers: { 'Content-Type': 'multipart/form-data' }, data: formData };
     const result = await reqFulfilled(config);
     expect(result.headers['Content-Type']).toBeUndefined();
     expect(result.headers['X-XSRF-TOKEN']).toBe('form-csrf');
-    localStorage.removeItem('csrf-token');
+    document.cookie = 'XSRF-TOKEN=; max-age=0';
   });
 
   it('request rejected handler rejects with error', async () => {
@@ -198,8 +189,10 @@ describe('response interceptor', () => {
   });
 
   it('handles 403 CSRF retry when csrfRetry flag is set', async () => {
-    localStorage.setItem('csrf-token', 'stale-token');
-    mockAxiosGet.mockResolvedValueOnce({ data: { token: 'fresh-token' } });
+    mockAxiosGet.mockImplementationOnce(() => {
+      document.cookie = 'XSRF-TOKEN=fresh-token';
+      return Promise.resolve({ data: { token: 'fresh-token' } });
+    });
 
     const config: any = { url: '/api/data', method: 'post', headers: {}, metadata: { startTime: performance.now() } };
     const error: any = new Error('csrf error');
@@ -213,8 +206,7 @@ describe('response interceptor', () => {
     await expect(promise).rejects.toThrow();
     expect(mockAxiosGet).toHaveBeenCalled();
     expect(config.headers['X-XSRF-TOKEN']).toBe('fresh-token');
-
-    localStorage.removeItem('csrf-token');
+    document.cookie = 'XSRF-TOKEN=; max-age=0';
   });
 
   it('does not CSRF retry if _csrfRetry already set', async () => {

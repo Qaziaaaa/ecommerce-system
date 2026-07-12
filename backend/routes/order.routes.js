@@ -2,6 +2,7 @@ import express from 'express';
 import { protect } from '../middlewares/auth.middleware.js';
 import { isAdmin } from '../middlewares/role.middleware.js';
 import { orderLimiter, userApiLimiter } from '../middlewares/rateLimiter.js';
+import { noCacheMiddleware } from '../middlewares/cache.middleware.js';
 import {
     checkoutOrder,
     getMyOrders,
@@ -148,7 +149,7 @@ router.post('/cancel-payment-intent', userApiLimiter, cancelPaymentIntent);
  *       401:
  *         description: Not authenticated
  */
-router.get('/my-orders', getMyOrders);
+router.get('/my-orders', noCacheMiddleware, getMyOrders);
 
 /**
  * @openapi
@@ -191,7 +192,7 @@ router.get('/my-orders', getMyOrders);
  *       401:
  *         description: Not authenticated
  */
-router.get('/:id', getSingleOrder);
+router.get('/:id', noCacheMiddleware, getSingleOrder);
 router.delete('/:id', deleteOrder);
 
 /**

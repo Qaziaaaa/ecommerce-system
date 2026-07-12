@@ -65,6 +65,14 @@ export const cancelPaymentIntent = async (req, res, next) => {
         if (!paymentIntentId) {
             return res.status(400).json({ status: 'fail', message: 'Payment Intent ID is required' });
         }
+
+        const order = await (await import('../models/Order.js')).default.findOne({
+            stripePaymentIntentId: paymentIntentId,
+            user: req.user._id
+        });
+        if (!order) {
+            return next(new AppError('Payment intent not found or does not belong to you', 404));
+        }
         
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -196,8 +204,7 @@ export const updateOrderStatus = async (req, res, next) => {
 
 export const getAllOrders = async (req, res, next) => {
     try {
-        const { page, limit } = req.query;
-        const result = await orderService.getAllOrdersService({ page, limit });
+        const result = await orderService.getAllOrdersService(req.query);
 
         res.status(200).json({
             status: 'success',

@@ -174,18 +174,14 @@ describe('logout', () => {
 describe('adminLogin', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
-  it('logs in as admin with matching ADMIN_EMAIL', async () => {
-    process.env.ADMIN_EMAIL = 'admin@store.com';
-    process.env.ADMIN_PASSWORD = 'Admin@123';
+  it('logs in as admin with matching credentials', async () => {
     const req = mockReq({ body: { email: 'admin@store.com', password: 'Admin@123' } });
     const res = mockRes();
     const next = vi.fn();
 
     const selectMock = vi.fn()
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({ _id: 'a1', name: 'Admin', email: 'admin@store.com', role: 'admin', password: 'hashed' });
+      .mockResolvedValue({ _id: 'a1', name: 'Admin', email: 'admin@store.com', role: 'admin', password: 'hashed' });
     User.findOne = vi.fn(() => ({ select: selectMock }));
-    User.create = vi.fn().mockResolvedValue({ _id: 'a1', name: 'Admin', email: 'admin@store.com', role: 'admin', password: 'hashed' });
     User.findByIdAndUpdate = vi.fn().mockResolvedValue();
 
     bcrypt.compare.mockResolvedValue(true);

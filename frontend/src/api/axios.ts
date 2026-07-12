@@ -53,18 +53,11 @@ const processQueue = (error: any) => {
 };
 
 // ─── CSRF token helper ────────────────────────────────────────────────────────
-const getCsrfToken = async (): Promise<string | null> => {
-    let token = localStorage.getItem('csrf-token');
-    if (token) return token;
-
-    try {
-        const res = await axios.get(`${API_URL}/csrf-token`, { withCredentials: true });
-        if (res.data?.token) {
-            localStorage.setItem('csrf-token', res.data.token);
-            return res.data.token;
-        }
-    } catch {
-        // Silent — CSRF fetch failure is non-fatal for GET requests
+const getCsrfToken = (): string | null => {
+    const cookies = document.cookie.split('; ');
+    for (const cookie of cookies) {
+        const [name, value] = cookie.split('=');
+        if (name === 'XSRF-TOKEN') return value;
     }
     return null;
 };
@@ -79,7 +72,7 @@ axiosInstance.interceptors.request.use(
             return config;
         }
 
-        const token = await getCsrfToken();
+        const token = getCsrfToken();
 
         if (token) {
             if (config.data instanceof FormData) {
@@ -138,10 +131,14 @@ axiosInstance.interceptors.response.use(
             !originalRequest._csrfRetry
         ) {
             originalRequest._csrfRetry = true;
-            localStorage.removeItem('csrf-token'); // Force fresh token
-            const newToken = await getCsrfToken();
-            if (newToken) {
-                originalRequest.headers['X-XSRF-TOKEN'] = newToken;
+            try {
+                await axios.get(`${API_URL}/csrf-token`, { withCredentials: true });
+                const newToken = getCsrfToken();
+                if (newToken) {
+                    originalRequest.headers['X-XSRF-TOKEN'] = newToken;
+                }
+            } catch {
+                // Silently continue with retry
             }
             return axiosInstance(originalRequest);
         }
