@@ -2,7 +2,7 @@
 
 A full-stack e-commerce application built with React, Node.js, MongoDB, and Stripe. Features a complete shopping experience with product catalog, cart, checkout, order tracking, admin panel, and OTP-based passwordless authentication.
 
-**Live Demo:** [ecommerce-store-one-ochre.vercel.app](https://ecommerce-store-one-ochre.vercel.app)
+**Live Demo:** [nova-ecomm.vercel.app](https://nova-ecomm.vercel.app)
 
 ---
 
