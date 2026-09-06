@@ -56,3 +56,4 @@ frontend/lint_output.txt
 frontend/metadata.json
 backend/test-*.js
 backend/verify-*.js
+.vercel
