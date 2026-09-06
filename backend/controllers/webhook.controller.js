@@ -44,6 +44,11 @@ async function withTransaction(fn) {
 }
 
 export const handleStripeWebhook = async (req, res) => {
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+        logger.warn('STRIPE_WEBHOOK_SECRET is not configured — webhook processing disabled');
+        return res.status(503).json({ error: 'Webhook processing not configured' });
+    }
+
     const sig = req.headers['stripe-signature'];
     let event;
 

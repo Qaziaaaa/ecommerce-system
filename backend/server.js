@@ -135,16 +135,23 @@ connectWithRetry()
 /**
  * 🛡️ GRACEFUL SHUTDOWN LOGIC
  */
-const shutdown = (signal) => {
+let isShuttingDown = false;
+
+const shutdown = async (signal) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     logger.info(`${signal} received. Starting graceful shutdown...`);
     
     if (server) {
-        server.close(() => {
+        server.close(async () => {
             logger.info('🛑 HTTP server closed.');
-            mongoose.connection.close(false, () => {
+            try {
+                await mongoose.connection.close();
                 logger.info('📦 MongoDB connection closed.');
-                process.exit(0);
-            });
+            } catch {
+                logger.warn('Error closing MongoDB connection');
+            }
+            process.exit(0);
         });
     } else {
         process.exit(0);

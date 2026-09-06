@@ -27,7 +27,7 @@ export const searchProductsTypeahead = async (searchTerm, limit = 8) => {
     _id: p._id,
     name: p.name,
     price: p.price,
-    image: p.images?.[0]?.url || null,
+    image: p.images?.[0] || null,
     slug: p.slug,
     brand: p.brand,
   }));

@@ -15,7 +15,6 @@ export const validateEnv = () => {
         'EMAILJS_PUBLIC_KEY',
         'EMAILJS_PRIVATE_KEY',
         'CORS_ORIGIN',
-        'STRIPE_WEBHOOK_SECRET',
     ];
 
     const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
